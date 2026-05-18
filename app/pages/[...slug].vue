@@ -1,57 +1,24 @@
-<script lang="ts">
-const data = {
-  '/': {
-    list: true,
-    title: 'Home',
-    description: 'Home page',
-  },
-  '/about': {
-    list: true,
-    title: 'About',
-    description: 'About page',
-  },
-  '/contact': {
-    list: true,
-    title: 'Contact',
-    description: 'Contact page',
-  },
-  '/404': {
-    list: false,
-    title: '404',
-    description: '404 page',
-  },
-} as const
-
-function isKeyOfData(key: string): key is keyof typeof data {
-  return key in data
-}
-</script>
-
 <script setup lang="ts">
+import type { FieldRow } from '~/types/cms'
+import { usePageContent } from '~/composables/usePageContent'
+import { usePageList } from '~/composables/usePageList'
+import { resolveTemplateComponent } from '~/composables/useTemplate'
+import { normalizeSlug } from '~/utils/slug'
+
 const route = useRoute()
 const { loggedIn } = useAuth()
 
-/**
- * Fetches page content. Runs at build time during `nuxt generate` and on the server for SSR.
- */
-function fetchPageData(
-  path: string,
-): Promise<{ title: string; description: string }> {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(isKeyOfData(path) ? data[path] : data['/404'])
-    }, 1000)
-  })
-}
+const slug = computed(() => normalizeSlug(route.path))
 
 const {
   data: content,
   status,
   refresh,
 } = await useAsyncData(
-  () => `page:${route.path}`,
-  () => fetchPageData(route.path),
+  () => `page:${slug.value}`,
+  () => usePageContent(slug.value),
   {
+    watch: [slug],
     getCachedData(key, nuxtApp) {
       if (loggedIn.value) {
         return undefined
@@ -61,6 +28,28 @@ const {
   },
 )
 
+const { data: pageList } = await useAsyncData('page-list', () => usePageList())
+
+const templateComponent = computed(() => {
+  if (!content.value) return null
+  return resolveTemplateComponent(content.value.template.key)
+})
+
+/**
+ * Patches a field in local state after save from the editor modal.
+ */
+function onFieldUpdated(updated: FieldRow) {
+  if (!content.value) return
+  const index = content.value.fields.findIndex((f) => f.id === updated.id)
+  if (index >= 0) {
+    content.value.fields[index] = updated
+  }
+  content.value.fieldsById[updated.id] = updated
+  if (updated.parent_id === null) {
+    content.value.fieldsByName[updated.name] = updated
+  }
+}
+
 watch(loggedIn, () => {
   refresh()
 })
@@ -68,22 +57,39 @@ watch(loggedIn, () => {
 
 <template>
   <nav>
-    <!-- for each key in data, create a NuxtLink -->
     <NuxtLink
-      v-for="[key, value] in Object.entries(data).filter(
-        ([key, value]) => value.list,
-      )"
-      :key="key"
-      :to="key"
-      :class="{ 'router-link-active': route.path === key }"
+      v-for="page in pageList"
+      :key="page.slug"
+      :to="page.slug"
+      :class="{ 'router-link-active': route.path === page.slug }"
     >
-      {{ value.title }}
+      {{ page.title ?? page.slug }}
     </NuxtLink>
     <NuxtLink to="/login">Login</NuxtLink>
   </nav>
+
   <div v-if="status === 'pending'">Loading...</div>
+
+  <div v-else-if="!content">
+    <h1>404</h1>
+    <p>Page not found.</p>
+  </div>
+
+  <PageEditorProvider
+    v-else-if="templateComponent"
+    :enabled="loggedIn"
+    :fields="content.fields"
+    :fields-by-id="content.fieldsById"
+    :fields-by-name="content.fieldsByName"
+    @field-updated="onFieldUpdated"
+  >
+    <component
+      :is="templateComponent"
+      :fields="content.fields"
+    />
+  </PageEditorProvider>
+
   <div v-else>
-    <h1>{{ content?.title }}</h1>
-    <p>{{ content?.description }}</p>
+    <p>Unknown template.</p>
   </div>
 </template>
