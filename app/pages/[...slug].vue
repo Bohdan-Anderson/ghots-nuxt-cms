@@ -29,6 +29,7 @@ function isKeyOfData(key: string): key is keyof typeof data {
 
 <script setup lang="ts">
 const route = useRoute()
+const { loggedIn } = useAuth()
 
 /**
  * Fetches page content. Runs at build time during `nuxt generate` and on the server for SSR.
@@ -43,11 +44,26 @@ function fetchPageData(
   })
 }
 
-// Blocks render until data resolves (prerender, SSR, and client navigation)
-const { data: content, status } = await useAsyncData(
+const {
+  data: content,
+  status,
+  refresh,
+} = await useAsyncData(
   () => `page:${route.path}`,
   () => fetchPageData(route.path),
+  {
+    getCachedData(key, nuxtApp) {
+      if (loggedIn.value) {
+        return undefined
+      }
+      return nuxtApp.payload.data[key] ?? nuxtApp.static.data[key]
+    },
+  },
 )
+
+watch(loggedIn, () => {
+  refresh()
+})
 </script>
 
 <template>
@@ -63,6 +79,7 @@ const { data: content, status } = await useAsyncData(
     >
       {{ value.title }}
     </NuxtLink>
+    <NuxtLink to="/login">Login</NuxtLink>
   </nav>
   <div v-if="status === 'pending'">Loading...</div>
   <div v-else>
