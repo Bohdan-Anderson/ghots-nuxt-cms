@@ -1,75 +1,28 @@
-# Nuxt Minimal Starter
+# ghots-cms
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+Static-first Nuxt CMS backed by Supabase: prerendered pages for visitors, modal editing for authenticated users.
 
-## Setup
-
-Make sure to install dependencies:
+## Quick start
 
 ```bash
-# npm
 npm install
-
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
-```
-
-## Development Server
-
-Start the development server on `http://localhost:3000`:
-
-```bash
-# npm
+# Add .env with VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY
+# Apply supabase/migrations/001_pages_fields.sql
 npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
 ```
 
-## Production
+Static preview: `npm run static` → http://localhost:8000
 
-Build the application for production:
+## Documentation
 
-```bash
-# npm
-npm run build
+See **[docs/README.md](./docs/README.md)** for architecture, data model, static generation, auth, templates, and development guides.
 
-# pnpm
-pnpm build
+## Scripts
 
-# yarn
-yarn build
-
-# bun
-bun run build
-```
-
-Locally preview production build:
-
-```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+| Command | Description |
+| ------- | ----------- |
+| `npm run dev` | Development server (live Supabase on every navigation) |
+| `npm run generate` | Build static site to `dist/` |
+| `npm run static` | Generate + serve `dist/` |
+| `npm run build` | Production Nuxt build |
+| `npm run preview` | Preview production build |

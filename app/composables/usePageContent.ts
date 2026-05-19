@@ -10,7 +10,9 @@ import { normalizeSlug } from '~/utils/slug'
 /**
  * Fetches page + template + fields; seeds empty fields for logged-in editors on first visit.
  */
-export async function usePageContent(slugInput: string): Promise<PageContent | null> {
+export async function usePageContent(
+  slugInput: string,
+): Promise<PageContent | null> {
   const supabase = useSupabase()
   const { loggedIn } = useAuth()
   const slug = normalizeSlug(slugInput)
@@ -49,7 +51,13 @@ export async function usePageContent(slugInput: string): Promise<PageContent | n
   const fieldList = (fields ?? []) as FieldRow[]
   const { fieldsById, fieldsByName } = buildFieldMaps(fieldList)
 
-  return toPageContentPayload(page, template, fieldList, fieldsById, fieldsByName)
+  return toPageContentPayload(
+    page,
+    template,
+    fieldList,
+    fieldsById,
+    fieldsByName,
+  )
 }
 
 /**
@@ -95,7 +103,10 @@ export function resolveField(
     return fields.find((f) => f.name === name && f.parent_id === null)
   }
   const parent = fields.find(
-    (f) => f.name === parentSectionName && f.type === 'section' && f.parent_id === null,
+    (f) =>
+      f.name === parentSectionName &&
+      f.type === 'section' &&
+      f.parent_id === null,
   )
   if (!parent) return undefined
   return fields.find((f) => f.name === name && f.parent_id === parent.id)
