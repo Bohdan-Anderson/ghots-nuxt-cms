@@ -87,6 +87,7 @@ The Supabase fetcher for **`page:${slug}` should not run** for guests on a succe
 
 - `getCachedData` returns **`undefined`** → fetcher runs → live Supabase data.
 - `watch(loggedIn, () => refresh())` refetches when the session changes.
+- **`CmsSidebar`** syncs from `[...slug].vue` via `useCmsPanel`; only push content when `data.page.slug` matches the route (avoids stale sidebar data while `useAsyncData` is between pages). Do not clear the panel in `onUnmounted` — Suspense can remount the page on the same URL. See [CMS sidebar](./cms-sidebar.md).
 
 ### `page-list` (navigation)
 

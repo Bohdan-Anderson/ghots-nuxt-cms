@@ -6,9 +6,11 @@ Editing is **client-only** and only active when **`loggedIn`** is true. Despite 
 
 | Component | Role |
 | --------- | ---- |
+| `CmsSidebar` | Logged-in left panel; **Page contents** tab opens the same modal via `usePageEditor().open()` |
 | `PageEditorProvider` | Wraps page template; one click listener (delegation); hosts modal |
 | `FieldEditModal` | `<dialog>` for `plain_text` values |
 | `usePageEditor` | Modal open/close/save; field registry for DOM lookup |
+| `useCmsPanel` | Sidebar toggle, tab, and synced `pageContent` (see [CMS sidebar](./cms-sidebar.md)) |
 
 ## Enablement
 
@@ -44,7 +46,16 @@ Templates use plain HTML with attributes only — no field wrapper components:
 
 See [Templates](./templates.md).
 
-## Click flow
+## Opening the modal
+
+Two entry points share **`usePageEditor`**:
+
+1. **On the page** — click an element with **`data-name`** (delegation in `PageEditorProvider`).
+2. **CMS sidebar** — **Page contents** tab → click a **`plain_text`** row (`CmsSidebar` calls `editor.open(field)`).
+
+`FieldEditModal` is rendered inside `PageEditorProvider` on CMS routes only. Use the sidebar or the page body on `[...slug].vue`; both require `loggedIn`.
+
+## Click flow (page body)
 
 1. User clicks inside an element with **`data-name`** (and ideally **`data-id`**).
 2. `PageEditorProvider` uses `event.target.closest('[data-name]')`.

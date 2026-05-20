@@ -1,0 +1,3 @@
+- maybe think about changing the structure of the data for logged in users - use a store maybe? so that we can mutate the store and it will update the page content
+- add a section and have it dynamically add fields to the page
+- continue to think about how we can isolate the cms from the main app

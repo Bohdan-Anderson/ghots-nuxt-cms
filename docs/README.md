@@ -25,6 +25,7 @@ Details: [Static generation](./static-generation.md), [Authentication](./authent
 | [Content model](./content-model.md) | Pages, templates, fields, seeding |
 | [Templates](./templates.md) | Vue page templates and field binding |
 | [Modal editing](./inline-editing.md) | Click-to-edit modal flow and components |
+| [CMS sidebar](./cms-sidebar.md) | Logged-in left panel, tabs, and page sync |
 | [Development](./development.md) | Setup, env vars, scripts |
 
 ## Related

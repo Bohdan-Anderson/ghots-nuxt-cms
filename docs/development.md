@@ -62,7 +62,7 @@ Open http://localhost:8000 — serves files from `dist/` only.
 npm run dev
 ```
 
-Every navigation uses Supabase for page content and nav. Use this for templates, composables, and editor UX — not for validating static guest caching.
+Every navigation uses Supabase for page content and nav. Use this for templates, composables, editor UX, and the logged-in **CMS sidebar** — not for validating static guest caching.
 
 ### Regenerate after content changes
 

@@ -3,21 +3,23 @@
 ```
 ghots-cms/
 ├── app/                          # Nuxt application source
-│   ├── app.vue                   # Root shell (<NuxtPage />)
+│   ├── app.vue                   # Root shell: CmsSidebar (logged in) + <NuxtPage />
 │   ├── pages/
 │   │   ├── [...slug].vue         # All CMS pages (catch-all)
 │   │   └── login.vue             # Email/password auth
 │   ├── templates/
 │   │   └── DefaultPage.vue       # Default layout for template key "default"
 │   ├── components/
+│   │   ├── CmsSidebar.vue          # Logged-in left panel (contents + pages tabs)
 │   │   ├── PageEditorProvider.vue  # Edit mode wrapper + click delegation
 │   │   └── FieldEditModal.vue      # Modal editor for plain_text
 │   ├── composables/
 │   │   ├── useSupabase.ts        # Supabase client singleton
 │   │   ├── useAuth.ts            # Session, signIn, signOut
 │   │   ├── usePageContent.ts     # Fetch page + fields; seed; updateFieldValue
-│   │   ├── usePageList.ts        # Nav: all pages from DB
+│   │   ├── usePageList.ts        # Nav + sidebar Pages tab: all pages from DB
 │   │   ├── usePageEditor.ts      # Modal state, save, click resolution
+│   │   ├── useCmsPanel.ts        # Sidebar open/tab/pageContent shared state
 │   │   └── useTemplate.ts        # Map template key → Vue component
 │   ├── plugins/
 │   │   └── supabase.client.ts    # Restore session; onAuthStateChange

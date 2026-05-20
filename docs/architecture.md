@@ -6,7 +6,7 @@
 
 1. Loads page definitions and field values from **Supabase** (Postgres + Auth).
 2. **Prerenders** public pages at build time into static HTML in `dist/`.
-3. Lets **authenticated** users bypass the static page payload, seed empty fields, and edit content via a **modal** (click delegation on `[data-name]` elements).
+3. Lets **authenticated** users bypass the static page payload, seed empty fields, and edit content via a **modal** (click delegation on `[data-name]` elements or the **CMS sidebar** field list).
 
 There is no custom backend server in this repo — the app talks to Supabase directly from the browser (and during prerender via the same client).
 
@@ -65,8 +65,9 @@ Page **body** content is designed to be static for guests. **Navigation** still 
 
 1. `getCachedData` returns `undefined` for page content → **`usePageContent`** runs against Supabase.
 2. If the page has no `fields` rows yet, **`seedFieldsFromSchema`** inserts them from the template’s `field_schema`.
-3. **`PageEditorProvider`** enables click-to-edit; saves go to the `fields` table via `updateFieldValue`.
-4. `watch(loggedIn, () => refresh())` refetches when the session changes.
+3. **`CmsSidebar`** in `app.vue` — toggleable left panel with **Page contents** (field tree) and **Pages** (DB list). Current page data is synced from `[...slug].vue` via **`useCmsPanel`** (slug-matched `watchEffect`; see [CMS sidebar](./cms-sidebar.md)).
+4. **`PageEditorProvider`** enables click-to-edit on the page; sidebar `plain_text` rows use the same **`usePageEditor`** modal. Saves go to the `fields` table via `updateFieldValue`.
+5. `watch(loggedIn, () => refresh())` refetches when the session changes.
 
 ### Build (`npm run generate`)
 
@@ -83,7 +84,7 @@ Page **body** content is designed to be static for guests. **Navigation** still 
 | Hosting shape | Static `dist/` | Simple deploy; `npm run static` for local preview |
 | Data + auth | Supabase | Postgres, RLS, email/password auth without a custom API |
 | Templates | Vue SFCs in `app/templates/` | Full control over markup; mapped by `templates.key` |
-| Editor UX | Click delegation + modal | No per-field wrapper components; editing gated by `loggedIn` |
+| Editor UX | Sidebar + click delegation + modal | No per-field wrapper components; editing gated by `loggedIn` |
 
 ## Security notes
 

@@ -66,9 +66,10 @@ getCachedData(key, nuxtApp) {
 
 When logged in:
 
-1. `PageEditorProvider` `:enabled="loggedIn"` — pointer cursor and click delegation.
-2. `FieldEditModal` — edit `plain_text` values.
-3. `seedFieldsFromSchema` on first visit if the page has zero `fields` rows.
+1. **`CmsSidebar`** in `app.vue` — toggleable left panel (field list + page list). See [CMS sidebar](./cms-sidebar.md).
+2. `PageEditorProvider` `:enabled="loggedIn"` — pointer cursor and click delegation.
+3. `FieldEditModal` — edit `plain_text` values (from page clicks or sidebar).
+4. `seedFieldsFromSchema` on first visit if the page has zero `fields` rows.
 
 ## Database permissions
 

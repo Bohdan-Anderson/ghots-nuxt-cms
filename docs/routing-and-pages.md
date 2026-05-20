@@ -18,6 +18,7 @@ Single entry point for CMS URLs. It:
 3. Loads **navigation** — `useAsyncData('page-list', usePageList)` (always Supabase today).
 4. Resolves **template component** from `content.template.key` via `useTemplate.ts`.
 5. Wraps the template in **`PageEditorProvider`** when content exists.
+6. Syncs loaded content into **`useCmsPanel`** for the logged-in sidebar (slug-matched `watchEffect` — see [CMS sidebar](./cms-sidebar.md)).
 
 ## Slug normalization
 
@@ -35,6 +36,7 @@ Database `pages.slug` must match (migration seeds `'/'` for home).
 | --- | ------- | ----------- |
 | `page:${slug}` | `usePageContent(slug)` | Yes — `getCachedData` when logged out |
 | `page-list` | `usePageList()` | No |
+| `cms-panel-page-list` | `usePageList()` (in `CmsSidebar`) | No |
 
 See [Static generation](./static-generation.md).
 

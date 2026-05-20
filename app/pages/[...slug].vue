@@ -1,15 +1,19 @@
-<script setup lang="ts">
+<script lang="ts">
 import type { FieldRow } from '~/types/cms'
 import { usePageContent } from '~/composables/usePageContent'
 import { usePageList } from '~/composables/usePageList'
 import { resolveTemplateComponent } from '~/composables/useTemplate'
 import { normalizeSlug } from '~/utils/slug'
+</script>
 
+<script setup lang="ts">
 const route = useRoute()
 const { loggedIn } = useAuth()
+const { setPageContent } = useCmsPanel()
 
 const slug = computed(() => normalizeSlug(route.path))
 
+// for the page content
 const {
   data: content,
   status,
@@ -28,6 +32,7 @@ const {
   },
 )
 
+// for nav
 const { data: pageList } = await useAsyncData('page-list', () => usePageList())
 
 const templateComponent = computed(() => {
@@ -52,6 +57,22 @@ function onFieldUpdated(updated: FieldRow) {
 
 watch(loggedIn, () => {
   refresh()
+})
+
+/**
+ * Sync sidebar only when content matches the current route slug.
+ * - Stale `content` from the previous page is ignored (not pushed to the panel).
+ * - While refetching, `content` may be undefined briefly; we keep the panel as-is
+ *   (do not clear on unmount — Suspense can remount the page and would wipe the panel).
+ */
+watchEffect(() => {
+  const data = content.value
+  const currentSlug = slug.value
+  if (data?.page.slug === currentSlug) {
+    setPageContent(data)
+  } else if (data) {
+    setPageContent(null)
+  }
 })
 </script>
 
