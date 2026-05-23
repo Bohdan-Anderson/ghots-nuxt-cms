@@ -43,16 +43,27 @@ export function useGhostPage() {
 
   /**
    * Patches a field in local state after save from the editor modal.
+   * Replaces the page content object — useAsyncData data is a shallowRef, so
+   * in-place mutations to fields / maps do not trigger template updates.
    */
   function patchField(updated: FieldRow) {
-    if (!content.value) return
-    const index = content.value.fields.findIndex((f) => f.id === updated.id)
-    if (index >= 0) {
-      content.value.fields[index] = updated
-    }
-    content.value.fieldsById[updated.id] = updated
-    if (updated.parent_id === null) {
-      content.value.fieldsByName[updated.name] = updated
+    const current = content.value
+    if (!current) return
+
+    const index = current.fields.findIndex((f) => f.id === updated.id)
+    const fields =
+      index >= 0
+        ? current.fields.map((f, i) => (i === index ? updated : f))
+        : [...current.fields, updated]
+
+    content.value = {
+      ...current,
+      fields,
+      fieldsById: { ...current.fieldsById, [updated.id]: updated },
+      fieldsByName:
+        updated.parent_id === null
+          ? { ...current.fieldsByName, [updated.name]: updated }
+          : current.fieldsByName,
     }
   }
 
