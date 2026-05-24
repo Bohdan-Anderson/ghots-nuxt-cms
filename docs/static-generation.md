@@ -92,19 +92,21 @@ The Supabase fetcher for **`page:${slug}` should not run** for guests on a succe
 ### `page-list` (navigation)
 
 ```ts
-const { data: pageList } = await useAsyncData('page-list', () => usePageList())
+const { data: pageList } = usePageListData()
 ```
 
-This call has **no `getCachedData`**. On every page load (including guests on `npm run static`), the nav still queries Supabase for `pages.slug, title`.
+`usePageListData()` wraps `useAsyncData('page-list', …)` with the same `getCachedData` + `loggedIn` guard as page content. Both `[...slug].vue` (top nav) and `CmsSidebar` (Pages tab) share this key so prerender bakes one nav payload per route.
 
-To verify guest page caching: use browser DevTools → Network and filter for your Supabase host. You should see requests for `page-list` but **not** repeated full page+fields fetches for `page:/` when navigating prerendered routes.
+When `loggedIn` is false and a prerendered payload exists, the Supabase fetcher for **`page-list` should not run** for guests on a successful static deploy.
+
+To verify guest caching: use browser DevTools → Network and filter for your Supabase host. You should see **no** requests for guests on `npm run static`.
 
 ## Dev vs static
 
 | Mode | Guest page content | Guest nav |
 | ---- | ------------------ | --------- |
 | `npm run dev` | Supabase (no `_payload.json`) | Supabase |
-| `npm run static` | HTML + `_payload.json` | Supabase |
+| `npm run static` | HTML + `_payload.json` | `_payload.json` (no runtime fetch) |
 
 Do not use `npm run dev` to validate static guest behavior — use **`npm run static`**.
 
@@ -126,15 +128,11 @@ Nuxt serializes `useState` into `_payload.json`. Do **not** store callbacks in `
 
 | Audience | First paint | Page data after JS | Nav data after JS |
 | -------- | ----------- | ------------------- | ----------------- |
-| Guest (static) | Prerendered HTML | `_payload.json` | Supabase |
+| Guest (static) | Prerendered HTML | `_payload.json` | `_payload.json` |
 | Editor | May flash public HTML | Supabase | Supabase |
 
 Regenerate **`npm run generate`** after bulk content changes so guests see updated HTML and payloads.
 
-## If you need zero Supabase for guests
+## Editor store (logged-in)
 
-Options (not implemented yet):
-
-1. Add the same `getCachedData` + `loggedIn` guard to `useAsyncData('page-list', …)`.
-2. Prerender nav links only (no `usePageList` at runtime).
-3. Embed nav in HTML at build time and hide the client fetch.
+`useCmsPanel().pageContent` is the single source of truth for in-session edits. `[...slug].vue` reads `displayContent` from `useGhostPage()`, which prefers the panel store when logged in. Modal saves call `patchField` on the store so the sidebar and on-page preview stay in sync. Both sidebar field clicks and `[data-name]` clicks open the same modal via `usePageEditor`.

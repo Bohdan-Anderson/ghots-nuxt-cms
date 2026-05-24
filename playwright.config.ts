@@ -4,6 +4,8 @@ import { defineConfig, devices } from '@playwright/test'
 loadDotenv()
 
 const isCi = !!process.env.CI
+const recordVideo = !!process.env.E2E_VIDEO
+const videoSlowMo = Number(process.env.E2E_VIDEO_SLOW_MO ?? 400)
 
 const supabaseEnv = {
   VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL ?? '',
@@ -18,14 +20,18 @@ export default defineConfig({
   testMatch: '*.spec.ts',
   fullyParallel: false,
   workers: 1,
-  timeout: 60_000,
+  timeout: recordVideo ? 120_000 : 60_000,
   forbidOnly: isCi,
   retries: isCi ? 1 : 0,
-  reporter: 'list',
+  reporter: recordVideo
+    ? [['html', { open: 'never' }], ['list']]
+    : 'list',
   globalSetup: './e2e/global-setup.ts',
   globalTeardown: './e2e/global-teardown.ts',
   use: {
     trace: 'on-first-retry',
+    video: recordVideo ? 'on' : 'off',
+    ...(recordVideo ? { launchOptions: { slowMo: videoSlowMo } } : {}),
   },
   projects: [
     {

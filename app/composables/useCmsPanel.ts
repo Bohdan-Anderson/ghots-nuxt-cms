@@ -1,9 +1,34 @@
-import type { PageContent } from '~/types/cms'
+import type { FieldRow, PageContent } from '~/types/cms'
 
 export type CmsPanelTab = 'contents' | 'pages'
 
 /**
+ * Returns page content with one field replaced (immutable update for reactivity).
+ */
+function patchFieldInContent(
+  current: PageContent,
+  updated: FieldRow,
+): PageContent {
+  const index = current.fields.findIndex((f) => f.id === updated.id)
+  const fields =
+    index >= 0
+      ? current.fields.map((f, i) => (i === index ? updated : f))
+      : [...current.fields, updated]
+
+  return {
+    ...current,
+    fields,
+    fieldsById: { ...current.fieldsById, [updated.id]: updated },
+    fieldsByName:
+      updated.parent_id === null
+        ? { ...current.fieldsByName, [updated.name]: updated }
+        : current.fieldsByName,
+  }
+}
+
+/**
  * Shared state for the logged-in CMS left panel (open/tab/current page).
+ * `pageContent` is the single source of truth for in-session edits.
  */
 export function useCmsPanel() {
   const isOpen = useState<boolean>('cms-panel-open', () => false)
@@ -21,11 +46,21 @@ export function useCmsPanel() {
     pageContent.value = content
   }
 
+  /**
+   * Patches a field after a modal save so sidebar and on-page preview stay in sync.
+   */
+  function patchField(updated: FieldRow) {
+    const current = pageContent.value
+    if (!current) return
+    pageContent.value = patchFieldInContent(current, updated)
+  }
+
   return {
     isOpen,
     activeTab,
     pageContent,
     toggle,
     setPageContent,
+    patchField,
   }
 }

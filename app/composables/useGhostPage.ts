@@ -1,6 +1,5 @@
-import type { FieldRow } from '~/types/cms'
 import { usePageContent } from '~/composables/usePageContent'
-import { usePageList } from '~/composables/usePageList'
+import { usePageListData } from '~/composables/usePageList'
 import { resolveTemplateComponent } from '~/composables/useTemplate'
 import { normalizeSlug } from '~/utils/slug'
 
@@ -12,7 +11,7 @@ import { normalizeSlug } from '~/utils/slug'
 export function useGhostPage() {
   const route = useRoute()
   const { loggedIn } = useAuth()
-  const { setPageContent } = useCmsPanel()
+  const { pageContent, setPageContent, patchField } = useCmsPanel()
 
   const slug = computed(() => normalizeSlug(route.path))
 
@@ -34,45 +33,34 @@ export function useGhostPage() {
     },
   )
 
-  const { data: pageList } = useAsyncData('page-list', () => usePageList())
-
-  const templateComponent = computed(() => {
-    if (!content.value) return null
-    return resolveTemplateComponent(content.value.template.key)
-  })
+  const { data: pageList, refresh: refreshPageList } = usePageListData()
 
   /**
-   * Patches a field in local state after save from the editor modal.
-   * Replaces the page content object — useAsyncData data is a shallowRef, so
-   * in-place mutations to fields / maps do not trigger template updates.
+   * Logged-in editors read from the panel store after fetch; guests use prerender cache.
    */
-  function patchField(updated: FieldRow) {
-    const current = content.value
-    if (!current) return
-
-    const index = current.fields.findIndex((f) => f.id === updated.id)
-    const fields =
-      index >= 0
-        ? current.fields.map((f, i) => (i === index ? updated : f))
-        : [...current.fields, updated]
-
-    content.value = {
-      ...current,
-      fields,
-      fieldsById: { ...current.fieldsById, [updated.id]: updated },
-      fieldsByName:
-        updated.parent_id === null
-          ? { ...current.fieldsByName, [updated.name]: updated }
-          : current.fieldsByName,
+  const displayContent = computed(() => {
+    const currentSlug = slug.value
+    if (loggedIn.value) {
+      const panel = pageContent.value
+      if (panel?.page.slug === currentSlug) {
+        return panel
+      }
     }
-  }
+    return content.value ?? null
+  })
+
+  const templateComponent = computed(() => {
+    if (!displayContent.value) return null
+    return resolveTemplateComponent(displayContent.value.template.key)
+  })
 
   watch(loggedIn, () => {
     refresh()
+    refreshPageList()
   })
 
   /**
-   * Sync sidebar only when content matches the current route slug.
+   * Sync sidebar store only when content matches the current route slug.
    * Stale content from the previous page is ignored. While refetching, content may
    * be undefined briefly; the panel is left as-is (do not clear on unmount).
    */
@@ -89,7 +77,7 @@ export function useGhostPage() {
   return {
     route,
     slug,
-    content,
+    content: displayContent,
     status,
     refresh,
     pageList,

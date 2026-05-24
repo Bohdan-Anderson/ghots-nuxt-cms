@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import type { FieldRow } from '~/types/cms'
-import { usePageList } from '~/composables/usePageList'
+import { usePageListData } from '~/composables/usePageList'
 
 const route = useRoute()
 const { isOpen, activeTab, pageContent, toggle } = useCmsPanel()
 const editor = usePageEditor()
 
-const { data: pageList } = await useAsyncData('cms-panel-page-list', () =>
-  usePageList(),
-)
+const { data: pageList } = usePageListData()
 
 interface FieldTreeNode {
   field: FieldRow

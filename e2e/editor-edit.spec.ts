@@ -13,3 +13,21 @@ test('editor can edit plain_text via modal and value persists after refresh', as
   await page.reload()
   await expect(page.locator('h1')).toHaveText(editedTitle)
 })
+
+test('editor can edit plain_text via sidebar and page updates without navigation', async ({
+  page,
+}) => {
+  const editedTitle = `Sidebar E2E ${Date.now()}`
+
+  await loginAsEditor(page)
+  await page.getByRole('button', { name: 'CMS' }).click()
+  await page.getByRole('button', { name: /^title:/i }).click()
+
+  const dialog = page.locator('dialog.field-edit-modal')
+  await expect(dialog).toBeVisible()
+  await dialog.locator('textarea').fill(editedTitle)
+  await dialog.getByRole('button', { name: 'Save' }).click()
+  await expect(dialog).not.toBeVisible()
+
+  await expect(page.locator('h1')).toHaveText(editedTitle)
+})

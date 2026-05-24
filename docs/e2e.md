@@ -31,6 +31,30 @@ npm run test:e2e:ui
 
 The first run takes longer: **global setup** resets home page fields to a known baseline and runs `npm run generate` to build `dist/`.
 
+## Feature videos
+
+After adding or changing an e2e spec, record screen captures of what the test does:
+
+```bash
+npm run test:e2e:videos
+```
+
+This runs the full suite with video recording enabled and opens the HTML report when finished. Each test has a video tab in the report. Actions are slowed by 400ms so the recording is easier to follow. Override with `E2E_VIDEO_SLOW_MO=800` (milliseconds) if you want it slower.
+
+To record a single spec while iterating:
+
+```bash
+E2E_VIDEO=1 npm run test:e2e -- e2e/editor-edit.spec.ts
+playwright show-report
+```
+
+Videos are written to `playwright-report/` (browse via the report) and `test-results/<project>/<test>/video.webm`. Both directories are gitignored.
+
+Notes:
+
+- `publish-split.spec.ts` includes long `npm run generate` waits in the recording.
+- That spec uses two browser contexts (guest + editor), so you get separate videos for each.
+
 ## What each test validates
 
 | Spec | Behavior |

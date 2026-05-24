@@ -78,12 +78,12 @@ Phase 1 completes the **static-first guest story** started in Phase 0 (page body
 
 ### Tasks
 
-- [ ] **Editor store** — centralize logged-in page content (Pinia store or dedicated composable); sidebar + `[...slug].vue` read/write the same state; saves patch store instead of ad hoc `content.value = { ... }`
-- [ ] **Single edit path** — sidebar field click and page `[data-name]` click both open the same modal via [usePageEditor.ts](./app/composables/usePageEditor.ts); enforce when adding field types
-- [ ] **Cache nav for guests** — add `getCachedData` + `loggedIn` bypass to `useAsyncData('page-list', …)` mirroring page content pattern
-- [ ] **Prerender nav** — ensure `nuxt generate` bakes page list into payload or HTML so guests never need runtime fetch
-- [ ] **E2E:** extend `guest-static.spec.ts` — assert zero Supabase requests total (or zero except none), not just `fields`
-- [ ] **E2E:** edit via sidebar → modal → page h1 updates without navigation
+- [x] **Editor store** — centralize logged-in page content (Pinia store or dedicated composable); sidebar + `[...slug].vue` read/write the same state; saves patch store instead of ad hoc `content.value = { ... }`
+- [x] **Single edit path** — sidebar field click and page `[data-name]` click both open the same modal via [usePageEditor.ts](./app/composables/usePageEditor.ts); enforce when adding field types
+- [x] **Cache nav for guests** — add `getCachedData` + `loggedIn` bypass to `useAsyncData('page-list', …)` mirroring page content pattern
+- [x] **Prerender nav** — ensure `nuxt generate` bakes page list into payload or HTML so guests never need runtime fetch
+- [x] **E2E:** extend `guest-static.spec.ts` — assert zero Supabase requests total (or zero except none), not just `fields`
+- [x] **E2E:** edit via sidebar → modal → page h1 updates without navigation
 
 ### Validate
 

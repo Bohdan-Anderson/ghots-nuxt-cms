@@ -59,20 +59,15 @@ export function usePageEditor() {
   }
 
   /**
-   * Persists draft value and patches local registry.
+   * Persists draft value and notifies the editor store via the registered handler.
    */
   async function save(): Promise<void> {
     const field = activeField.value
-    if (!field || !registry.value) return
+    if (!field) return
 
     const updated = await updateFieldValue(field.id, draftValue.value)
-    registry.value.fieldsById[updated.id] = updated
-    if (updated.parent_id === null) {
-      registry.value.fieldsByName[updated.name] = updated
-    }
     fieldUpdatedHandler?.(updated)
     close()
-    return
   }
 
   /**
