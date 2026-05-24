@@ -52,6 +52,7 @@ async function handleLogout() {
       <button type="submit">Log in</button>
     </form>
     <button
+      v-if="loggedIn"
       type="button"
       @click="handleLogout"
     >

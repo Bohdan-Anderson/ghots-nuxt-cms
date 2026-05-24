@@ -36,6 +36,8 @@ npm install
 | `npm run preview` | Preview production build |
 | `npm run format` | Prettier write |
 | `npm run format:check` | Prettier check |
+| `npm run test:e2e` | Playwright E2E (local Supabase; see [E2E testing](./e2e.md)) |
+| `npm run test:e2e:ui` | Playwright interactive UI |
 
 ## Supabase setup
 

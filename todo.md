@@ -6,12 +6,12 @@ Objectives aligned with [docs/vision.md](./docs/vision.md). Each phase lists **v
 
 ## Phase 0 — E2E foundation (do first)
 
-- [ ] Add Playwright + `@nuxt/test-utils` (or dev server + baseURL pattern)
-- [ ] Document E2E env: `SUPABASE_*`, test editor credentials
-- [ ] DB teardown helper: reset test pages/fields after each run (keep seed template)
-- [ ] **Test:** guest on static deploy loads home, no Supabase network calls for page body
-- [ ] **Test:** editor login → edit `plain_text` via modal → refresh → value persisted
-- [ ] **Test:** guest still sees old value until regenerate (admin vs guest split)
+- [x] Add Playwright + `@nuxt/test-utils` (or dev server + baseURL pattern)
+- [x] Document E2E env: `SUPABASE_*`, test editor credentials
+- [x] DB teardown helper: reset test pages/fields after each run (keep seed template)
+- [x] **Test:** guest on static deploy loads home, no Supabase network calls for page body
+- [x] **Test:** editor login → edit `plain_text` via modal → refresh → value persisted
+- [x] **Test:** guest still sees old value until regenerate (admin vs guest split)
 
 **Validate:** `npm run test:e2e` green locally; manual `npm run static` confirms guest network behavior.
 
