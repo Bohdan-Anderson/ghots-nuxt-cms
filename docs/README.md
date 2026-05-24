@@ -16,6 +16,7 @@ Details: [Static generation](./static-generation.md), [Authentication](./authent
 
 | Document | Description |
 | -------- | ----------- |
+| [Vision](./vision.md) | Product goals, concepts, v1 scope, validation criteria |
 | [Architecture](./architecture.md) | System overview, request flows, major decisions |
 | [Directory structure](./directory-structure.md) | Where code lives and what each area does |
 | [Routing and pages](./routing-and-pages.md) | Catch-all routes, slugs, login |
