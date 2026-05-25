@@ -1,0 +1,203 @@
+/* CMS panel — global so styles load when sidebar mounts client-side on static builds */
+
+.cms-sidebar-toggle {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 101;
+  padding: 0.25rem 0.5rem;
+  font: inherit;
+  cursor: pointer;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-left: none;
+  border-top: none;
+}
+
+.cms-sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 18rem;
+  z-index: 100;
+  background: #fff;
+  border-right: 1px solid #ccc;
+  transform: translateX(-100%);
+  overflow: auto;
+  padding: 2rem 0.75rem 0.75rem;
+  box-sizing: border-box;
+  font: inherit;
+}
+
+.cms-sidebar--open {
+  transform: translateX(0);
+}
+
+.cms-sidebar-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.cms-sidebar-tabs button {
+  font: inherit;
+  font-size: 0.8125rem;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  background: #f5f5f5;
+}
+
+.cms-sidebar-tabs button[aria-pressed='true'] {
+  background: #e8e8e8;
+  font-weight: 600;
+}
+
+.cms-sidebar-body {
+  font-size: 0.875rem;
+}
+
+.cms-sidebar-hint {
+  color: #666;
+  margin: 0 0 0.5rem;
+}
+
+.cms-sidebar-fields,
+.cms-sidebar-pages,
+.cms-sidebar-slices {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.cms-sidebar-field-row {
+  margin: 0.125rem 0;
+}
+
+.cms-sidebar-section-label {
+  display: block;
+  font-weight: 600;
+  color: #444;
+  padding: 0.125rem 0;
+}
+
+.cms-sidebar-field-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  font-size: inherit;
+  padding: 0.125rem 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: inherit;
+}
+
+.cms-sidebar-field-btn:hover {
+  text-decoration: underline;
+}
+
+.cms-sidebar-slice {
+  margin: 0.75rem 0;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 0.25rem;
+}
+
+.cms-sidebar-slice-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.cms-sidebar-slice-title {
+  font-weight: 600;
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.cms-sidebar-slice-title:hover {
+  text-decoration: underline;
+}
+
+.cms-sidebar-slice-actions {
+  display: flex;
+  gap: 0.125rem;
+  flex-shrink: 0;
+}
+
+.cms-sidebar-slice-actions button {
+  font: inherit;
+  font-size: 0.75rem;
+  padding: 0.125rem 0.25rem;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  background: #fafafa;
+}
+
+.cms-sidebar-add-slice {
+  display: flex;
+  gap: 0.25rem;
+  margin-top: 0.75rem;
+}
+
+.cms-sidebar-add-slice select {
+  flex: 1;
+  font: inherit;
+  font-size: inherit;
+}
+
+.cms-sidebar-add-slice button,
+.cms-sidebar-form button {
+  font: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #ccc;
+  background: #f5f5f5;
+}
+
+.cms-sidebar-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cms-sidebar-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.cms-sidebar-form input,
+.cms-sidebar-form textarea {
+  font: inherit;
+  font-size: inherit;
+  padding: 0.25rem;
+  border: 1px solid #ccc;
+}
+
+.cms-sidebar-form-error {
+  color: #b00020;
+  margin: 0;
+}
+
+.cms-sidebar-pages a {
+  display: block;
+  padding: 0.125rem 0;
+}
+
+.cms-sidebar-pages a.router-link-active {
+  font-weight: 600;
+}
+
+.cms-field-highlight {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}

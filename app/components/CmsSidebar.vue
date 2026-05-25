@@ -1,57 +1,87 @@
 <script setup lang="ts">
 import type { FieldRow } from '~/types/cms'
+import { buildContentTree } from '~/composables/buildContentTree'
 import { usePageListData } from '~/composables/usePageList'
+import { useTemplatesData } from '~/composables/useTemplates'
+import { createPage } from '~/composables/usePageCreate'
+import { listSliceDefinitions } from '~/slices/registry'
 
 const route = useRoute()
+const router = useRouter()
 const { isOpen, activeTab, pageContent, toggle } = useCmsPanel()
 const editor = usePageEditor()
+const { addSlice, removeSlice, moveSlice, saveMeta } = useCmsPageActions()
 
-const { data: pageList } = usePageListData()
+const { data: pageList, refresh: refreshPageList } = usePageListData()
+const { data: templates } = useTemplatesData()
 
-interface FieldTreeNode {
-  field: FieldRow
-  depth: number
-}
+const sliceTypes = listSliceDefinitions()
+const selectedSliceType = ref(sliceTypes[0]?.key ?? '')
+const sliceBusy = ref(false)
+const metaBusy = ref(false)
+const createBusy = ref(false)
+const createError = ref<string | null>(null)
 
-/**
- * Flattens fields into display order with depth for indentation.
- */
-function buildFieldTree(fields: FieldRow[]): FieldTreeNode[] {
-  const byParent = new Map<string | null, FieldRow[]>()
-  for (const field of fields) {
-    const key = field.parent_id
-    const group = byParent.get(key) ?? []
-    group.push(field)
-    byParent.set(key, group)
-  }
+const newPageSlug = ref('')
+const newPageTitle = ref('')
+const newPageTemplateId = ref('')
 
-  const result: FieldTreeNode[] = []
-
-  function walk(parentId: string | null, depth: number) {
-    const siblings = byParent.get(parentId) ?? []
-    for (const field of siblings) {
-      result.push({ field, depth })
-      if (field.type === 'section') {
-        walk(field.id, depth + 1)
-      }
-    }
-  }
-
-  walk(null, 0)
-  return result
-}
-
-const fieldTree = computed(() => {
-  if (!pageContent.value) return []
-  return buildFieldTree(pageContent.value.pageFields)
+const metaDraft = reactive({
+  title: '',
+  meta_title: '',
+  meta_description: '',
+  og_image: '',
+  noindex: false,
 })
 
+const contentTree = computed(() => {
+  if (!pageContent.value) {
+    return { pageFieldNodes: [], sliceGroups: [] }
+  }
+  return buildContentTree(
+    pageContent.value.pageFields,
+    pageContent.value.slices,
+    pageContent.value.fieldsBySliceId,
+  )
+})
+
+watch(
+  () => pageContent.value?.page,
+  (page) => {
+    if (!page) return
+    metaDraft.title = page.title ?? ''
+    metaDraft.meta_title = page.meta_title ?? ''
+    metaDraft.meta_description = page.meta_description ?? ''
+    metaDraft.og_image = page.og_image ?? ''
+    metaDraft.noindex = page.noindex ?? false
+  },
+  { immediate: true },
+)
+
+watch(
+  templates,
+  (list) => {
+    if (list?.length && !newPageTemplateId.value) {
+      newPageTemplateId.value = list[0]!.id
+    }
+  },
+  { immediate: true },
+)
+
 /**
- * Opens the edit modal for a plain_text field.
+ * Opens the edit modal for a plain_text field and scrolls to it on the page.
  */
 function onFieldClick(field: FieldRow) {
+  editor.focusOnPage(field)
   if (field.type !== 'plain_text') return
   editor.open(field)
+}
+
+/**
+ * Scrolls to a slice block on the page canvas.
+ */
+function onSliceClick(sliceId: string) {
+  editor.focusSliceOnPage(sliceId)
 }
 
 /**
@@ -60,6 +90,83 @@ function onFieldClick(field: FieldRow) {
 function previewValue(value: string | null): string {
   if (!value) return '(empty)'
   return value.length > 40 ? `${value.slice(0, 40)}…` : value
+}
+
+/**
+ * Inserts a new slice on the current page.
+ */
+async function onAddSlice() {
+  if (!selectedSliceType.value || sliceBusy.value) return
+  sliceBusy.value = true
+  try {
+    await addSlice(selectedSliceType.value)
+  } finally {
+    sliceBusy.value = false
+  }
+}
+
+/**
+ * Removes a slice after confirmation.
+ */
+async function onRemoveSlice(sliceId: string, label: string) {
+  if (sliceBusy.value) return
+  if (!import.meta.client) return
+  if (!window.confirm(`Remove ${label} from this page?`)) return
+  sliceBusy.value = true
+  try {
+    await removeSlice(sliceId)
+  } finally {
+    sliceBusy.value = false
+  }
+}
+
+/**
+ * Saves meta draft to Supabase and updates the panel store.
+ */
+async function onSaveMeta() {
+  if (metaBusy.value) return
+  metaBusy.value = true
+  try {
+    await saveMeta({
+      title: metaDraft.title.trim() || null,
+      meta_title: metaDraft.meta_title.trim() || null,
+      meta_description: metaDraft.meta_description.trim() || null,
+      og_image: metaDraft.og_image.trim() || null,
+      noindex: metaDraft.noindex,
+    })
+  } finally {
+    metaBusy.value = false
+  }
+}
+
+/**
+ * Creates a new page and navigates to it.
+ */
+async function onCreatePage() {
+  createError.value = null
+  if (!newPageTemplateId.value) {
+    createError.value = 'Choose a template.'
+    return
+  }
+  if (createBusy.value) return
+  createBusy.value = true
+  try {
+    const page = await createPage({
+      slug: newPageSlug.value,
+      title: newPageTitle.value,
+      templateId: newPageTemplateId.value,
+    })
+    await refreshPageList()
+    newPageSlug.value = ''
+    newPageTitle.value = ''
+    await router.push(page.slug)
+    activeTab.value = 'contents'
+  } catch (err) {
+    createError.value =
+      err instanceof Error ? err.message : 'Could not create page.'
+  } finally {
+    createBusy.value = false
+  }
 }
 </script>
 
@@ -83,7 +190,7 @@ function previewValue(value: string | null): string {
         :aria-pressed="activeTab === 'contents'"
         @click="activeTab = 'contents'"
       >
-        Page contents
+        Content
       </button>
       <button
         type="button"
@@ -92,27 +199,130 @@ function previewValue(value: string | null): string {
       >
         Pages
       </button>
+      <button
+        type="button"
+        :aria-pressed="activeTab === 'meta'"
+        @click="activeTab = 'meta'"
+      >
+        Meta
+      </button>
     </div>
 
     <div v-show="activeTab === 'contents'" class="cms-sidebar-body">
-      <p v-if="!pageContent">Open a page to see fields.</p>
-      <ul v-else class="cms-sidebar-fields">
-        <li
-          v-for="{ field, depth } in fieldTree"
-          :key="field.id"
-          class="cms-sidebar-field"
-          :style="{ paddingLeft: `${depth}rem` }"
-        >
-          <span v-if="field.type === 'section'">{{ field.name }}</span>
-          <button
-            v-else
-            type="button"
-            @click="onFieldClick(field)"
+      <p v-if="!pageContent" class="cms-sidebar-hint">
+        Open a page to see fields and slices.
+      </p>
+
+      <template v-else>
+        <p v-if="contentTree.pageFieldNodes.length" class="cms-sidebar-hint">
+          Page fields
+        </p>
+        <ul v-if="contentTree.pageFieldNodes.length" class="cms-sidebar-fields">
+          <li
+            v-for="{ field, depth } in contentTree.pageFieldNodes"
+            :key="field.id"
+            class="cms-sidebar-field-row"
+            :style="{ paddingLeft: `${depth * 0.75}rem` }"
           >
-            {{ field.name }}: {{ previewValue(field.value) }}
+            <span
+              v-if="field.type === 'section'"
+              class="cms-sidebar-section-label"
+            >
+              {{ field.name }}
+            </span>
+            <button
+              v-else
+              type="button"
+              class="cms-sidebar-field-btn"
+              @click="onFieldClick(field)"
+            >
+              {{ field.name }}: {{ previewValue(field.value) }}
+            </button>
+          </li>
+        </ul>
+
+        <ul class="cms-sidebar-slices">
+          <li
+            v-for="{ slice, label, fields } in contentTree.sliceGroups"
+            :key="slice.id"
+            class="cms-sidebar-slice"
+          >
+            <div class="cms-sidebar-slice-header">
+              <button
+                type="button"
+                class="cms-sidebar-slice-title"
+                @click="onSliceClick(slice.id)"
+              >
+                {{ label }}
+              </button>
+              <div class="cms-sidebar-slice-actions">
+                <button
+                  type="button"
+                  title="Move up"
+                  :disabled="sliceBusy"
+                  @click="moveSlice(slice.id, -1)"
+                >
+                  ↑
+                </button>
+                <button
+                  type="button"
+                  title="Move down"
+                  :disabled="sliceBusy"
+                  @click="moveSlice(slice.id, 1)"
+                >
+                  ↓
+                </button>
+                <button
+                  type="button"
+                  title="Remove slice"
+                  :disabled="sliceBusy"
+                  @click="onRemoveSlice(slice.id, label)"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+            <ul class="cms-sidebar-fields">
+              <li
+                v-for="{ field, depth } in fields"
+                :key="field.id"
+                class="cms-sidebar-field-row"
+                :style="{ paddingLeft: `${depth * 0.75}rem` }"
+              >
+                <span
+                  v-if="field.type === 'section'"
+                  class="cms-sidebar-section-label"
+                >
+                  {{ field.name }}
+                </span>
+                <button
+                  v-else
+                  type="button"
+                  class="cms-sidebar-field-btn"
+                  @click="onFieldClick(field)"
+                >
+                  {{ field.name }}: {{ previewValue(field.value) }}
+                </button>
+              </li>
+            </ul>
+          </li>
+        </ul>
+
+        <div v-if="sliceTypes.length" class="cms-sidebar-add-slice">
+          <select v-model="selectedSliceType" :disabled="sliceBusy">
+            <option
+              v-for="def in sliceTypes"
+              :key="def.key"
+              :value="def.key"
+            >
+              {{ def.label }}
+            </option>
+          </select>
+          <button type="button" :disabled="sliceBusy" @click="onAddSlice">
+            Add slice
           </button>
-        </li>
-      </ul>
+        </div>
+      </template>
     </div>
 
     <div v-show="activeTab === 'pages'" class="cms-sidebar-body">
@@ -129,52 +339,79 @@ function previewValue(value: string | null): string {
           </NuxtLink>
         </li>
       </ul>
+
+      <form class="cms-sidebar-form" @submit.prevent="onCreatePage">
+        <p class="cms-sidebar-hint">New page</p>
+        <label>
+          Slug
+          <input
+            v-model="newPageSlug"
+            type="text"
+            placeholder="/about"
+            required
+          />
+        </label>
+        <label>
+          Title
+          <input v-model="newPageTitle" type="text" placeholder="About us" />
+        </label>
+        <label>
+          Template
+          <select v-model="newPageTemplateId" required>
+            <option
+              v-for="tpl in templates"
+              :key="tpl.id"
+              :value="tpl.id"
+            >
+              {{ tpl.label }}
+            </option>
+          </select>
+        </label>
+        <p v-if="createError" class="cms-sidebar-form-error">
+          {{ createError }}
+        </p>
+        <button type="submit" :disabled="createBusy">
+          Create page
+        </button>
+      </form>
+    </div>
+
+    <div v-show="activeTab === 'meta'" class="cms-sidebar-body">
+      <p v-if="!pageContent" class="cms-sidebar-hint">
+        Open a page to edit meta.
+      </p>
+      <form
+        v-else
+        class="cms-sidebar-form"
+        @submit.prevent="onSaveMeta"
+      >
+        <p class="cms-sidebar-hint">
+          Slug: <code>{{ pageContent.page.slug }}</code>
+        </p>
+        <label>
+          Page title
+          <input v-model="metaDraft.title" type="text" />
+        </label>
+        <label>
+          Meta title
+          <input v-model="metaDraft.meta_title" type="text" />
+        </label>
+        <label>
+          Meta description
+          <textarea v-model="metaDraft.meta_description" rows="3" />
+        </label>
+        <label>
+          OG image URL
+          <input v-model="metaDraft.og_image" type="url" />
+        </label>
+        <label>
+          <input v-model="metaDraft.noindex" type="checkbox" />
+          Noindex
+        </label>
+        <button type="submit" :disabled="metaBusy">
+          Save meta
+        </button>
+      </form>
     </div>
   </aside>
 </template>
-
-<style scoped>
-.cms-sidebar-toggle {
-  position: fixed;
-  left: 0;
-  top: 0;
-  z-index: 101;
-  padding: 0.25rem 0.5rem;
-}
-
-.cms-sidebar {
-  position: fixed;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 16rem;
-  z-index: 100;
-  background: #fff;
-  border-right: 1px solid #ccc;
-  transform: translateX(-100%);
-  overflow: auto;
-  padding: 2rem 0.5rem 0.5rem;
-}
-
-.cms-sidebar--open {
-  transform: translateX(0);
-}
-
-.cms-sidebar-tabs {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.cms-sidebar-fields,
-.cms-sidebar-pages {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.cms-sidebar-field button {
-  text-align: left;
-  width: 100%;
-}
-</style>

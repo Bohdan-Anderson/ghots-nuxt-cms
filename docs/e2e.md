@@ -63,6 +63,7 @@ Notes:
 | `content-model-v2.spec.ts` | Static guest on `/demo`: slices, global nav label, `<title>` from page meta; **no** Supabase requests |
 | `editor-edit.spec.ts` | Editor logs in on dev server (`:3001`), edits title via modal, value persists after refresh |
 | `content-model-v2-editor.spec.ts` | Editor edits a slice field on `/demo` via modal; persists after refresh |
+| `sidebar.spec.ts` | Create page (slice-demo template), add slice, edit via content tree, save meta |
 | `publish-split.spec.ts` | After edit, dev shows new title immediately; static guest still shows old title until `nuxt generate`; guest sees new title after regenerate |
 
 ## DB reset

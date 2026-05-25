@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import '~/assets/cms-panel.css'
+
 const route = useRoute()
 const { loggedIn } = useAuth()
 const { setPageContent } = useCmsPanel()

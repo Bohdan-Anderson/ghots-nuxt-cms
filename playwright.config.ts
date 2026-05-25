@@ -45,7 +45,11 @@ export default defineConfig({
     },
     {
       name: 'editor',
-      testMatch: ['editor-edit.spec.ts', 'content-model-v2-editor.spec.ts'],
+      testMatch: [
+        'editor-edit.spec.ts',
+        'content-model-v2-editor.spec.ts',
+        'sidebar.spec.ts',
+      ],
       use: {
         ...devices['Desktop Chrome'],
         baseURL: 'http://localhost:3001',

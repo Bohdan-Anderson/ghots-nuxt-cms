@@ -168,17 +168,17 @@ Today [CmsSidebar.vue](./app/components/CmsSidebar.vue) only lists a flat field 
 
 ### Tasks
 
-- [ ] **Flexible content tree** — nested display driven by schema (page → slices → fields, or page → fields only, etc.)
-- [ ] **Pages tab** — create page: slug, title, template picker; validate unique slug
-- [ ] **Meta panel** — edit page meta fields from sidebar
-- [ ] **Slice controls** — add slice (pick type), remove, reorder (sidebar only — avoid cluttering page canvas)
-- [ ] **Tree → page** — click field/slice row → scroll/highlight `[data-name]` on page + open modal
-- [ ] **Tabs layout** — Content / Pages / Meta (exact IA TBD but keep simple)
+- [x] **Flexible content tree** — nested display driven by schema (page → slices → fields, or page → fields only, etc.)
+- [x] **Pages tab** — create page: slug, title, template picker; validate unique slug
+- [x] **Meta panel** — edit page meta fields from sidebar
+- [x] **Slice controls** — add slice (pick type), remove, reorder (sidebar only — avoid cluttering page canvas)
+- [x] **Tree → page** — click field/slice row → scroll/highlight `[data-name]` on page + open modal
+- [x] **Tabs layout** — Content / Pages / Meta (exact IA TBD but keep simple)
 
 ### Validate
 
-- Playwright: create page → add slice → edit field via tree → meta saves
-- Manual: reorder slices → page render order updates for logged-in user
+- [x] Playwright: `e2e/sidebar.spec.ts` — create page → add slice → edit field via tree → meta saves
+- [x] Manual: reorder slices → page render order updates for logged-in user
 
 ### Touches
 
@@ -356,9 +356,4 @@ Items not scheduled — revisit after relevant phase.
 3 Sidebar UI  →  4 Field types  →  5 Publish  →  6 Images/arrays  →  7 Package
 ```
 
-**Current focus:** Phase 3
-
-/TODO - bugs
-
-- the panel isn't showing the children values of the sections (or sections in general)
-- the css styles of the side panel are not rendering when running a static build.
+**Current focus:** Phase 4 — Field types (v1)

@@ -1,6 +1,6 @@
 # CMS sidebar (logged-in)
 
-When **`loggedIn`** is true, a fixed **left overlay** is always available: toggle with the **CMS** button, then use two tabs — **Page contents** and **Pages**.
+When **`loggedIn`** is true, a fixed **left overlay** is always available: toggle with the **CMS** button, then use three tabs — **Content**, **Pages**, and **Meta**.
 
 Guests never see the sidebar (`v-if="loggedIn"` in `app.vue`).
 
@@ -15,17 +15,22 @@ Guests never see the sidebar (`v-if="loggedIn"` in `app.vue`).
 
 ## Tabs
 
-### Page contents
+### Content
 
-- Lists fields for the **current CMS page** in schema order (sections as labels, `plain_text` as buttons with a truncated preview).
-- Clicking a **`plain_text`** row calls **`usePageEditor().open(field)`** — same modal as clicking `[data-name]` on the page.
-- If there is no synced content (e.g. on `/login`), shows: “Open a page to see fields.”
+- **Page fields** — nested tree from template schema (sections as labels, `plain_text` as buttons with truncated preview).
+- **Slices** — one block per `page_slices` row: label from code registry, field tree inside, ↑/↓ reorder, × remove (confirm), title click scrolls to `[data-slice-id]` on canvas.
+- **Add slice** — pick registered slice type, inserts instance + seeds fields (`usePageSlices` / `useCmsPageActions`).
+- Field click: scroll/highlight on page + **`usePageEditor().open(field)`** for `plain_text` (same modal as `[data-name]` clicks).
 
 ### Pages
 
-- Lists all rows from **`usePageList()`** (`slug`, `title`), same source as the top nav.
-- **`NuxtLink`** to each slug; active route highlighted with `router-link-active`.
-- Fetched once via `useAsyncData('cms-panel-page-list', …)` inside `CmsSidebar`.
+- Lists all rows from **`usePageListData()`** (`slug`, `title`), same source as the top nav.
+- **Create page** — slug, title, template picker (`useTemplatesData`); unique slug enforced; navigates to new page on success.
+
+### Meta
+
+- Edits `pages` meta columns: title, meta_title, meta_description, og_image, noindex (slug read-only).
+- Saves via **`usePageMeta`**; panel store + `<head>` update without full navigation.
 
 ## Syncing page data (`[...slug].vue` → panel)
 
@@ -70,12 +75,12 @@ After a field save, `onFieldUpdated` patches `content`; the same object is in `p
 
 ## Styling
 
-Minimal scoped CSS in `CmsSidebar.vue`: fixed panel (~`16rem`), slide via `transform: translateX`, plain tab buttons, no transitions or design system.
+Panel styles live in **`app/assets/cms-panel.css`**, imported from `app.vue`, so CSS is in the main bundle when the sidebar mounts client-side on static builds (avoids missing styles from `v-if="loggedIn"` + scoped chunks).
 
 ## Limitations (current)
 
-- No create/delete page UI in the sidebar.
 - Only **`plain_text`** fields are editable from the panel (same as inline clicks).
+- No delete-page UI.
 - Logged-in users still see **duplicate** page links in the top nav and the **Pages** tab (intentional for now).
 
 ## Related

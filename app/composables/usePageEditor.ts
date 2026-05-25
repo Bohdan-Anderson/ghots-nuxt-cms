@@ -99,6 +99,39 @@ export function usePageEditor() {
     draftValue.value = value
   }
 
+  /**
+   * Scrolls to a field or slice on the page and briefly highlights it.
+   */
+  function focusOnPage(field: FieldRow): void {
+    if (!import.meta.client) return
+
+    const selector = field.id
+      ? `[data-id="${field.id}"]`
+      : `[data-name="${field.name}"]`
+    const el = document.querySelector(selector) as HTMLElement | null
+    if (!el) return
+
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    el.classList.add('cms-field-highlight')
+    window.setTimeout(() => el.classList.remove('cms-field-highlight'), 1500)
+  }
+
+  /**
+   * Scrolls to a slice wrapper element by instance id.
+   */
+  function focusSliceOnPage(sliceId: string): void {
+    if (!import.meta.client) return
+
+    const el = document.querySelector(
+      `[data-slice-id="${sliceId}"]`,
+    ) as HTMLElement | null
+    if (!el) return
+
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    el.classList.add('cms-field-highlight')
+    window.setTimeout(() => el.classList.remove('cms-field-highlight'), 1500)
+  }
+
   return {
     activeField,
     draftValue,
@@ -110,6 +143,8 @@ export function usePageEditor() {
     save,
     setDraft,
     resolveFieldFromElement,
+    focusOnPage,
+    focusSliceOnPage,
     registry,
   }
 }
