@@ -91,7 +91,8 @@ export function usePageEditor() {
     const matches = Object.values(registry.value.fieldsById).filter(
       (f) => f.name === name,
     )
-    return matches.length === 1 ? matches[0] : null
+    const [field] = matches
+    return matches.length === 1 && field ? field : null
   }
 
   function setDraft(value: string) {

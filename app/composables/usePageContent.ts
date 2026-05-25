@@ -1,14 +1,19 @@
 import type {
   FieldRow,
-  FieldSchemaNode,
   PageContent,
   PageRow,
   TemplateRow,
 } from '~/types/cms'
+import {
+  buildFieldMaps,
+  pageLevelFields,
+  seedFieldsFromSchema,
+} from '~/composables/seedFields'
+import { fetchPageSlices } from '~/composables/usePageSlices'
 import { normalizeSlug } from '~/utils/slug'
 
 /**
- * Fetches page + template + fields; seeds empty fields for logged-in editors on first visit.
+ * Fetches page + template + slices + fields; seeds empty page-level fields for logged-in editors.
  */
 export async function usePageContent(
   slugInput: string,
@@ -29,6 +34,8 @@ export async function usePageContent(
   const page = pageData as PageRow & { templates: TemplateRow }
   const template = page.templates
 
+  const slices = await fetchPageSlices(supabase, page.id)
+
   let { data: fields, error: fieldsError } = await supabase
     .from('fields')
     .select('*')
@@ -37,8 +44,12 @@ export async function usePageContent(
 
   if (fieldsError) throw fieldsError
 
-  if (loggedIn.value && (!fields || fields.length === 0)) {
-    await seedFieldsFromSchema(supabase, page.id, template.field_schema)
+  const pageFieldCount = (fields ?? []).filter((f) => f.slice_id === null).length
+
+  if (loggedIn.value && pageFieldCount === 0) {
+    await seedFieldsFromSchema(supabase, template.field_schema, {
+      pageId: page.id,
+    })
     const refetch = await supabase
       .from('fields')
       .select('*')
@@ -49,14 +60,16 @@ export async function usePageContent(
   }
 
   const fieldList = (fields ?? []) as FieldRow[]
-  const { fieldsById, fieldsByName } = buildFieldMaps(fieldList)
+  const { fieldsById, fieldsByName, fieldsBySliceId } = buildFieldMaps(fieldList)
 
   return toPageContentPayload(
     page,
     template,
+    slices,
     fieldList,
     fieldsById,
     fieldsByName,
+    fieldsBySliceId,
   )
 }
 
@@ -66,9 +79,11 @@ export async function usePageContent(
 function toPageContentPayload(
   page: PageRow,
   template: TemplateRow,
+  slices: PageContent['slices'],
   fields: FieldRow[],
   fieldsById: Record<string, FieldRow>,
   fieldsByName: Record<string, FieldRow>,
+  fieldsBySliceId: Record<string, FieldRow[]>,
 ): PageContent {
   return {
     page: {
@@ -76,6 +91,10 @@ function toPageContentPayload(
       slug: page.slug,
       template_id: page.template_id,
       title: page.title,
+      meta_title: page.meta_title ?? null,
+      meta_description: page.meta_description ?? null,
+      og_image: page.og_image ?? null,
+      noindex: page.noindex ?? false,
       created_at: page.created_at,
       updated_at: page.updated_at,
     },
@@ -85,31 +104,42 @@ function toPageContentPayload(
       label: template.label,
       field_schema: template.field_schema,
     },
+    slices,
     fields,
+    pageFields: pageLevelFields(fields),
+    fieldsBySliceId,
     fieldsById,
     fieldsByName,
   }
 }
 
 /**
- * Resolves a field by name, optionally scoped to a parent section name.
+ * Resolves a field by name, optionally scoped to a parent section and/or slice instance.
  */
 export function resolveField(
   fields: FieldRow[],
   name: string,
   parentSectionName?: string,
+  sliceId?: string | null,
 ): FieldRow | undefined {
+  const scoped = fields.filter((field) =>
+    sliceId ? field.slice_id === sliceId : field.slice_id === null,
+  )
+
   if (!parentSectionName) {
-    return fields.find((f) => f.name === name && f.parent_id === null)
+    return scoped.find((field) => field.name === name && field.parent_id === null)
   }
-  const parent = fields.find(
-    (f) =>
-      f.name === parentSectionName &&
-      f.type === 'section' &&
-      f.parent_id === null,
+
+  const parent = scoped.find(
+    (field) =>
+      field.name === parentSectionName &&
+      field.type === 'section' &&
+      field.parent_id === null,
   )
   if (!parent) return undefined
-  return fields.find((f) => f.name === name && f.parent_id === parent.id)
+  return scoped.find(
+    (field) => field.name === name && field.parent_id === parent.id,
+  )
 }
 
 /**
@@ -129,55 +159,4 @@ export async function updateFieldValue(
 
   if (error) throw error
   return data as FieldRow
-}
-
-function buildFieldMaps(fields: FieldRow[]) {
-  const fieldsById: Record<string, FieldRow> = {}
-  const fieldsByName: Record<string, FieldRow> = {}
-
-  for (const field of fields) {
-    fieldsById[field.id] = field
-    if (field.parent_id === null) {
-      fieldsByName[field.name] = field
-    }
-  }
-
-  return { fieldsById, fieldsByName }
-}
-
-async function seedFieldsFromSchema(
-  supabase: ReturnType<typeof useSupabase>,
-  pageId: string,
-  schema: FieldSchemaNode[],
-  parentId: string | null = null,
-  startOrder = 0,
-): Promise<void> {
-  let order = startOrder
-
-  for (const node of schema) {
-    const { data: inserted, error } = await supabase
-      .from('fields')
-      .insert({
-        page_id: pageId,
-        parent_id: parentId,
-        name: node.name,
-        type: node.type,
-        value: node.type === 'plain_text' ? (node.default ?? '') : null,
-        sort_order: order++,
-      })
-      .select('id')
-      .single()
-
-    if (error) throw error
-
-    if (node.type === 'section' && node.children?.length) {
-      await seedFieldsFromSchema(
-        supabase,
-        pageId,
-        node.children,
-        inserted.id,
-        0,
-      )
-    }
-  }
 }

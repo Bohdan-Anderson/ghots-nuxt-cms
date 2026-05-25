@@ -2,13 +2,13 @@
 
 ## Apply migration
 
-Run [`migrations/001_pages_fields.sql`](migrations/001_pages_fields.sql) in the Supabase SQL editor (or via CLI).
+Run [`migrations/001_pages_fields.sql`](migrations/001_pages_fields.sql), then [`002_slices_meta_globals.sql`](migrations/002_slices_meta_globals.sql), then [`003_rls_hardening.sql`](migrations/003_rls_hardening.sql) in the Supabase SQL editor (or via CLI).
 
 Creates:
 
-- Tables: `templates`, `pages`, `fields`
-- RLS policies (public read, authenticated write)
-- Seed: `default` template + home page at `/`
+- **001:** Tables `templates`, `pages`, `fields`; RLS; seed `default` template + home `/`
+- **002:** Page meta columns, `page_slices`, `globals`, extended `fields`; seed `site` global + `/demo` slice demo page
+- **003:** Re-affirms RLS on all tables; ensures `fields` policies exist; adds `globals` DELETE policy
 
 Full schema docs: [docs/database.md](../docs/database.md).
 

@@ -1,6 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createE2eSupabase } from './supabase'
-import { getE2eEnv } from './env'
+import {
+  assertSupabaseReachable,
+  getE2eEnv,
+  isTransientNetworkError,
+} from './env'
 
 /** Known baseline values for home page E2E tests. */
 export const BASELINE = {
@@ -8,9 +12,19 @@ export const BASELINE = {
   body: 'E2E baseline body text.',
 } as const
 
+/** Known baseline values for /demo page (migration 002 seed). */
+export const DEMO_BASELINE = {
+  pageTitle: 'Slice demo page',
+  firstHeroHeadline: 'First hero headline',
+  secondHeroHeadline: 'Second hero headline',
+  metaTitle: 'Slice demo — ghots-cms',
+  navLabel: 'My Site',
+} as const
+
 interface FieldRow {
   id: string
   page_id: string
+  slice_id: string | null
   parent_id: string | null
   name: string
   type: string
@@ -18,18 +32,53 @@ interface FieldRow {
 }
 
 /**
+ * Waits between transient network retries.
+ */
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+const SIGN_IN_MAX_ATTEMPTS = 3
+const SIGN_IN_RETRY_MS = 1500
+
+/**
  * Signs in as the E2E editor user.
  */
 export async function signInAsEditor(
   supabase: SupabaseClient = createE2eSupabase(),
 ): Promise<SupabaseClient> {
-  const { editorEmail, editorPassword } = getE2eEnv()
-  const { error } = await supabase.auth.signInWithPassword({
-    email: editorEmail,
-    password: editorPassword,
-  })
-  if (error) throw new Error(`E2E sign-in failed: ${error.message}`)
-  return supabase
+  const { editorEmail, editorPassword, supabaseUrl } = getE2eEnv()
+  await assertSupabaseReachable(supabaseUrl)
+
+  let lastMessage = 'unknown error'
+
+  for (let attempt = 1; attempt <= SIGN_IN_MAX_ATTEMPTS; attempt++) {
+    const { error } = await supabase.auth.signInWithPassword({
+      email: editorEmail,
+      password: editorPassword,
+    })
+
+    if (!error) return supabase
+
+    lastMessage = error.message
+
+    if (
+      attempt < SIGN_IN_MAX_ATTEMPTS &&
+      isTransientNetworkError(error.message)
+    ) {
+      await sleep(SIGN_IN_RETRY_MS * attempt)
+      continue
+    }
+
+    break
+  }
+
+  const host = new URL(supabaseUrl).host
+  throw new Error(
+    `E2E sign-in failed: ${lastMessage}. ` +
+      `Supabase host: ${host}. ` +
+      'Check E2E_EDITOR_EMAIL / E2E_EDITOR_PASSWORD and that the Auth user exists.',
+  )
 }
 
 /**
@@ -160,4 +209,89 @@ export async function resetHomePageFields(): Promise<void> {
   }
 
   await supabase.auth.signOut()
+}
+
+/**
+ * Resets /demo page title and hero slice headlines to migration seed values.
+ */
+export async function resetDemoPageFields(): Promise<void> {
+  const supabase = await signInAsEditor()
+
+  const { data: page, error: pageError } = await supabase
+    .from('pages')
+    .select('id')
+    .eq('slug', '/demo')
+    .maybeSingle()
+
+  if (pageError) throw pageError
+  if (!page) {
+    await supabase.auth.signOut()
+    return
+  }
+
+  const { data: slices, error: slicesError } = await supabase
+    .from('page_slices')
+    .select('id, sort_order')
+    .eq('page_id', page.id)
+    .order('sort_order', { ascending: true })
+
+  if (slicesError) throw slicesError
+
+  const { data: fields, error: fieldsError } = await supabase
+    .from('fields')
+    .select('id, name, slice_id, parent_id')
+    .eq('page_id', page.id)
+
+  if (fieldsError) throw fieldsError
+
+  const fieldList = (fields ?? []) as FieldRow[]
+  const titleField = fieldList.find(
+    (field) => field.name === 'title' && field.slice_id === null,
+  )
+
+  if (!titleField) {
+    throw new Error('Demo page title field not found')
+  }
+
+  const headlineBaselines = [
+    DEMO_BASELINE.firstHeroHeadline,
+    DEMO_BASELINE.secondHeroHeadline,
+  ] as const
+
+  const updates: { id: string; value: string }[] = [
+    { id: titleField.id, value: DEMO_BASELINE.pageTitle },
+  ]
+
+  for (let index = 0; index < (slices?.length ?? 0); index++) {
+    const slice = slices![index]
+    const headline = headlineBaselines[index]
+    if (!slice || !headline) continue
+
+    const headlineField = fieldList.find(
+      (field) => field.slice_id === slice.id && field.name === 'headline',
+    )
+    if (!headlineField) {
+      throw new Error(`Demo hero headline field not found for slice ${slice.id}`)
+    }
+    updates.push({ id: headlineField.id, value: headline })
+  }
+
+  for (const { id, value } of updates) {
+    const { error } = await supabase
+      .from('fields')
+      .update({ value })
+      .eq('id', id)
+
+    if (error) throw error
+  }
+
+  await supabase.auth.signOut()
+}
+
+/**
+ * Resets all E2E baseline pages (home + demo) before/after a test run.
+ */
+export async function resetE2eBaselines(): Promise<void> {
+  await resetHomePageFields()
+  await resetDemoPageFields()
 }

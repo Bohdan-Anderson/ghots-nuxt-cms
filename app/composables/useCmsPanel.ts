@@ -1,4 +1,5 @@
 import type { FieldRow, PageContent } from '~/types/cms'
+import { buildFieldMaps, pageLevelFields } from '~/composables/seedFields'
 
 export type CmsPanelTab = 'contents' | 'pages'
 
@@ -15,14 +16,15 @@ function patchFieldInContent(
       ? current.fields.map((f, i) => (i === index ? updated : f))
       : [...current.fields, updated]
 
+  const { fieldsById, fieldsByName, fieldsBySliceId } = buildFieldMaps(fields)
+
   return {
     ...current,
     fields,
-    fieldsById: { ...current.fieldsById, [updated.id]: updated },
-    fieldsByName:
-      updated.parent_id === null
-        ? { ...current.fieldsByName, [updated.name]: updated }
-        : current.fieldsByName,
+    pageFields: pageLevelFields(fields),
+    fieldsBySliceId,
+    fieldsById,
+    fieldsByName,
   }
 }
 

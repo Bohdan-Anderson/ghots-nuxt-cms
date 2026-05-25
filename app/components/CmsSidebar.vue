@@ -43,7 +43,7 @@ function buildFieldTree(fields: FieldRow[]): FieldTreeNode[] {
 
 const fieldTree = computed(() => {
   if (!pageContent.value) return []
-  return buildFieldTree(pageContent.value.fields)
+  return buildFieldTree(pageContent.value.pageFields)
 })
 
 /**

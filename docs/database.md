@@ -2,22 +2,30 @@
 
 ## Location
 
-Schema and seed data: [`supabase/migrations/001_pages_fields.sql`](../supabase/migrations/001_pages_fields.sql).
+Migrations in [`supabase/migrations/`](../supabase/migrations/):
 
-Apply via Supabase SQL editor or CLI. See [`supabase/README.md`](../supabase/README.md).
+| File | Purpose |
+| ---- | ------- |
+| `001_pages_fields.sql` | Templates, pages, fields (v1) |
+| `002_slices_meta_globals.sql` | Meta columns, slices, globals, field ownership |
+| `003_rls_hardening.sql` | Re-affirm RLS on all tables; ensure `fields` policies |
+
+Apply in order via Supabase SQL editor or CLI. See [`supabase/README.md`](../supabase/README.md).
+
+Design rationale: [ADR 002](./adr-002-content-model-v2.md).
 
 ## Tables
 
 ### `templates`
 
-Defines page types and the **field schema** used to seed `fields`.
+Defines page types and **page-level field schema** (`field_schema`).
 
 | Column | Type | Notes |
 | ------ | ---- | ----- |
 | `id` | uuid | PK |
-| `key` | text | Unique; maps to Vue template (`default`, …) |
+| `key` | text | Unique; maps to Vue template (`default`, `slice-demo`, …) |
 | `label` | text | Human label |
-| `field_schema` | jsonb | Tree of `FieldSchemaNode` |
+| `field_schema` | jsonb | Page-level field tree |
 
 ### `pages`
 
@@ -26,55 +34,80 @@ One row per site URL.
 | Column | Type | Notes |
 | ------ | ---- | ----- |
 | `id` | uuid | PK |
-| `slug` | text | Unique; e.g. `/`, `/about` |
+| `slug` | text | Unique; e.g. `/`, `/demo` |
 | `template_id` | uuid | FK → `templates` |
-| `title` | text | Optional; used in nav |
+| `title` | text | Internal / nav label |
+| `meta_title` | text | `<title>` / OG (falls back to `title`) |
+| `meta_description` | text | `<meta name="description">` |
+| `og_image` | text | OG image URL |
+| `noindex` | boolean | Default `false` |
 | `created_at`, `updated_at` | timestamptz | |
 
-### `fields`
+### `page_slices`
 
-Actual content values for a page. Hierarchical via `parent_id`.
+Ordered slice instances on a page.
 
 | Column | Type | Notes |
 | ------ | ---- | ----- |
 | `id` | uuid | PK |
 | `page_id` | uuid | FK → `pages` (cascade delete) |
-| `parent_id` | uuid | FK → `fields`; null = root |
-| `name` | text | Unique per `(page_id, parent_id)` |
+| `slice_type_key` | text | Maps to code registry |
+| `sort_order` | int | Render / sidebar order |
+
+### `globals`
+
+Shared content regions (nav, footer, …).
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| `id` | uuid | PK |
+| `key` | text | Unique; maps to code registry |
+| `label` | text | Human label |
+| `created_at` | timestamptz | |
+
+### `fields`
+
+Content values. Each row belongs to **one owner**: page-level, slice instance, or global.
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| `id` | uuid | PK |
+| `page_id` | uuid | FK → `pages`; null for global fields |
+| `slice_id` | uuid | FK → `page_slices`; null for page-level / global |
+| `global_id` | uuid | FK → `globals`; null for page fields |
+| `parent_id` | uuid | FK → `fields`; null = root within owner |
+| `name` | text | Unique per `(page_id, slice_id, parent_id)` or `(global_id, parent_id)` |
 | `type` | text | `section` \| `plain_text` |
 | `value` | text | Content for `plain_text` |
 | `sort_order` | int | Ordering among siblings |
 
+**Constraints:** exactly one of `page_id` or `global_id` set; `slice_id` requires `page_id`.
+
 ## Seed data
 
-Migration inserts:
+After both migrations:
 
-- Template **`default`** with schema: `title`, section `main` → `body`
-- Page **`/`** (Home) using that template
+- Template **`default`** + home **`/`** (unchanged from v1)
+- Template **`slice-demo`** + demo **`/demo`** with two **`hero`** slices
+- Global **`site`** with `nav_label` field
 
 ## Row Level Security
 
-RLS is **enabled** on all three tables.
-
-| Table | anon | authenticated |
-| ----- | ---- | ------------- |
-| `templates` | SELECT | SELECT |
-| `pages` | SELECT | SELECT, INSERT, UPDATE |
-| `fields` | SELECT | SELECT, INSERT, UPDATE, DELETE |
-
-Public site visitors use the **anon** role via the publishable key. Editors authenticate and use the **authenticated** role for writes.
-
-Adjust policies before production if you need draft/published splits or per-page ACLs.
+RLS enabled on all tables. Public **anon** read; **authenticated** write on pages, fields, page_slices, globals.
 
 ## TypeScript mirror
 
-Domain types in `app/types/cms.ts` align with these tables plus joined shapes (`PageContent`, `FieldSchemaNode`).
+Domain types in `app/types/cms.ts`. Slice/global definitions in `app/slices/registry.ts`, `app/globals/registry.ts`.
 
 ## Queries in the app
 
 | Composable / function | Query | Guest static cache |
 | -------------------- | ----- | ------------------ |
-| `usePageList` | `pages` → `slug, title` | No — always runs at runtime |
-| `usePageContent` | `pages` + `templates(*)`, then `fields` | Yes when `getCachedData` hits (see [Static generation](./static-generation.md)) |
-| `updateFieldValue` | `fields` UPDATE by `id` | Editor only |
-| `seedFieldsFromSchema` | `fields` INSERT from `field_schema` | Editor only (logged in, zero fields) |
+| `usePageList` | `pages` → `slug, title` | Yes |
+| `usePageContent` | `pages` + `templates`, `page_slices`, `fields` | Yes |
+| `useGlobalData` | `globals` + `fields` | Yes |
+| `updateFieldValue` | `fields` UPDATE | Editor only |
+| `insertPageSlice` | `page_slices` INSERT + field seed | Editor only |
+| `seedFieldsFromSchema` | `fields` INSERT | Editor only |
+
+See [Static generation](./static-generation.md) for `getCachedData` behavior.

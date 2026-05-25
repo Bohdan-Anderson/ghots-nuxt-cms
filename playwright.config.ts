@@ -1,7 +1,8 @@
 import { config as loadDotenv } from 'dotenv'
+import { resolve } from 'node:path'
 import { defineConfig, devices } from '@playwright/test'
 
-loadDotenv()
+loadDotenv({ path: resolve(process.cwd(), '.env') })
 
 const isCi = !!process.env.CI
 const recordVideo = !!process.env.E2E_VIDEO
@@ -36,7 +37,7 @@ export default defineConfig({
   projects: [
     {
       name: 'static-guest',
-      testMatch: 'guest-static.spec.ts',
+      testMatch: ['guest-static.spec.ts', 'content-model-v2.spec.ts'],
       use: {
         ...devices['Desktop Chrome'],
         baseURL: 'http://localhost:8000',
@@ -44,7 +45,7 @@ export default defineConfig({
     },
     {
       name: 'editor',
-      testMatch: 'editor-edit.spec.ts',
+      testMatch: ['editor-edit.spec.ts', 'content-model-v2-editor.spec.ts'],
       use: {
         ...devices['Desktop Chrome'],
         baseURL: 'http://localhost:3001',

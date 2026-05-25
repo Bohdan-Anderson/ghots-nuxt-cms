@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { resolveGlobalField } from '~/composables/useGlobal'
+
 const {
   route,
   content,
@@ -8,10 +10,39 @@ const {
   patchField,
   loggedIn,
 } = useGhostPage()
+
+const { data: siteGlobal } = useGlobalData('site')
+
+const siteNavLabel = computed(
+  () =>
+    resolveGlobalField(siteGlobal.value?.fields ?? [], 'nav_label')?.value ??
+    'Site',
+)
+
+useHead(() => {
+  const page = content.value?.page
+  if (!page) return {}
+
+  const title = page.meta_title ?? page.title ?? page.slug
+  const meta: { name?: string; property?: string; content: string }[] = []
+
+  if (page.meta_description) {
+    meta.push({ name: 'description', content: page.meta_description })
+  }
+  if (page.og_image) {
+    meta.push({ property: 'og:image', content: page.og_image })
+  }
+  if (page.noindex) {
+    meta.push({ name: 'robots', content: 'noindex' })
+  }
+
+  return { title, meta }
+})
 </script>
 
 <template>
   <nav>
+    <strong>{{ siteNavLabel }}</strong>
     <NuxtLink
       v-for="page in pageList"
       :key="page.slug"
@@ -41,6 +72,9 @@ const {
     <component
       :is="templateComponent"
       :fields="content.fields"
+      :page-fields="content.pageFields"
+      :slices="content.slices"
+      :fields-by-slice-id="content.fieldsBySliceId"
     />
   </PageEditorProvider>
 

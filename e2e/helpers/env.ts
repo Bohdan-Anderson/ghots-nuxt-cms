@@ -1,7 +1,4 @@
-import { config as loadDotenv } from 'dotenv'
-import { resolve } from 'node:path'
-
-loadDotenv({ path: resolve(process.cwd(), '.env') })
+import './loadEnv'
 
 export interface E2eEnv {
   supabaseUrl: string
@@ -34,5 +31,40 @@ export function getE2eEnv(): E2eEnv {
     supabaseAnonKey: process.env.VITE_SUPABASE_ANON_KEY!.trim(),
     editorEmail: process.env.E2E_EDITOR_EMAIL!.trim(),
     editorPassword: process.env.E2E_EDITOR_PASSWORD!.trim(),
+  }
+}
+
+/**
+ * Returns true when an auth/network error may succeed on retry.
+ */
+export function isTransientNetworkError(message: string): boolean {
+  return (
+    message.includes('fetch failed') ||
+    message.includes('ENOTFOUND') ||
+    message.includes('ECONNRESET') ||
+    message.includes('ETIMEDOUT') ||
+    message.includes('EAI_AGAIN')
+  )
+}
+
+/**
+ * Verifies Supabase is reachable before E2E DB reset (fail fast with a clear message).
+ */
+export async function assertSupabaseReachable(supabaseUrl: string): Promise<void> {
+  const healthUrl = `${supabaseUrl.replace(/\/$/, '')}/auth/v1/health`
+
+  try {
+    const response = await fetch(healthUrl, { signal: AbortSignal.timeout(10_000) })
+    if (!response.ok && response.status >= 500) {
+      throw new Error(`Supabase returned HTTP ${response.status}`)
+    }
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error)
+    const host = new URL(supabaseUrl).host
+    throw new Error(
+      `Cannot reach Supabase at ${host} (${detail}). ` +
+        'Check your network/VPN, confirm the project is active in the Supabase dashboard, ' +
+        'and verify VITE_SUPABASE_URL in .env.',
+    )
   }
 }

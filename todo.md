@@ -124,21 +124,22 @@ Without this migration, Phase 3 sidebar and Phase 4 field types have nowhere to 
 
 ### Tasks
 
-- [ ] **Design doc / ADR** in `docs/` — slice storage choice (`page_slices` table vs JSON), global storage (`globals` table vs pseudo-pages), field ownership (page vs slice instance vs global)
-- [ ] **Migration 002** — new tables/columns; RLS policies; seed data for dev
-- [ ] **Slice registry in code** — map slice type key → Vue component + field schema (like [useTemplate.ts](./app/composables/useTemplate.ts) today)
-- [ ] **Page slice instances** — ordered rows per page; FK to slice type key
-- [ ] **Page-level fields** — fields with `page_id` but no slice parent (or explicit `scope` column)
-- [ ] **Page meta** — columns or `meta` jsonb on `pages` (slug, title, meta_title, meta_description, og_image, noindex)
-- [ ] **Globals** — `useGlobal(key)` composable; load + cache like page content
-- [ ] **Seed on add** — inserting a slice instance creates field rows from schema; delete cascades
-- [ ] **Update** [app/types/cms.ts](./app/types/cms.ts) and [usePageContent.ts](./app/composables/usePageContent.ts) (or split into slice-aware loader)
+- [x] **Design doc / ADR** in `docs/` — slice storage choice (`page_slices` table vs JSON), global storage (`globals` table vs pseudo-pages), field ownership (page vs slice instance vs global)
+- [x] **Migration 002** — new tables/columns; RLS policies; seed data for dev
+- [x] **Slice registry in code** — map slice type key → Vue component + field schema (like [useTemplate.ts](./app/composables/useTemplate.ts) today)
+- [x] **Page slice instances** — ordered rows per page; FK to slice type key
+- [x] **Page-level fields** — fields with `page_id` but no slice parent (or explicit `scope` column)
+- [x] **Page meta** — columns or `meta` jsonb on `pages` (slug, title, meta_title, meta_description, og_image, noindex)
+- [x] **Globals** — `useGlobal(key)` composable; load + cache like page content
+- [x] **Seed on add** — inserting a slice instance creates field rows from schema; delete cascades
+- [x] **Update** [app/types/cms.ts](./app/types/cms.ts) and [usePageContent.ts](./app/composables/usePageContent.ts) (or split into slice-aware loader)
 
 ### Validate
 
-- Manual: one page with 2× same slice type + page-level field + global nav text — all render in a test template
-- Migration applies cleanly on fresh Supabase
-- Existing home page still works (migration path or re-seed documented)
+- [x] Manual: one page with 2× same slice type + page-level field + global nav text — all render in a test template (`/demo`)
+- [x] Migration applies cleanly on fresh Supabase
+- [x] Existing home page still works (migration path or re-seed documented)
+- [x] Playwright: `content-model-v2.spec.ts` + `content-model-v2-editor.spec.ts`
 
 ### Touches
 
@@ -335,24 +336,29 @@ Packaging too early duplicates refactor pain across consumers.
 
 Items not scheduled — revisit after relevant phase.
 
-| Idea | Why deferred | Likely phase |
-| ---- | ------------ | ------------ |
-| Rename project (Ghost conflict) | Branding, not blocking | Before npm publish |
-| Rich text editor choice (TipTap vs markdown) | Implementation continues Phase 4 |
-| Login form E2E (vs session inject) | API inject sufficient for now | Phase 1+ |
-| CI GitHub Action on publish webhook | Local generate only for v1 | Phase 5+ |
-| Draft/preview URLs | Same deploy, login gate is enough for v1 | post-v1 |
-| Roles / multi-user | Single editor per project for now | post-v1 |
-| `@nuxt/test-utils` | Plain Playwright works | revisit if SSR tests needed |
+| Idea                                         | Why deferred                             | Likely phase                |
+| -------------------------------------------- | ---------------------------------------- | --------------------------- |
+| Rename project (Ghost conflict)              | Branding, not blocking                   | Before npm publish          |
+| Rich text editor choice (TipTap vs markdown) | Implementation continues Phase 4         |
+| Login form E2E (vs session inject)           | API inject sufficient for now            | Phase 1+                    |
+| CI GitHub Action on publish webhook          | Local generate only for v1               | Phase 5+                    |
+| Draft/preview URLs                           | Same deploy, login gate is enough for v1 | post-v1                     |
+| Roles / multi-user                           | Single editor per project for now        | post-v1                     |
+| `@nuxt/test-utils`                           | Plain Playwright works                   | revisit if SSR tests needed |
 
 ---
 
 ## Quick reference — phase order
 
 ```text
-0 E2E ✅  →  1 Editor + guest static  →  2 Data model
+0 E2E ✅  →  1 Editor + guest static ✅  →  2 Data model ✅
                     ↓
 3 Sidebar UI  →  4 Field types  →  5 Publish  →  6 Images/arrays  →  7 Package
 ```
 
-**Current focus:** Phase 1
+**Current focus:** Phase 3
+
+/TODO - bugs
+
+- the panel isn't showing the children values of the sections (or sections in general)
+- the css styles of the side panel are not rendering when running a static build.
