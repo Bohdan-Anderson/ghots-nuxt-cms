@@ -49,6 +49,7 @@ export default defineConfig({
         'editor-edit.spec.ts',
         'content-model-v2-editor.spec.ts',
         'sidebar.spec.ts',
+        'field-types.spec.ts',
       ],
       use: {
         ...devices['Desktop Chrome'],

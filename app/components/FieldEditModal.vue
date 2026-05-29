@@ -1,15 +1,22 @@
 <script setup lang="ts">
+import { getFieldTypeConfig } from '~/fields/registry'
+
 const {
   activeField,
   draftValue,
   isOpen,
   close,
   save,
-  setDraft,
 } = usePageEditor()
 
 const saving = ref(false)
 const errorMessage = ref('')
+
+const editComponent = computed(() => {
+  const field = activeField.value
+  if (!field) return null
+  return getFieldTypeConfig(field.type)?.editComponent ?? null
+})
 
 /**
  * Saves the draft and closes the modal.
@@ -35,17 +42,16 @@ async function handleSave() {
     @close="close"
   >
     <form
+      v-if="activeField && editComponent"
       class="field-edit-modal__form"
       @submit.prevent="handleSave"
     >
       <h2 class="field-edit-modal__title">
-        Edit {{ activeField?.name }}
+        Edit {{ activeField.name }}
       </h2>
-      <textarea
-        :value="draftValue"
-        rows="8"
-        class="field-edit-modal__input"
-        @input="setDraft(($event.target as HTMLTextAreaElement).value)"
+      <component
+        :is="editComponent"
+        v-model:draft="draftValue"
       />
       <p
         v-if="errorMessage"
@@ -90,7 +96,7 @@ async function handleSave() {
   font-size: 1rem;
 }
 
-.field-edit-modal__input {
+.field-edit-modal :deep(.field-edit-modal__input) {
   width: 100%;
   box-sizing: border-box;
 }

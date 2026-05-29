@@ -5,6 +5,7 @@ import { usePageListData } from '~/composables/usePageList'
 import { useTemplatesData } from '~/composables/useTemplates'
 import { createPage } from '~/composables/usePageCreate'
 import { listSliceDefinitions } from '~/slices/registry'
+import { isEditableFieldType, previewFieldValue } from '~/fields/registry'
 
 const route = useRoute()
 const router = useRouter()
@@ -69,11 +70,11 @@ watch(
 )
 
 /**
- * Opens the edit modal for a plain_text field and scrolls to it on the page.
+ * Opens the edit modal for an editable field and scrolls to it on the page.
  */
 function onFieldClick(field: FieldRow) {
   editor.focusOnPage(field)
-  if (field.type !== 'plain_text') return
+  if (!isEditableFieldType(field.type)) return
   editor.open(field)
 }
 
@@ -85,11 +86,10 @@ function onSliceClick(sliceId: string) {
 }
 
 /**
- * Truncates a field value for the sidebar preview.
+ * Sidebar preview for a field value (type-aware).
  */
-function previewValue(value: string | null): string {
-  if (!value) return '(empty)'
-  return value.length > 40 ? `${value.slice(0, 40)}…` : value
+function previewValue(field: FieldRow): string {
+  return previewFieldValue(field.type, field.value)
 }
 
 /**
@@ -236,7 +236,7 @@ async function onCreatePage() {
               class="cms-sidebar-field-btn"
               @click="onFieldClick(field)"
             >
-              {{ field.name }}: {{ previewValue(field.value) }}
+              {{ field.name }}: {{ previewValue(field) }}
             </button>
           </li>
         </ul>
@@ -301,7 +301,7 @@ async function onCreatePage() {
                   class="cms-sidebar-field-btn"
                   @click="onFieldClick(field)"
                 >
-                  {{ field.name }}: {{ previewValue(field.value) }}
+                  {{ field.name }}: {{ previewValue(field) }}
                 </button>
               </li>
             </ul>

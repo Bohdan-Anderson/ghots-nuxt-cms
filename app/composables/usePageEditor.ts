@@ -1,4 +1,5 @@
 import type { FieldRow } from '~/types/cms'
+import { getFieldTypeConfig } from '~/fields/registry'
 import { updateFieldValue } from '~/composables/usePageContent'
 
 interface PageEditorRegistry {
@@ -44,8 +45,11 @@ export function usePageEditor() {
    * Opens the edit modal for a field.
    */
   function open(field: FieldRow) {
+    const config = getFieldTypeConfig(field.type)
+    if (!config) return
+
     activeField.value = field
-    draftValue.value = field.value ?? ''
+    draftValue.value = config.valueToDraft(field.value)
     isOpen.value = true
   }
 
@@ -65,7 +69,11 @@ export function usePageEditor() {
     const field = activeField.value
     if (!field) return
 
-    const updated = await updateFieldValue(field.id, draftValue.value)
+    const config = getFieldTypeConfig(field.type)
+    if (!config) return
+
+    const value = config.draftToValue(draftValue.value)
+    const updated = await updateFieldValue(field.id, value)
     fieldUpdatedHandler?.(updated)
     close()
   }

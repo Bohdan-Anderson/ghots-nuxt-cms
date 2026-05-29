@@ -77,8 +77,8 @@ Content values. Each row belongs to **one owner**: page-level, slice instance, o
 | `global_id` | uuid | FK → `globals`; null for page fields |
 | `parent_id` | uuid | FK → `fields`; null = root within owner |
 | `name` | text | Unique per `(page_id, slice_id, parent_id)` or `(global_id, parent_id)` |
-| `type` | text | `section` \| `plain_text` |
-| `value` | text | Content for `plain_text` |
+| `type` | text | `section` \| `plain_text` \| `link` \| `richtext` |
+| `value` | text | String for `plain_text`; JSON text for `link` / `richtext` (see [field-types.md](./field-types.md)) |
 | `sort_order` | int | Ordering among siblings |
 
 **Constraints:** exactly one of `page_id` or `global_id` set; `slice_id` requires `page_id`.

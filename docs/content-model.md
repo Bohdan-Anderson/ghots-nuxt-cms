@@ -17,7 +17,7 @@ field_schema: [...]   meta_title, …             Slices: hero × 2 → headline
 - **Slice type** — Code registry (`app/slices/registry.ts`): component + field schema.
 - **Slice instance** — Ordered row in `page_slices`; fields keyed by `slice_id`.
 - **Global region** — Code registry (`app/globals/registry.ts`); values in `globals` + `fields.global_id`.
-- **Field** — Named node (`section` or `plain_text`) with optional `value`.
+- **Field** — Named node (`section`, `plain_text`, `link`, `richtext`) with optional `value`.
 
 ## Field schema (`field_schema`)
 
@@ -26,7 +26,7 @@ JSON array on `templates.field_schema` for **page-level** fields only. Slice sch
 ```ts
 {
   name: string
-  type: 'section' | 'plain_text'
+  type: 'section' | 'plain_text' | 'link' | 'richtext'
   default?: string
   children?: FieldSchemaNode[]
 }
@@ -46,6 +46,10 @@ Runtime content in `fields`:
 | ------ | ------- | -------------- |
 | `section` | `null` | No (container) |
 | `plain_text` | string | Yes (modal) |
+| `link` | JSON (`url`, `label`, `target`) | Yes (modal) |
+| `richtext` | JSON (`source`, `html`) | Yes (modal) |
+
+See [field-types.md](./field-types.md) for value shapes and sanitization.
 
 Hierarchy within an owner: `parent_id` → section field `id`.
 

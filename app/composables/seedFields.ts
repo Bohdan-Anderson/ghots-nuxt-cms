@@ -1,4 +1,5 @@
 import type { FieldRow, FieldSchemaNode } from '~/types/cms'
+import { defaultValueForFieldType } from '~/fields/registry'
 
 type SupabaseClient = ReturnType<typeof useSupabase>
 
@@ -30,7 +31,7 @@ export async function seedFieldsFromSchema(
         parent_id: parentId,
         name: node.name,
         type: node.type,
-        value: node.type === 'plain_text' ? (node.default ?? '') : null,
+        value: defaultValueForFieldType(node.type, node.default),
         sort_order: order++,
       })
       .select('id')

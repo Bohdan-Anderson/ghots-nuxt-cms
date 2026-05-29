@@ -207,17 +207,17 @@ Defer **image** and **array** to Phase 6 — they need Storage and more complex 
 
 ### Tasks
 
-- [ ] **Field type registry** — map `FieldType` → modal component + save/load helpers
-- [ ] **`link`** — modal: url, label, optional target; JSON or structured `value`; template helper to render `<a>`
-- [ ] **`richtext`** — modal editor (TipTap / markdown TBD); on save persist **source + rendered HTML**; templates render HTML
-- [ ] **Extend** [FieldEditModal.vue](./app/components/FieldEditModal.vue) or split per-type modals behind registry
-- [ ] **Click delegation** — [PageEditorProvider.vue](./app/components/PageEditorProvider.vue) opens modal for types that support on-page click (not just `plain_text`)
-- [ ] **Update** DB check constraint on `fields.type` if needed
+- [x] **Field type registry** — map `FieldType` → modal component + save/load helpers
+- [x] **`link`** — modal: url, label, optional target; JSON or structured `value`; template helper to render `<a>`
+- [x] **`richtext`** — modal editor (markdown textarea v1); on save persist **source + rendered HTML**; templates render HTML
+- [x] **Extend** [FieldEditModal.vue](./app/components/FieldEditModal.vue) or split per-type modals behind registry
+- [x] **Click delegation** — [PageEditorProvider.vue](./app/components/PageEditorProvider.vue) opens modal for types that support on-page click (not just `plain_text`)
+- [x] **Update** DB check constraint on `fields.type` if needed
 
 ### Validate
 
-- Playwright: edit link + richtext on a slice; guest static unchanged until generate
-- Manual: richtext HTML renders safely (sanitization decision documented)
+- [x] Playwright: `e2e/field-types.spec.ts` — edit link + richtext on demo CTA slice
+- [x] Manual: richtext HTML renders safely (sanitization decision documented in [docs/field-types.md](./docs/field-types.md))
 
 ### Touches
 
@@ -356,4 +356,4 @@ Items not scheduled — revisit after relevant phase.
 3 Sidebar UI  →  4 Field types  →  5 Publish  →  6 Images/arrays  →  7 Package
 ```
 
-**Current focus:** Phase 4 — Field types (v1)
+**Current focus:** Phase 5 — Publish workflow

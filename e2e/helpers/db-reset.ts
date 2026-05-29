@@ -19,6 +19,8 @@ export const DEMO_BASELINE = {
   secondHeroHeadline: 'Second hero headline',
   metaTitle: 'Slice demo — ghots-cms',
   navLabel: 'My Site',
+  ctaLinkLabel: 'Learn more',
+  ctaRichTextSnippet: 'Welcome to our',
 } as const
 
 interface FieldRow {
@@ -274,6 +276,41 @@ export async function resetDemoPageFields(): Promise<void> {
       throw new Error(`Demo hero headline field not found for slice ${slice.id}`)
     }
     updates.push({ id: headlineField.id, value: headline })
+  }
+
+  const ctaSlice = slices?.find((slice) => {
+    const sliceFields = fieldList.filter((field) => field.slice_id === slice.id)
+    return sliceFields.some((field) => field.name === 'cta_link')
+  })
+
+  if (ctaSlice) {
+    const linkField = fieldList.find(
+      (field) => field.slice_id === ctaSlice.id && field.name === 'cta_link',
+    )
+    const copyField = fieldList.find(
+      (field) => field.slice_id === ctaSlice.id && field.name === 'copy',
+    )
+
+    if (linkField) {
+      updates.push({
+        id: linkField.id,
+        value: JSON.stringify({
+          url: 'https://example.com',
+          label: DEMO_BASELINE.ctaLinkLabel,
+          target: '_blank',
+        }),
+      })
+    }
+
+    if (copyField) {
+      updates.push({
+        id: copyField.id,
+        value: JSON.stringify({
+          source: 'Welcome to our **demo**.',
+          html: '<p>Welcome to our <strong>demo</strong>.</p>',
+        }),
+      })
+    }
   }
 
   for (const { id, value } of updates) {

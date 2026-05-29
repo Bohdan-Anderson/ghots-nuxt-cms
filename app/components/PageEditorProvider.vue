@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { FieldRow } from '~/types/cms'
+import { fieldTypeSupportsOnPageClick } from '~/fields/registry'
 
 /**
  * Wraps a page template for inline CMS editing.
@@ -46,7 +47,7 @@ watch(
 
 /**
  * Click delegation: finds the nearest [data-name] ancestor and opens the modal
- * for plain_text fields only. Richer field types are edited from the sidebar.
+ * for field types that support on-page editing (see field type registry).
  */
 function onClick(event: MouseEvent) {
   if (!props.enabled) return
@@ -56,7 +57,7 @@ function onClick(event: MouseEvent) {
   if (!el) return
 
   const field = editor.resolveFieldFromElement(el)
-  if (!field || field.type !== 'plain_text') return
+  if (!field || !fieldTypeSupportsOnPageClick(field.type)) return
 
   event.preventDefault()
   editor.open(field)
@@ -87,7 +88,7 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-/* Visual hint that inline plain_text regions are clickable when edit mode is on. */
+/* Visual hint that inline editable regions are clickable when edit mode is on. */
 .page--editing :deep([data-name]) {
   cursor: pointer;
 }
