@@ -65,6 +65,7 @@ Notes:
 | `content-model-v2-editor.spec.ts` | Editor edits a slice field on `/demo` via modal; persists after refresh |
 | `sidebar.spec.ts` | Create page (slice-demo template), add slice, edit via content tree, save meta |
 | `publish-split.spec.ts` | After edit, dev shows new title immediately; static guest still shows old title until `nuxt generate`; guest sees new title after regenerate |
+| `publish-ui.spec.ts` | Publish panel visible for editor; copy command to clipboard |
 
 ## DB reset
 

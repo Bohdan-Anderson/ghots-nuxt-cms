@@ -242,11 +242,11 @@ v1 keeps generate **local/CI** (no hosted build service) — the button document
 
 ### Tasks
 
-- [ ] **Publish button** — logged-in only, visible in CMS chrome (sidebar header or similar)
-- [ ] **v1 behavior** — run local script (`npm run generate`) or show instructions + copy-paste command; document env needs (Supabase reachable at build time)
-- [ ] **UX copy** — “Guests see last published build”; optional “last published at” if we track it later
-- [ ] **Optional stub** — config placeholder for future webhook URL (Supabase edge → GitHub Action)
-- [ ] **E2E** — wire publish-split to a helper that runs generate (already partial); add test after clicking Publish if we automate
+- [x] **Publish button** — logged-in only, visible in CMS chrome (sidebar header or similar)
+- [x] **v1 behavior** — run local script (`npm run generate`) or show instructions + copy-paste command; document env needs (Supabase reachable at build time)
+- [x] **UX copy** — “Guests see last published build”; optional “last published at” if we track it later
+- [x] **Optional stub** — config placeholder for future webhook URL (Supabase edge → GitHub Action)
+- [x] **E2E** — wire publish-split to a helper that runs generate (already partial); add test after clicking Publish if we automate
 
 ### Validate
 
@@ -356,4 +356,4 @@ Items not scheduled — revisit after relevant phase.
 3 Sidebar UI  →  4 Field types  →  5 Publish  →  6 Images/arrays  →  7 Package
 ```
 
-**Current focus:** Phase 5 — Publish workflow
+**Current focus:** Phase 6 — Images & arrays

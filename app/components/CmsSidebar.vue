@@ -184,6 +184,8 @@ async function onCreatePage() {
     class="cms-sidebar"
     :class="{ 'cms-sidebar--open': isOpen }"
   >
+    <CmsPublishPanel />
+
     <div class="cms-sidebar-tabs">
       <button
         type="button"

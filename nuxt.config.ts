@@ -7,6 +7,8 @@ export default defineNuxtConfig({
     public: {
       supabaseUrl: process.env.VITE_SUPABASE_URL ?? '',
       supabaseAnonKey: process.env.VITE_SUPABASE_ANON_KEY ?? '',
+      /** Future CI webhook stub — not called in v1. */
+      cmsPublishWebhookUrl: process.env.CMS_PUBLISH_WEBHOOK_URL ?? '',
     },
   },
 

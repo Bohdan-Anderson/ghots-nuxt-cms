@@ -31,6 +31,7 @@ npm install
 | ------- | --- |
 | `npm run dev` | Dev server (http://localhost:3000); **always** talks to Supabase |
 | `npm run generate` | Static site → `dist/` |
+| `npm run publish:static` | Alias for generate — command shown in CMS Publish panel |
 | `npm run static` | Generate + serve `dist/` on port 8000 |
 | `npm run build` | Production Nuxt build |
 | `npm run preview` | Preview production build |
@@ -68,7 +69,9 @@ Every navigation uses Supabase for page content and nav. Use this for templates,
 
 ### Regenerate after content changes
 
-Re-run **`npm run generate`** so `dist/` HTML and `_payload.json` match the database for guests.
+Re-run **`npm run publish:static`** (or `npm run generate`) so `dist/` HTML and `_payload.json` match the database for guests. The logged-in CMS sidebar **Publish** panel shows the same command — see [Publish workflow](./publish.md).
+
+Deploy the updated `dist/` folder to your static host when ready.
 
 ## Tooling
 

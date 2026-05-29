@@ -1,6 +1,6 @@
 # CMS sidebar (logged-in)
 
-When **`loggedIn`** is true, a fixed **left overlay** is always available: toggle with the **CMS** button, then use three tabs — **Content**, **Pages**, and **Meta**.
+When **`loggedIn`** is true, a fixed **left overlay** is always available: toggle with the **CMS** button. The **Publish** strip at the top explains draft vs guest content and the `npm run publish:static` command. Below that, three tabs — **Content**, **Pages**, and **Meta**.
 
 Guests never see the sidebar (`v-if="loggedIn"` in `app.vue`).
 
@@ -8,10 +8,18 @@ Guests never see the sidebar (`v-if="loggedIn"` in `app.vue`).
 
 | File | Role |
 | ---- | ---- |
-| `app/components/CmsSidebar.vue` | Toggle, tabs, field tree, page links |
+| `app/components/CmsSidebar.vue` | Toggle, publish panel, tabs, field tree, page links |
+| `app/components/CmsPublishPanel.vue` | Publish instructions + copy command (v1 manual generate) |
+| `app/composables/usePublish.ts` | Publish command constant + optional webhook stub config |
 | `app/composables/useCmsPanel.ts` | Shared `isOpen`, `activeTab`, `pageContent`, `toggle`, `setPageContent` |
 | `app/app.vue` | Renders `<CmsSidebar v-if="loggedIn" />` above `<NuxtPage />` |
 | `app/pages/[...slug].vue` | Syncs current page data into `useCmsPanel` |
+
+## Publish (header)
+
+- Explains **draft vs published**: guests see last `dist/` build; editor saves are live in Supabase only.
+- **Copy** button for `npm run publish:static` (alias for `nuxt generate`).
+- Optional **`CMS_PUBLISH_WEBHOOK_URL`** — stub for future CI; not called in v1. See [Publish workflow](./publish.md).
 
 ## Tabs
 

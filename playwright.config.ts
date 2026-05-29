@@ -50,6 +50,7 @@ export default defineConfig({
         'content-model-v2-editor.spec.ts',
         'sidebar.spec.ts',
         'field-types.spec.ts',
+        'publish-ui.spec.ts',
       ],
       use: {
         ...devices['Desktop Chrome'],
@@ -68,13 +69,13 @@ export default defineConfig({
     {
       command: 'python3 -m http.server 8000 --directory dist',
       url: 'http://localhost:8000',
-      reuseExistingServer: false,
+      reuseExistingServer: !isCi,
       timeout: 120_000,
     },
     {
       command: 'npm run dev -- --port 3001',
       url: 'http://localhost:3001',
-      reuseExistingServer: false,
+      reuseExistingServer: !isCi,
       timeout: 120_000,
       env: supabaseEnv,
     },
