@@ -21,6 +21,8 @@ export const DEMO_BASELINE = {
   navLabel: 'My Site',
   ctaLinkLabel: 'Learn more',
   ctaRichTextSnippet: 'Welcome to our',
+  teamHeading: 'Our team',
+  teamMemberName: 'Alex Example',
 } as const
 
 interface FieldRow {
@@ -310,6 +312,76 @@ export async function resetDemoPageFields(): Promise<void> {
           html: '<p>Welcome to our <strong>demo</strong>.</p>',
         }),
       })
+    }
+  }
+
+  const teamSlice = slices?.find((slice) => {
+    const sliceFields = fieldList.filter((field) => field.slice_id === slice.id)
+    return sliceFields.some((field) => field.name === 'members')
+  })
+
+  if (teamSlice) {
+    const { data: teamFields, error: teamFieldsError } = await supabase
+      .from('fields')
+      .select('id, name, type, parent_id, value')
+      .eq('slice_id', teamSlice.id)
+
+    if (teamFieldsError) throw teamFieldsError
+
+    const teamFieldList = (teamFields ?? []) as FieldRow[]
+    const headingField = teamFieldList.find(
+      (field) => field.name === 'heading' && field.type === 'plain_text',
+    )
+    if (headingField) {
+      updates.push({
+        id: headingField.id,
+        value: DEMO_BASELINE.teamHeading,
+      })
+    }
+
+    const membersArray = teamFieldList.find((field) => field.name === 'members')
+    if (membersArray) {
+      const extraItems = teamFieldList.filter(
+        (field) =>
+          field.parent_id === membersArray.id &&
+          field.type === 'section' &&
+          field.name !== 'item_0',
+      )
+      for (const item of extraItems) {
+        const { error: deleteError } = await supabase
+          .from('fields')
+          .delete()
+          .eq('id', item.id)
+        if (deleteError) throw deleteError
+      }
+
+      const itemZero = teamFieldList.find(
+        (field) =>
+          field.parent_id === membersArray.id && field.name === 'item_0',
+      )
+      if (itemZero) {
+        const nameField = teamFieldList.find(
+          (field) => field.parent_id === itemZero.id && field.name === 'name',
+        )
+        const photoField = teamFieldList.find(
+          (field) => field.parent_id === itemZero.id && field.name === 'photo',
+        )
+        if (nameField) {
+          updates.push({
+            id: nameField.id,
+            value: DEMO_BASELINE.teamMemberName,
+          })
+        }
+        if (photoField) {
+          updates.push({
+            id: photoField.id,
+            value: JSON.stringify({
+              url: '',
+              alt: DEMO_BASELINE.teamMemberName,
+            }),
+          })
+        }
+      }
     }
   }
 

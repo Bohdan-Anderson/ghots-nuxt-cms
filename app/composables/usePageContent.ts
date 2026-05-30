@@ -143,6 +143,37 @@ export function resolveField(
 }
 
 /**
+ * Returns ordered field groups for each item in a repeatable array field.
+ */
+export function resolveArrayItems(
+  fields: FieldRow[],
+  arrayName: string,
+  sliceId?: string | null,
+): FieldRow[][] {
+  const scoped = fields.filter((field) =>
+    sliceId ? field.slice_id === sliceId : field.slice_id === null,
+  )
+
+  const arrayField = scoped.find(
+    (field) => field.name === arrayName && field.type === 'array',
+  )
+  if (!arrayField) return []
+
+  const itemSections = scoped
+    .filter(
+      (field) =>
+        field.parent_id === arrayField.id && field.type === 'section',
+    )
+    .sort((a, b) => a.sort_order - b.sort_order)
+
+  return itemSections.map((item) =>
+    scoped
+      .filter((field) => field.parent_id === item.id)
+      .sort((a, b) => a.sort_order - b.sort_order),
+  )
+}
+
+/**
  * Updates a field value in Supabase.
  */
 export async function updateFieldValue(

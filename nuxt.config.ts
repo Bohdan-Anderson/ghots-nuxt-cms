@@ -3,6 +3,8 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
 
+  modules: ['./modules/localize-cms-images'],
+
   runtimeConfig: {
     public: {
       supabaseUrl: process.env.VITE_SUPABASE_URL ?? '',

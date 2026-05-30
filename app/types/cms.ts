@@ -2,7 +2,13 @@
  * CMS domain types for pages, templates, slices, globals, and fields.
  */
 
-export type FieldType = 'section' | 'plain_text' | 'link' | 'richtext'
+export type FieldType =
+  | 'section'
+  | 'plain_text'
+  | 'link'
+  | 'richtext'
+  | 'image'
+  | 'array'
 
 export interface FieldSchemaNode {
   name: string

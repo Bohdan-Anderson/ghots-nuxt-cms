@@ -133,6 +133,16 @@ Nuxt serializes `useState` into `_payload.json`. Do **not** store callbacks in `
 
 Regenerate **`npm run generate`** after bulk content changes so guests see updated HTML and payloads.
 
+## CMS images in static output
+
+Image fields store Supabase Storage URLs in the database (live for editors). During **`nuxt generate`**, the `localize-cms-images` module hooks **`prerender:done`** (Nitro — after all routes are prerendered):
+
+1. Scans `dist/**/*.html` and `dist/**/_payload.json` for `cms-media` Storage URLs
+2. Downloads each file to `dist/cms-media/`
+3. Rewrites URLs to local paths (`/cms-media/…`)
+
+Guests on static hosting load images from the same origin as HTML — no Supabase Storage requests. Re-run generate after image uploads to refresh `dist/`.
+
 ## Editor store (logged-in)
 
 `useCmsPanel().pageContent` is the single source of truth for in-session edits. `[...slug].vue` reads `displayContent` from `useGhostPage()`, which prefers the panel store when logged in. Modal saves call `patchField` on the store so the sidebar and on-page preview stay in sync. Both sidebar field clicks and `[data-name]` clicks open the same modal via `usePageEditor`.

@@ -52,6 +52,9 @@ async function handleSave() {
       <component
         :is="editComponent"
         v-model:draft="draftValue"
+        v-bind="
+          activeField.type === 'image' ? { fieldId: activeField.id } : {}
+        "
       />
       <p
         v-if="errorMessage"

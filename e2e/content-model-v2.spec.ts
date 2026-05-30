@@ -25,6 +25,10 @@ test('guest on static deploy loads demo page with slices and global nav', async 
   await expect(page.locator('.hero-slice h2').nth(1)).toHaveText(
     DEMO_BASELINE.secondHeroHeadline,
   )
+  await expect(page.locator('.team-slice')).toBeVisible()
+  await expect(page.locator('.team-slice__name')).toContainText(
+    DEMO_BASELINE.teamMemberName,
+  )
 
   expect(
     supabaseRequests,

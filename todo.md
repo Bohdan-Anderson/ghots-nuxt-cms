@@ -279,11 +279,11 @@ Supabase Storage keeps hosting simple (one vendor) per vision.
 
 ### Tasks
 
-- [ ] **Supabase Storage** — bucket, RLS, public vs signed URL policy
-- [ ] **`image` field** — upload in modal; store URL (+ alt text?); template binding
-- [ ] **Generate** — confirm image URLs work in prerendered HTML (absolute URLs)
-- [ ] **`array` / repeatable** — schema marks repeatable group; sidebar add/remove items; each item uses child fields edited via modal
-- [ ] **E2E** — upload + render; repeatable list count changes
+- [x] **Supabase Storage** — bucket, RLS, public vs signed URL policy
+- [x] **`image` field** — upload in modal; store URL (+ alt text?); template binding
+- [x] **Generate** — confirm image URLs work in prerendered HTML (absolute URLs)
+- [x] **`array` / repeatable** — schema marks repeatable group; sidebar add/remove items; each item uses child fields edited via modal
+- [x] **E2E** — upload + render; repeatable list count changes
 
 ### Validate
 
@@ -356,4 +356,4 @@ Items not scheduled — revisit after relevant phase.
 3 Sidebar UI  →  4 Field types  →  5 Publish  →  6 Images/arrays  →  7 Package
 ```
 
-**Current focus:** Phase 6 — Images & arrays
+**Current focus:** Phase 7 — Package extraction

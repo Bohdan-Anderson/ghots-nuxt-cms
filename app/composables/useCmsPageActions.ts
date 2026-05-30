@@ -6,6 +6,7 @@ import {
   insertPageSlice,
   reorderPageSlices,
 } from '~/composables/usePageSlices'
+import { insertArrayItem, deleteArrayItem } from '~/composables/useArrayFields'
 import { updatePageMeta, type PageMetaInput } from '~/composables/usePageMeta'
 
 /**
@@ -89,11 +90,29 @@ export function useCmsPageActions() {
     })
   }
 
+  /**
+   * Adds an array item and refreshes panel state.
+   */
+  async function addArrayItem(arrayFieldId: string): Promise<void> {
+    await insertArrayItem(arrayFieldId)
+    await reloadCurrentPage()
+  }
+
+  /**
+   * Removes an array item section and refreshes panel state.
+   */
+  async function removeArrayItem(itemSectionId: string): Promise<void> {
+    await deleteArrayItem(itemSectionId)
+    await reloadCurrentPage()
+  }
+
   return {
     reloadCurrentPage,
     addSlice,
     removeSlice,
     moveSlice,
     saveMeta,
+    addArrayItem,
+    removeArrayItem,
   }
 }

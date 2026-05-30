@@ -2,10 +2,12 @@ import type { Component } from 'vue'
 import type { SliceTypeDefinition } from '~/types/cms'
 import HeroSlice from '~/slices/HeroSlice.vue'
 import CtaSlice from '~/slices/CtaSlice.vue'
+import TeamSlice from '~/slices/TeamSlice.vue'
 
 const SLICE_COMPONENTS: Record<string, Component> = {
   hero: HeroSlice,
   cta: CtaSlice,
+  team: TeamSlice,
 }
 
 const SLICE_DEFINITIONS: Record<string, SliceTypeDefinition> = {
@@ -24,6 +26,21 @@ const SLICE_DEFINITIONS: Record<string, SliceTypeDefinition> = {
         default: 'Welcome to our **demo**.',
       },
       { name: 'cta_link', type: 'link', default: 'https://example.com' },
+    ],
+  },
+  team: {
+    key: 'team',
+    label: 'Team',
+    fieldSchema: [
+      { name: 'heading', type: 'plain_text', default: 'Our team' },
+      {
+        name: 'members',
+        type: 'array',
+        children: [
+          { name: 'name', type: 'plain_text', default: '' },
+          { name: 'photo', type: 'image' },
+        ],
+      },
     ],
   },
 }

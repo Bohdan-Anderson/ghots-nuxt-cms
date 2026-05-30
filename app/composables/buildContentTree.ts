@@ -30,7 +30,7 @@ export function buildFieldTree(fields: FieldRow[]): FieldTreeNode[] {
     const siblings = byParent.get(parentId) ?? []
     for (const field of siblings) {
       result.push({ field, depth })
-      if (field.type === 'section') {
+      if (field.type === 'section' || field.type === 'array') {
         walk(field.id, depth + 1)
       }
     }

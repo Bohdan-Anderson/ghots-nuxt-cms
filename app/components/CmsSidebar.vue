@@ -6,12 +6,17 @@ import { useTemplatesData } from '~/composables/useTemplates'
 import { createPage } from '~/composables/usePageCreate'
 import { listSliceDefinitions } from '~/slices/registry'
 import { isEditableFieldType, previewFieldValue } from '~/fields/registry'
+import {
+  arrayItemLabel,
+  isArrayItemSection,
+} from '~/fields/schemaLookup'
 
 const route = useRoute()
 const router = useRouter()
 const { isOpen, activeTab, pageContent, toggle } = useCmsPanel()
 const editor = usePageEditor()
-const { addSlice, removeSlice, moveSlice, saveMeta } = useCmsPageActions()
+const { addSlice, removeSlice, moveSlice, saveMeta, addArrayItem, removeArrayItem } =
+  useCmsPageActions()
 
 const { data: pageList, refresh: refreshPageList } = usePageListData()
 const { data: templates } = useTemplatesData()
@@ -19,6 +24,7 @@ const { data: templates } = useTemplatesData()
 const sliceTypes = listSliceDefinitions()
 const selectedSliceType = ref(sliceTypes[0]?.key ?? '')
 const sliceBusy = ref(false)
+const arrayBusy = ref(false)
 const metaBusy = ref(false)
 const createBusy = ref(false)
 const createError = ref<string | null>(null)
@@ -90,6 +96,42 @@ function onSliceClick(sliceId: string) {
  */
 function previewValue(field: FieldRow): string {
   return previewFieldValue(field.type, field.value)
+}
+
+/**
+ * Returns the parent array field for an array item section row.
+ */
+function parentArrayField(field: FieldRow): FieldRow | undefined {
+  if (!field.parent_id || !pageContent.value) return undefined
+  return pageContent.value.fieldsById[field.parent_id]
+}
+
+/**
+ * Adds a new item to a repeatable array field.
+ */
+async function onAddArrayItem(arrayFieldId: string) {
+  if (arrayBusy.value) return
+  arrayBusy.value = true
+  try {
+    await addArrayItem(arrayFieldId)
+  } finally {
+    arrayBusy.value = false
+  }
+}
+
+/**
+ * Removes an array item after confirmation.
+ */
+async function onRemoveArrayItem(itemSectionId: string) {
+  if (arrayBusy.value) return
+  if (!import.meta.client) return
+  if (!window.confirm('Remove this item?')) return
+  arrayBusy.value = true
+  try {
+    await removeArrayItem(itemSectionId)
+  } finally {
+    arrayBusy.value = false
+  }
 }
 
 /**
@@ -226,8 +268,51 @@ async function onCreatePage() {
             class="cms-sidebar-field-row"
             :style="{ paddingLeft: `${depth * 0.75}rem` }"
           >
+            <div
+              v-if="field.type === 'array'"
+              class="cms-sidebar-array"
+              :style="{ paddingLeft: `${depth * 0.75}rem` }"
+            >
+              <span class="cms-sidebar-section-label">{{ field.name }}</span>
+              <button
+                type="button"
+                class="cms-sidebar-array-add"
+                :disabled="arrayBusy"
+                @click="onAddArrayItem(field.id)"
+              >
+                Add item
+              </button>
+            </div>
+            <div
+              v-else-if="
+                pageContent &&
+                isArrayItemSection(field, pageContent.fieldsById)
+              "
+              class="cms-sidebar-array-item"
+              :style="{ paddingLeft: `${depth * 0.75}rem` }"
+            >
+              <span class="cms-sidebar-section-label">
+                {{
+                  parentArrayField(field)
+                    ? arrayItemLabel(
+                        field,
+                        parentArrayField(field)!,
+                        pageContent.fields,
+                      )
+                    : field.name
+                }}
+              </span>
+              <button
+                type="button"
+                title="Remove item"
+                :disabled="arrayBusy"
+                @click="onRemoveArrayItem(field.id)"
+              >
+                ×
+              </button>
+            </div>
             <span
-              v-if="field.type === 'section'"
+              v-else-if="field.type === 'section'"
               class="cms-sidebar-section-label"
             >
               {{ field.name }}
@@ -291,8 +376,49 @@ async function onCreatePage() {
                 class="cms-sidebar-field-row"
                 :style="{ paddingLeft: `${depth * 0.75}rem` }"
               >
+                <div
+                  v-if="field.type === 'array'"
+                  class="cms-sidebar-array"
+                >
+                  <span class="cms-sidebar-section-label">{{ field.name }}</span>
+                  <button
+                    type="button"
+                    class="cms-sidebar-array-add"
+                    :disabled="arrayBusy"
+                    @click="onAddArrayItem(field.id)"
+                  >
+                    Add item
+                  </button>
+                </div>
+                <div
+                  v-else-if="
+                    pageContent &&
+                    isArrayItemSection(field, pageContent.fieldsById)
+                  "
+                  class="cms-sidebar-array-item"
+                >
+                  <span class="cms-sidebar-section-label">
+                    {{
+                      parentArrayField(field)
+                        ? arrayItemLabel(
+                            field,
+                            parentArrayField(field)!,
+                            pageContent.fields,
+                          )
+                        : field.name
+                    }}
+                  </span>
+                  <button
+                    type="button"
+                    title="Remove item"
+                    :disabled="arrayBusy"
+                    @click="onRemoveArrayItem(field.id)"
+                  >
+                    ×
+                  </button>
+                </div>
                 <span
-                  v-if="field.type === 'section'"
+                  v-else-if="field.type === 'section'"
                   class="cms-sidebar-section-label"
                 >
                   {{ field.name }}

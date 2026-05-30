@@ -3,15 +3,19 @@ import type { FieldType } from '~/types/cms'
 import {
   parseLinkValue,
   parseRichTextValue,
+  parseImageValue,
   serializeLinkValue,
   serializeRichTextValue,
+  serializeImageValue,
   type LinkValue,
+  type ImageValue,
 } from '~/types/fieldValues'
 import { markdownToHtml } from '~/utils/markdownToHtml'
 import { sanitizeHtml } from '~/utils/sanitizeHtml'
 import FieldEditPlainText from '~/components/field-edit/FieldEditPlainText.vue'
 import FieldEditLink from '~/components/field-edit/FieldEditLink.vue'
 import FieldEditRichText from '~/components/field-edit/FieldEditRichText.vue'
+import FieldEditImage from '~/components/field-edit/FieldEditImage.vue'
 
 export interface FieldTypeConfig {
   type: FieldType
@@ -77,6 +81,27 @@ const FIELD_TYPE_REGISTRY: Record<FieldType, FieldTypeConfig | null> = {
       return flat.length > 40 ? `${flat.slice(0, 40)}…` : flat
     },
   },
+  image: {
+    type: 'image',
+    editComponent: FieldEditImage,
+    supportsOnPageClick: true,
+    valueToDraft: (value) => JSON.stringify(parseImageValue(value)),
+    draftToValue: (draft) => {
+      try {
+        const parsed = JSON.parse(draft) as ImageValue
+        return serializeImageValue(parsed)
+      } catch {
+        return serializeImageValue({ url: '', alt: '' })
+      }
+    },
+    preview: (value) => {
+      const image = parseImageValue(value)
+      if (!image.url) return '(no image)'
+      const label = image.alt || image.url
+      return label.length > 40 ? `${label.slice(0, 40)}…` : label
+    },
+  },
+  array: null,
 }
 
 /**
@@ -123,6 +148,11 @@ export function defaultValueForFieldType(
       const html = source ? sanitizeHtml(markdownToHtml(source)) : ''
       return serializeRichTextValue({ source, html })
     }
+    case 'image':
+      return serializeImageValue({
+        url: schemaDefault ?? '',
+        alt: '',
+      })
     default:
       return null
   }

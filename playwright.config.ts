@@ -50,6 +50,7 @@ export default defineConfig({
         'content-model-v2-editor.spec.ts',
         'sidebar.spec.ts',
         'field-types.spec.ts',
+        'images-arrays.spec.ts',
         'publish-ui.spec.ts',
       ],
       use: {

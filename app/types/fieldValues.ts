@@ -15,9 +15,17 @@ export interface RichTextValue {
   html: string
 }
 
+export interface ImageValue {
+  /** Absolute public URL (Supabase Storage or external). */
+  url: string
+  alt: string
+}
+
 const EMPTY_LINK: LinkValue = { url: '', label: '', target: '_self' }
 
 const EMPTY_RICHTEXT: RichTextValue = { source: '', html: '' }
+
+const EMPTY_IMAGE: ImageValue = { url: '', alt: '' }
 
 /**
  * Parses a link field value from the database.
@@ -70,5 +78,31 @@ export function serializeRichTextValue(richtext: RichTextValue): string {
   return JSON.stringify({
     source: richtext.source,
     html: richtext.html,
+  })
+}
+
+/**
+ * Parses an image field value from the database.
+ */
+export function parseImageValue(value: string | null): ImageValue {
+  if (!value) return { ...EMPTY_IMAGE }
+  try {
+    const parsed = JSON.parse(value) as Partial<ImageValue>
+    return {
+      url: typeof parsed.url === 'string' ? parsed.url : '',
+      alt: typeof parsed.alt === 'string' ? parsed.alt : '',
+    }
+  } catch {
+    return { ...EMPTY_IMAGE }
+  }
+}
+
+/**
+ * Serializes an image value for storage in `fields.value`.
+ */
+export function serializeImageValue(image: ImageValue): string {
+  return JSON.stringify({
+    url: image.url.trim(),
+    alt: image.alt.trim(),
   })
 }

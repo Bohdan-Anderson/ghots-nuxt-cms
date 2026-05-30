@@ -10,6 +10,51 @@ export interface SeedFieldsContext {
 }
 
 /**
+ * Seeds one array item section and its child fields under an array field.
+ */
+export async function seedArrayItem(
+  supabase: SupabaseClient,
+  arrayField: FieldRow,
+  itemIndex: number,
+  itemSchema: FieldSchemaNode[],
+): Promise<FieldRow> {
+  const { data: inserted, error } = await supabase
+    .from('fields')
+    .insert({
+      page_id: arrayField.page_id,
+      slice_id: arrayField.slice_id,
+      global_id: arrayField.global_id,
+      parent_id: arrayField.id,
+      name: `item_${itemIndex}`,
+      type: 'section',
+      value: null,
+      sort_order: itemIndex,
+    })
+    .select('*')
+    .single()
+
+  if (error) throw error
+
+  const itemSection = inserted as FieldRow
+
+  if (itemSchema.length > 0) {
+    await seedFieldsFromSchema(
+      supabase,
+      itemSchema,
+      {
+        pageId: arrayField.page_id ?? undefined,
+        sliceId: arrayField.slice_id ?? undefined,
+        globalId: arrayField.global_id ?? undefined,
+      },
+      itemSection.id,
+      0,
+    )
+  }
+
+  return itemSection
+}
+
+/**
  * Inserts field rows from a schema tree (page-level, slice instance, or global).
  */
 export async function seedFieldsFromSchema(
@@ -34,17 +79,21 @@ export async function seedFieldsFromSchema(
         value: defaultValueForFieldType(node.type, node.default),
         sort_order: order++,
       })
-      .select('id')
+      .select('*')
       .single()
 
     if (error) throw error
 
-    if (node.type === 'section' && node.children?.length) {
+    const insertedField = inserted as FieldRow
+
+    if (node.type === 'array' && node.children?.length) {
+      await seedArrayItem(supabase, insertedField, 0, node.children)
+    } else if (node.type === 'section' && node.children?.length) {
       await seedFieldsFromSchema(
         supabase,
         node.children,
         context,
-        inserted.id,
+        insertedField.id,
         0,
       )
     }
