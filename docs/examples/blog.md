@@ -65,28 +65,23 @@ const posts = computed(() =>
   resolveArrayItems(props.fields, 'posts', props.sliceId),
 )
 
-function postField(
-  itemSectionId: string,
-  name: string,
-): FieldRow | undefined {
-  return resolveField(
-    props.fields,
-    name,
-    'posts',
-    props.sliceId,
-    itemSectionId,
-  )
+function postField(itemFields: FieldRow[], name: string): FieldRow | undefined {
+  return itemFields.find((row) => row.name === name)
 }
 </script>
 
 <template>
   <section class="post-list">
-    <article v-for="post in posts" :key="post.sectionId" class="post-card">
-      <h3>{{ postField(post.sectionId, 'title')?.value }}</h3>
-      <p class="excerpt">{{ postField(post.sectionId, 'excerpt')?.value }}</p>
+    <article
+      v-for="(itemFields, index) in posts"
+      :key="itemFields[0]?.parent_id ?? index"
+      class="post-card"
+    >
+      <h3>{{ postField(itemFields, 'title')?.value }}</h3>
+      <p class="excerpt">{{ postField(itemFields, 'excerpt')?.value }}</p>
       <CmsRichText
-        v-if="postField(post.sectionId, 'body')"
-        :field="postField(post.sectionId, 'body')!"
+        v-if="postField(itemFields, 'body')"
+        :field="postField(itemFields, 'body')!"
       />
     </article>
   </section>

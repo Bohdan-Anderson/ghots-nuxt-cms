@@ -127,36 +127,7 @@ export function fieldTypeSupportsOnPageClick(type: FieldType): boolean {
   return getFieldTypeConfig(type)?.supportsOnPageClick ?? false
 }
 
-/**
- * Default `fields.value` when seeding from schema.
- */
-export function defaultValueForFieldType(
-  type: FieldType,
-  schemaDefault?: string,
-): string | null {
-  switch (type) {
-    case 'plain_text':
-      return schemaDefault ?? ''
-    case 'link':
-      return serializeLinkValue({
-        url: schemaDefault ?? '',
-        label: '',
-        target: '_self',
-      })
-    case 'richtext': {
-      const source = schemaDefault ?? ''
-      const html = source ? sanitizeHtml(markdownToHtml(source)) : ''
-      return serializeRichTextValue({ source, html })
-    }
-    case 'image':
-      return serializeImageValue({
-        url: schemaDefault ?? '',
-        alt: '',
-      })
-    default:
-      return null
-  }
-}
+export { defaultValueForFieldType } from './defaultValues'
 
 /**
  * Sidebar preview text for a field value.

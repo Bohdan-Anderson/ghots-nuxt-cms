@@ -18,14 +18,5 @@ export async function usePageList(): Promise<PageListEntry[]> {
  * Cached nav list — prerender payload for guests, live Supabase when logged in.
  */
 export function usePageListData() {
-  const { loggedIn } = useAuth()
-
-  return useAsyncData('page-list', () => usePageList(), {
-    getCachedData(key, nuxtApp) {
-      if (loggedIn.value) {
-        return undefined
-      }
-      return nuxtApp.payload.data[key] ?? nuxtApp.static.data[key]
-    },
-  })
+  return useGuestCachedAsyncData('page-list', () => usePageList())
 }

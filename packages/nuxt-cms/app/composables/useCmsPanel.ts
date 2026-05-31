@@ -1,6 +1,8 @@
 import type { FieldRow, PageContent } from '~/types/cms'
 import { buildFieldMaps, pageLevelFields } from '~/composables/seedFields'
 
+export { rebuildPageContent } from '~/composables/seedFields'
+
 export type CmsPanelTab = 'contents' | 'pages' | 'meta'
 
 /**

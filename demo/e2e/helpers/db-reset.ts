@@ -1,4 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import {
+  resolveField,
+  seedFieldsFromSchema,
+  type FieldSchemaNode,
+} from '../../../packages/nuxt-cms/test-utils/e2e'
 import { createE2eSupabase } from './supabase'
 import {
   assertSupabaseReachable,
@@ -85,27 +90,14 @@ export async function signInAsEditor(
   )
 }
 
-/**
- * Resolves a field by name, optionally under a parent section name.
- */
-function resolveField(
-  fields: FieldRow[],
-  name: string,
-  parentSectionName?: string,
-): FieldRow | undefined {
-  if (!parentSectionName) {
-    return fields.find((f) => f.name === name && f.parent_id === null)
-  }
-
-  const parent = fields.find(
-    (f) =>
-      f.name === parentSectionName &&
-      f.type === 'section' &&
-      f.parent_id === null,
-  )
-  if (!parent) return undefined
-  return fields.find((f) => f.name === name && f.parent_id === parent.id)
-}
+const HOME_PAGE_SCHEMA: FieldSchemaNode[] = [
+  { name: 'title', type: 'plain_text', default: '' },
+  {
+    name: 'main',
+    type: 'section',
+    children: [{ name: 'body', type: 'plain_text', default: '' }],
+  },
+]
 
 /**
  * Seeds home page fields from the default template schema when none exist.
@@ -122,49 +114,7 @@ async function seedHomePageFieldsIfEmpty(
   if (existingError) throw existingError
   if (existing && existing.length > 0) return existing as FieldRow[]
 
-  const schema = [
-    { name: 'title', type: 'plain_text', default: '' },
-    {
-      name: 'main',
-      type: 'section',
-      children: [{ name: 'body', type: 'plain_text', default: '' }],
-    },
-  ] as const
-
-  async function insertNodes(
-    nodes: readonly {
-      name: string
-      type: string
-      default?: string
-      children?: readonly { name: string; type: string; default?: string }[]
-    }[],
-    parentId: string | null = null,
-    startOrder = 0,
-  ): Promise<void> {
-    let order = startOrder
-    for (const node of nodes) {
-      const { data: inserted, error } = await supabase
-        .from('fields')
-        .insert({
-          page_id: pageId,
-          parent_id: parentId,
-          name: node.name,
-          type: node.type,
-          value: node.type === 'plain_text' ? (node.default ?? '') : null,
-          sort_order: order++,
-        })
-        .select('id')
-        .single()
-
-      if (error) throw error
-
-      if (node.type === 'section' && node.children?.length) {
-        await insertNodes(node.children, inserted.id, 0)
-      }
-    }
-  }
-
-  await insertNodes(schema)
+  await seedFieldsFromSchema(supabase, HOME_PAGE_SCHEMA, { pageId })
 
   const { data: refetch, error: refetchError } = await supabase
     .from('fields')

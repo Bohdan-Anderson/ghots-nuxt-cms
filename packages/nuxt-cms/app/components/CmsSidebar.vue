@@ -5,11 +5,7 @@ import { usePageListData } from '~/composables/usePageList'
 import { useTemplatesData } from '~/composables/useTemplates'
 import { createPage } from '~/composables/usePageCreate'
 import { listSliceDefinitions } from '#cms/registries'
-import { isEditableFieldType, previewFieldValue } from '~/fields/registry'
-import {
-  arrayItemLabel,
-  isArrayItemSection,
-} from '~/fields/schemaLookup'
+import { isEditableFieldType } from '~/fields/registry'
 
 const route = useRoute()
 const router = useRouter()
@@ -89,21 +85,6 @@ function onFieldClick(field: FieldRow) {
  */
 function onSliceClick(sliceId: string) {
   editor.focusSliceOnPage(sliceId)
-}
-
-/**
- * Sidebar preview for a field value (type-aware).
- */
-function previewValue(field: FieldRow): string {
-  return previewFieldValue(field.type, field.value)
-}
-
-/**
- * Returns the parent array field for an array item section row.
- */
-function parentArrayField(field: FieldRow): FieldRow | undefined {
-  if (!field.parent_id || !pageContent.value) return undefined
-  return pageContent.value.fieldsById[field.parent_id]
 }
 
 /**
@@ -261,72 +242,16 @@ async function onCreatePage() {
         <p v-if="contentTree.pageFieldNodes.length" class="cms-sidebar-hint">
           Page fields
         </p>
-        <ul v-if="contentTree.pageFieldNodes.length" class="cms-sidebar-fields">
-          <li
-            v-for="{ field, depth } in contentTree.pageFieldNodes"
-            :key="field.id"
-            class="cms-sidebar-field-row"
-            :style="{ paddingLeft: `${depth * 0.75}rem` }"
-          >
-            <div
-              v-if="field.type === 'array'"
-              class="cms-sidebar-array"
-              :style="{ paddingLeft: `${depth * 0.75}rem` }"
-            >
-              <span class="cms-sidebar-section-label">{{ field.name }}</span>
-              <button
-                type="button"
-                class="cms-sidebar-array-add"
-                :disabled="arrayBusy"
-                @click="onAddArrayItem(field.id)"
-              >
-                Add item
-              </button>
-            </div>
-            <div
-              v-else-if="
-                pageContent &&
-                isArrayItemSection(field, pageContent.fieldsById)
-              "
-              class="cms-sidebar-array-item"
-              :style="{ paddingLeft: `${depth * 0.75}rem` }"
-            >
-              <span class="cms-sidebar-section-label">
-                {{
-                  parentArrayField(field)
-                    ? arrayItemLabel(
-                        field,
-                        parentArrayField(field)!,
-                        pageContent.fields,
-                      )
-                    : field.name
-                }}
-              </span>
-              <button
-                type="button"
-                title="Remove item"
-                :disabled="arrayBusy"
-                @click="onRemoveArrayItem(field.id)"
-              >
-                ×
-              </button>
-            </div>
-            <span
-              v-else-if="field.type === 'section'"
-              class="cms-sidebar-section-label"
-            >
-              {{ field.name }}
-            </span>
-            <button
-              v-else
-              type="button"
-              class="cms-sidebar-field-btn"
-              @click="onFieldClick(field)"
-            >
-              {{ field.name }}: {{ previewValue(field) }}
-            </button>
-          </li>
-        </ul>
+        <CmsSidebarFieldList
+          v-if="contentTree.pageFieldNodes.length"
+          :nodes="contentTree.pageFieldNodes"
+          :fields-by-id="pageContent.fieldsById"
+          :fields="pageContent.fields"
+          :array-busy="arrayBusy"
+          @field-click="onFieldClick"
+          @add-item="onAddArrayItem"
+          @remove-item="onRemoveArrayItem"
+        />
 
         <ul class="cms-sidebar-slices">
           <li
@@ -369,70 +294,15 @@ async function onCreatePage() {
                 </button>
               </div>
             </div>
-            <ul class="cms-sidebar-fields">
-              <li
-                v-for="{ field, depth } in fields"
-                :key="field.id"
-                class="cms-sidebar-field-row"
-                :style="{ paddingLeft: `${depth * 0.75}rem` }"
-              >
-                <div
-                  v-if="field.type === 'array'"
-                  class="cms-sidebar-array"
-                >
-                  <span class="cms-sidebar-section-label">{{ field.name }}</span>
-                  <button
-                    type="button"
-                    class="cms-sidebar-array-add"
-                    :disabled="arrayBusy"
-                    @click="onAddArrayItem(field.id)"
-                  >
-                    Add item
-                  </button>
-                </div>
-                <div
-                  v-else-if="
-                    pageContent &&
-                    isArrayItemSection(field, pageContent.fieldsById)
-                  "
-                  class="cms-sidebar-array-item"
-                >
-                  <span class="cms-sidebar-section-label">
-                    {{
-                      parentArrayField(field)
-                        ? arrayItemLabel(
-                            field,
-                            parentArrayField(field)!,
-                            pageContent.fields,
-                          )
-                        : field.name
-                    }}
-                  </span>
-                  <button
-                    type="button"
-                    title="Remove item"
-                    :disabled="arrayBusy"
-                    @click="onRemoveArrayItem(field.id)"
-                  >
-                    ×
-                  </button>
-                </div>
-                <span
-                  v-else-if="field.type === 'section'"
-                  class="cms-sidebar-section-label"
-                >
-                  {{ field.name }}
-                </span>
-                <button
-                  v-else
-                  type="button"
-                  class="cms-sidebar-field-btn"
-                  @click="onFieldClick(field)"
-                >
-                  {{ field.name }}: {{ previewValue(field) }}
-                </button>
-              </li>
-            </ul>
+            <CmsSidebarFieldList
+              :nodes="fields"
+              :fields-by-id="pageContent.fieldsById"
+              :fields="pageContent.fields"
+              :array-busy="arrayBusy"
+              @field-click="onFieldClick"
+              @add-item="onAddArrayItem"
+              @remove-item="onRemoveArrayItem"
+            />
           </li>
         </ul>
 

@@ -6,8 +6,8 @@ import type {
 } from '~/types/cms'
 import {
   buildFieldMaps,
+  loadFieldsForOwner,
   pageLevelFields,
-  seedFieldsFromSchema,
 } from '~/composables/seedFields'
 import { fetchPageSlices } from '~/composables/usePageSlices'
 import { normalizeSlug } from '~/utils/slug'
@@ -17,9 +17,10 @@ import { normalizeSlug } from '~/utils/slug'
  */
 export async function usePageContent(
   slugInput: string,
+  options?: { loggedIn?: boolean },
 ): Promise<PageContent | null> {
   const supabase = useSupabase()
-  const { loggedIn } = useAuth()
+  const loggedIn = options?.loggedIn ?? false
   const slug = normalizeSlug(slugInput)
 
   const { data: pageData, error: pageError } = await supabase
@@ -36,33 +37,15 @@ export async function usePageContent(
 
   const slices = await fetchPageSlices(supabase, page.id)
 
-  let { data: fields, error: fieldsError } = await supabase
-    .from('fields')
-    .select('*')
-    .eq('page_id', page.id)
-    .order('sort_order', { ascending: true })
-
-  if (fieldsError) throw fieldsError
-
-  const pageFieldCount = (fields ?? []).filter((f) => f.slice_id === null).length
-
-  if (loggedIn.value && pageFieldCount === 0) {
-    await seedFieldsFromSchema(supabase, template.field_schema, {
-      pageId: page.id,
-    })
-    const refetch = await supabase
-      .from('fields')
-      .select('*')
-      .eq('page_id', page.id)
-      .order('sort_order', { ascending: true })
-    if (refetch.error) throw refetch.error
-    fields = refetch.data
-  }
-
-  const fieldList = (fields ?? []) as FieldRow[]
+  const fieldList = await loadFieldsForOwner(supabase, 'page_id', page.id, {
+    seedWhenLoggedInAndEmpty: loggedIn,
+    schema: template.field_schema,
+    seedContext: { pageId: page.id },
+    isEmpty: (rows) => rows.filter((f) => f.slice_id === null).length === 0,
+  })
   const { fieldsById, fieldsByName, fieldsBySliceId } = buildFieldMaps(fieldList)
 
-  return toPageContentPayload(
+  return buildPageContentPayload(
     page,
     template,
     slices,
@@ -74,9 +57,39 @@ export async function usePageContent(
 }
 
 /**
+ * Fetches all fields for a page (sidebar patch after array insert).
+ */
+export async function fetchFieldsForPage(pageId: string): Promise<FieldRow[]> {
+  const supabase = useSupabase()
+  const { data, error } = await supabase
+    .from('fields')
+    .select('*')
+    .eq('page_id', pageId)
+    .order('sort_order', { ascending: true })
+
+  if (error) throw error
+  return (data ?? []) as FieldRow[]
+}
+
+/**
+ * Fetches fields for one slice instance (sidebar patch after add slice).
+ */
+export async function fetchFieldsForSlice(sliceId: string): Promise<FieldRow[]> {
+  const supabase = useSupabase()
+  const { data, error } = await supabase
+    .from('fields')
+    .select('*')
+    .eq('slice_id', sliceId)
+    .order('sort_order', { ascending: true })
+
+  if (error) throw error
+  return (data ?? []) as FieldRow[]
+}
+
+/**
  * Returns a JSON-serializable page payload for useAsyncData / prerender.
  */
-function toPageContentPayload(
+export function buildPageContentPayload(
   page: PageRow,
   template: TemplateRow,
   slices: PageContent['slices'],
@@ -111,66 +124,6 @@ function toPageContentPayload(
     fieldsById,
     fieldsByName,
   }
-}
-
-/**
- * Resolves a field by name, optionally scoped to a parent section and/or slice instance.
- */
-export function resolveField(
-  fields: FieldRow[],
-  name: string,
-  parentSectionName?: string,
-  sliceId?: string | null,
-): FieldRow | undefined {
-  const scoped = fields.filter((field) =>
-    sliceId ? field.slice_id === sliceId : field.slice_id === null,
-  )
-
-  if (!parentSectionName) {
-    return scoped.find((field) => field.name === name && field.parent_id === null)
-  }
-
-  const parent = scoped.find(
-    (field) =>
-      field.name === parentSectionName &&
-      field.type === 'section' &&
-      field.parent_id === null,
-  )
-  if (!parent) return undefined
-  return scoped.find(
-    (field) => field.name === name && field.parent_id === parent.id,
-  )
-}
-
-/**
- * Returns ordered field groups for each item in a repeatable array field.
- */
-export function resolveArrayItems(
-  fields: FieldRow[],
-  arrayName: string,
-  sliceId?: string | null,
-): FieldRow[][] {
-  const scoped = fields.filter((field) =>
-    sliceId ? field.slice_id === sliceId : field.slice_id === null,
-  )
-
-  const arrayField = scoped.find(
-    (field) => field.name === arrayName && field.type === 'array',
-  )
-  if (!arrayField) return []
-
-  const itemSections = scoped
-    .filter(
-      (field) =>
-        field.parent_id === arrayField.id && field.type === 'section',
-    )
-    .sort((a, b) => a.sort_order - b.sort_order)
-
-  return itemSections.map((item) =>
-    scoped
-      .filter((field) => field.parent_id === item.id)
-      .sort((a, b) => a.sort_order - b.sort_order),
-  )
 }
 
 /**

@@ -115,8 +115,8 @@ const items = computed(() =>
 
 <template>
   <ul>
-    <li v-for="item in items" :key="item.sectionId">
-      {{ resolveField(props.fields, 'name', 'members', props.sliceId, item.sectionId)?.value }}
+    <li v-for="itemFields in items" :key="itemFields[0]?.parent_id">
+      {{ itemFields.find((f) => f.name === 'name')?.value }}
     </li>
   </ul>
 </template>
@@ -133,14 +133,15 @@ Internal row grouping parent for array items. **Do not** put `section` in your s
 ## resolveField cheat sheet
 
 ```ts
-resolveField(fields, fieldName, parentSectionName?, sliceId?, itemSectionId?)
+resolveField(fields, fieldName, parentSectionName?, sliceId?)
 ```
 
 | Use case | Call |
 | -------- | ---- |
 | Page-level field | `resolveField(pageFields, 'title')` |
 | Slice field | `resolveField(fields, 'headline', undefined, sliceId)` |
-| Field inside array item | `resolveField(fields, 'name', 'members', sliceId, item.sectionId)` |
+| Field inside section | `resolveField(fields, 'body', 'main')` |
+| Field inside array item | `resolveArrayItems(...)` then `itemFields.find((f) => f.name === 'name')` |
 
 ## Sidebar preview
 

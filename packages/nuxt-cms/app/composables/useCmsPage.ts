@@ -22,18 +22,10 @@ export function useCmsPage() {
     data: cachedContent,
     status: fetchStatus,
     refresh,
-  } = useAsyncData(
+  } = useGuestCachedAsyncData(
     () => `page:${slug.value}`,
-    () => usePageContent(slug.value),
-    {
-      watch: [slug],
-      getCachedData(key, nuxtApp) {
-        if (loggedIn.value) {
-          return undefined
-        }
-        return nuxtApp.payload.data[key] ?? nuxtApp.static.data[key]
-      },
-    },
+    () => usePageContent(slug.value, { loggedIn: loggedIn.value }),
+    { watch: [slug] },
   )
 
   const { data: pageList, refresh: refreshPageList } = usePageListData()

@@ -4,6 +4,10 @@
   "description": "Static-first Supabase page builder for Nuxt",
   "type": "module",
   "license": "MIT",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
   "exports": {
     ".": "./nuxt.config.ts"
   },
@@ -12,6 +16,7 @@
     "modules",
     "server",
     "supabase",
+    "test-utils",
     "nuxt.config.ts",
     "README.md"
   ],
@@ -21,5 +26,8 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.4"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.4"
   }
 }

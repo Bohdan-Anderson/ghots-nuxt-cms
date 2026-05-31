@@ -1,6 +1,10 @@
-import type { FieldRow } from '~/types/cms'
+import type { FieldRow, PageContent } from '~/types/cms'
 import { getArrayItemSchema } from '~/fields/schemaLookup'
-import { seedArrayItem } from '~/composables/seedFields'
+import {
+  collectFieldSubtreeIds,
+  seedArrayItem,
+} from '~/composables/seedFields'
+import { fetchFieldsForPage } from '~/composables/usePageContent'
 
 type SupabaseClient = ReturnType<typeof useSupabase>
 
@@ -17,14 +21,13 @@ export function countArrayItems(
 }
 
 /**
- * Adds a new item to a repeatable array field.
+ * Adds a new item to a repeatable array field; returns the new field subtree rows.
  */
-export async function insertArrayItem(arrayFieldId: string): Promise<void> {
+export async function insertArrayItem(
+  content: PageContent,
+  arrayFieldId: string,
+): Promise<FieldRow[]> {
   const supabase = useSupabase()
-  const { pageContent } = useCmsPanel()
-  const content = pageContent.value
-  if (!content) return
-
   const arrayField = content.fieldsById[arrayFieldId]
   if (!arrayField || arrayField.type !== 'array') {
     throw new Error('Field is not a repeatable array')
@@ -33,7 +36,17 @@ export async function insertArrayItem(arrayFieldId: string): Promise<void> {
   const itemSchema = getArrayItemSchema(content, arrayField)
   const nextIndex = countArrayItems(content.fields, arrayFieldId)
 
-  await seedArrayItem(supabase, arrayField, nextIndex, itemSchema)
+  const itemSection = await seedArrayItem(
+    supabase,
+    arrayField,
+    nextIndex,
+    itemSchema,
+  )
+
+  const pageId = content.page.id
+  const allFields = await fetchFieldsForPage(pageId)
+  const subtreeIds = collectFieldSubtreeIds(allFields, itemSection.id)
+  return allFields.filter((field) => subtreeIds.has(field.id))
 }
 
 /**

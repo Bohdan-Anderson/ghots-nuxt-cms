@@ -18,14 +18,5 @@ export async function fetchTemplates(): Promise<TemplateRow[]> {
  * Cached template list for sidebar page creation.
  */
 export function useTemplatesData() {
-  const { loggedIn } = useAuth()
-
-  return useAsyncData('cms-templates', () => fetchTemplates(), {
-    getCachedData(key, nuxtApp) {
-      if (loggedIn.value) {
-        return undefined
-      }
-      return nuxtApp.payload.data[key] ?? nuxtApp.static.data[key]
-    },
-  })
+  return useGuestCachedAsyncData('cms-templates', () => fetchTemplates())
 }

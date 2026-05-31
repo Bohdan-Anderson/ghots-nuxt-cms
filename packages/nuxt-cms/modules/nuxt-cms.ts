@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 import {
+  addImports,
   defineNuxtModule,
   createResolver,
   installModule,
@@ -53,6 +54,12 @@ export default defineNuxtModule<ModuleOptions>({
         process.env.CMS_PUBLISH_WEBHOOK_URL ??
         '',
     }
+
+    const resolveFieldModule = resolvePath('../app/fields/resolveField')
+    addImports([
+      { name: 'resolveField', from: resolveFieldModule },
+      { name: 'resolveArrayItems', from: resolveFieldModule },
+    ])
 
     await installModule(resolvePath('./localize-cms-images'))
   },

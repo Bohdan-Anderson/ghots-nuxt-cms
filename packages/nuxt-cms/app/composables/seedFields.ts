@@ -1,5 +1,10 @@
-import type { FieldRow, FieldSchemaNode } from '~/types/cms'
-import { defaultValueForFieldType } from '~/fields/registry'
+import type {
+  FieldRow,
+  FieldSchemaNode,
+  PageContent,
+  PageSliceRow,
+} from '../types/cms'
+import { defaultValueForFieldType } from '../fields/defaultValues'
 
 type SupabaseClient = ReturnType<typeof useSupabase>
 
@@ -135,4 +140,104 @@ export function buildFieldMaps(fields: FieldRow[]) {
  */
 export function pageLevelFields(fields: FieldRow[]): FieldRow[] {
   return fields.filter((field) => field.slice_id === null)
+}
+
+/**
+ * Rebuilds derived maps after slices or fields change (sidebar structural edits).
+ */
+export function rebuildPageContent(
+  current: PageContent,
+  updates: {
+    fields?: FieldRow[]
+    slices?: PageSliceRow[]
+    page?: PageContent['page']
+  },
+): PageContent {
+  const fields = updates.fields ?? current.fields
+  const slices = updates.slices ?? current.slices
+  const { fieldsById, fieldsByName, fieldsBySliceId } = buildFieldMaps(fields)
+
+  return {
+    ...current,
+    page: updates.page ?? current.page,
+    fields,
+    slices,
+    pageFields: pageLevelFields(fields),
+    fieldsBySliceId,
+    fieldsById,
+    fieldsByName,
+  }
+}
+
+/**
+ * Collects a root field id and all descendant field ids from a flat list.
+ */
+export interface LoadFieldsForOwnerOptions {
+  /** When true and editor is logged in, seeds `schema` if `isEmpty` returns true. */
+  seedWhenLoggedInAndEmpty?: boolean
+  schema?: FieldSchemaNode[]
+  seedContext?: SeedFieldsContext
+  /** Defaults to no fields at all (globals). Use page-level check for pages. */
+  isEmpty?: (fields: FieldRow[]) => boolean
+}
+
+/**
+ * Loads fields for a page or global row; optionally seeds from schema when empty.
+ */
+export async function loadFieldsForOwner(
+  supabase: SupabaseClient,
+  ownerColumn: 'page_id' | 'global_id',
+  ownerId: string,
+  options: LoadFieldsForOwnerOptions = {},
+): Promise<FieldRow[]> {
+  let { data: fields, error } = await supabase
+    .from('fields')
+    .select('*')
+    .eq(ownerColumn, ownerId)
+    .order('sort_order', { ascending: true })
+
+  if (error) throw error
+
+  const fieldList = (fields ?? []) as FieldRow[]
+  const empty = options.isEmpty ?? ((rows) => rows.length === 0)
+  const shouldSeed =
+    options.seedWhenLoggedInAndEmpty &&
+    options.schema &&
+    options.seedContext &&
+    empty(fieldList)
+
+  if (shouldSeed) {
+    await seedFieldsFromSchema(supabase, options.schema!, options.seedContext!)
+    const refetch = await supabase
+      .from('fields')
+      .select('*')
+      .eq(ownerColumn, ownerId)
+      .order('sort_order', { ascending: true })
+    if (refetch.error) throw refetch.error
+    return (refetch.data ?? []) as FieldRow[]
+  }
+
+  return fieldList
+}
+
+export function collectFieldSubtreeIds(
+  fields: FieldRow[],
+  rootId: string,
+): Set<string> {
+  const ids = new Set<string>([rootId])
+  let growth = true
+  while (growth) {
+    growth = false
+    for (const field of fields) {
+      if (
+        field.parent_id &&
+        ids.has(field.parent_id) &&
+        !ids.has(field.id)
+      ) {
+        ids.add(field.id)
+        growth = true
+      }
+    }
+  }
+  return ids
 }
