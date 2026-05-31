@@ -1,6 +1,6 @@
 # Roadmap & todos
 
-Living roadmap for **ghots-cms**. Full product goals live in [docs/vision.md](./docs/vision.md).
+Living roadmap for **ghots-cms**. Full product goals live in [docs/dev/vision.md](./docs/dev/vision.md).
 
 Each phase has:
 
@@ -31,7 +31,7 @@ This phase does **not** need to test every feature — it locks in the three beh
 ### Depends on
 
 - Supabase migration applied, Auth user for `E2E_EDITOR_*`
-- See [docs/e2e.md](./docs/e2e.md)
+- See [docs/dev/e2e.md](./docs/dev/e2e.md)
 
 ### Tasks
 
@@ -45,11 +45,11 @@ This phase does **not** need to test every feature — it locks in the three beh
 ### Validate
 
 - `npm run test:e2e` green locally (~20s after browser install)
-- [docs/e2e.md](./docs/e2e.md) documents setup and known gaps (nav still hits Supabase)
+- [docs/dev/e2e.md](./docs/dev/e2e.md) documents setup and known gaps (nav still hits Supabase)
 
 ### Touches
 
-- `e2e/`, `playwright.config.ts`, `docs/e2e.md`, `.env.example`
+- `demo/e2e/`, `demo/playwright.config.ts`, `docs/dev/e2e.md`, `demo/.env.example`
 - Minor: [app/pages/login.vue](./app/pages/login.vue) — logout only when logged in
 
 ### Notes / known gaps
@@ -68,7 +68,7 @@ Two separate problems block the “cheap static hosting” goal:
 
 **1. Editor UX is fragile today.** After a modal save, `patchField` in [useGhostPage.ts](./app/composables/useGhostPage.ts) replaces the page object, but sidebar state ([useCmsPanel.ts](./app/composables/useCmsPanel.ts)) and the page can drift. As we add field types and sidebar-driven edits, we need **one source of truth** for “current page content while editing” so sidebar + on-page preview always match.
 
-**2. Guests still hit Supabase for nav.** [usePageList.ts](./app/composables/usePageList.ts) has no `getCachedData` guard (documented in [docs/static-generation.md](./docs/static-generation.md)). That means every guest page load costs a DB round-trip — undermining zero-backend hosting and adding latency.
+**2. Guests still hit Supabase for nav.** [usePageList.ts](./packages/nuxt-cms/app/composables/usePageList.ts) has no `getCachedData` guard (documented in [docs/dev/static-generation.md](./docs/dev/static-generation.md)). That means every guest page load costs a DB round-trip — undermining zero-backend hosting and adding latency.
 
 Phase 1 completes the **static-first guest story** started in Phase 0 (page body only) and hardens the editor before we change the data model.
 
@@ -96,7 +96,7 @@ Phase 1 completes the **static-first guest story** started in Phase 0 (page body
 - `app/composables/useGhostPage.ts`, `useCmsPanel.ts`, `usePageList.ts`
 - `app/components/CmsSidebar.vue`, `PageEditorProvider.vue`
 - `e2e/guest-static.spec.ts`, new or updated editor spec
-- [docs/static-generation.md](./docs/static-generation.md)
+- [docs/dev/static-generation.md](./docs/dev/static-generation.md)
 
 ### Design notes
 
@@ -145,7 +145,7 @@ Without this migration, Phase 3 sidebar and Phase 4 field types have nowhere to 
 
 - `supabase/migrations/`, `app/types/cms.ts`, `app/composables/usePageContent.ts`
 - New: slice registry, `useGlobal.ts`, example slice components under `app/slices/` or `app/templates/`
-- [docs/content-model.md](./docs/content-model.md), [docs/database.md](./docs/database.md)
+- [docs/dev/content-model.md](./docs/dev/content-model.md), [docs/dev/database.md](./docs/dev/database.md)
 
 ### Open decisions (resolve during this phase)
 
@@ -217,7 +217,7 @@ Defer **image** and **array** to Phase 6 — they need Storage and more complex 
 ### Validate
 
 - [x] Playwright: `e2e/field-types.spec.ts` — edit link + richtext on demo CTA slice
-- [x] Manual: richtext HTML renders safely (sanitization decision documented in [docs/field-types.md](./docs/field-types.md))
+- [x] Manual: richtext HTML renders safely (sanitization decision documented in [docs/dev/field-types.md](./docs/dev/field-types.md))
 
 ### Touches
 
@@ -257,7 +257,7 @@ v1 keeps generate **local/CI** (no hosted build service) — the button document
 
 - New `PublishButton.vue` or section in `CmsSidebar.vue`
 - `package.json` script e.g. `publish:static` wrapping generate
-- [docs/e2e.md](./docs/e2e.md), [docs/development.md](./docs/development.md)
+- [docs/dev/e2e.md](./docs/dev/e2e.md), [docs/dev/development.md](./docs/dev/development.md)
 
 ---
 
@@ -314,16 +314,16 @@ Packaging too early duplicates refactor pain across consumers.
 
 ### Tasks
 
-- [ ] **Boundary audit** — list what is CMS-generic vs site-specific (`app/cms/` vs `app/templates/`, `app/slices/`)
-- [ ] **Nuxt module or layer** — install path, auto-imports, config for Supabase env
+- [x] **Boundary audit** — [docs/dev/package-extraction.md](./docs/dev/package-extraction.md); demo site in `demo/`
+- [x] **Nuxt module or layer** — `packages/nuxt-cms` with `#cms/registries` injection
 - [ ] **npm package** — publish privately or public; versioning
-- [ ] **Getting started guide** — Supabase project, migration, env, first template, generate, deploy
-- [ ] **Smoke test** — empty Nuxt app + package → one editable page in &lt; 30 min
+- [x] **Getting started guide** — [docs/getting-started.md](./docs/getting-started.md)
+- [ ] **Smoke test** — `examples/minimal/` wired app (scaffold only)
 
 ### Validate
 
 - Second repo or branch installs package and completes checklist without copying CMS source by hand
-- [docs/vision.md](./docs/vision.md) portability section matches reality
+- [docs/dev/vision.md](./docs/dev/vision.md) portability section matches reality
 
 ### Touches
 
@@ -356,4 +356,4 @@ Items not scheduled — revisit after relevant phase.
 3 Sidebar UI  →  4 Field types  →  5 Publish  →  6 Images/arrays  →  7 Package
 ```
 
-**Current focus:** Phase 7 — Package extraction
+**Current focus:** Phase 7 — Package extraction (layer scaffold done; npm publish + smoke test remaining)

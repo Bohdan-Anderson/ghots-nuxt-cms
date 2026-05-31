@@ -1,36 +1,43 @@
-# ghots-cms documentation
+# @ghots/nuxt-cms
 
-A static-first Nuxt CMS: page content lives in Supabase, public visitors get prerendered HTML and cached payloads, and authenticated editors load live data and edit fields in a modal.
+Add live-editable content to a static Nuxt site. You define templates and slices in Vue; editors change copy on the deployed site; guests get fast prerendered HTML.
 
-## How data loads (summary)
+## How it works
 
-| Audience | Page content (`page:/slug`) | Nav (`page-list`) |
-| -------- | ----------------------------- | ----------------- |
-| Guest on **`npm run static`** | Prerendered HTML + `_payload.json` (no Supabase refetch if payload exists) | **Still fetches Supabase** on each load |
-| Guest on **`npm run dev`** | Supabase every time (no static payload) | Supabase |
-| Logged-in editor | Supabase (`getCachedData` bypassed) | Supabase |
+| Who | What they see |
+| --- | ------------- |
+| **Guest** | Last published static build — no live database calls |
+| **Logged-in editor** | Live content from Supabase; sidebar + modal to edit |
+| **You (developer)** | Templates, slices, and field schemas in code |
 
-Details: [Static generation](./static-generation.md), [Authentication](./authentication.md).
+**Publish** rebuilds the static site so guests catch up with editor changes.
+
+## Start here
+
+New project → follow **[Getting started](./getting-started.md)** end to end.
+
+Already have a static Nuxt site → **[Adopting an existing site](./adopting-an-existing-site.md)**.
 
 ## Guides
 
-| Document | Description |
-| -------- | ----------- |
-| [Vision](./vision.md) | Product goals, concepts, v1 scope, validation criteria |
-| [Architecture](./architecture.md) | System overview, request flows, major decisions |
-| [Directory structure](./directory-structure.md) | Where code lives and what each area does |
-| [Routing and pages](./routing-and-pages.md) | Catch-all routes, slugs, login |
-| [Static generation](./static-generation.md) | `nuxt generate`, prerender, payload caching |
-| [Authentication](./authentication.md) | Supabase auth and fresh content for editors |
-| [Database](./database.md) | Tables, RLS, migrations |
-| [Content model](./content-model.md) | Pages, templates, fields, seeding |
-| [Templates](./templates.md) | Vue page templates and field binding |
-| [Modal editing](./inline-editing.md) | Click-to-edit modal flow and components |
-| [CMS sidebar](./cms-sidebar.md) | Logged-in left panel, tabs, and page sync |
-| [Publish workflow](./publish.md) | Draft vs guest, `publish:static`, deploy |
-| [Development](./development.md) | Setup, env vars, scripts |
-| [E2E testing](./e2e.md) | Playwright setup, test coverage, DB reset |
+| Guide | When to read |
+| ----- | ------------ |
+| [Supabase setup](./supabase.md) | Connect your project (high level) |
+| [Templates](./templates.md) | Page layouts and page-level fields |
+| [Slices](./slices.md) | Reusable page sections |
+| [Field types](./field-types.md) | Text, links, rich text, images, arrays |
+| [Globals](./globals.md) | Shared nav, footer, site settings |
+| [Publishing](./publishing.md) | Draft vs guest, generate, deploy |
+| [Editing UX](./editing.md) | What editors see (sidebar, modal, login) |
 
-## Related
+## Examples
 
-- [Supabase setup](../supabase/README.md) — migration and manual test checklist
+Practical patterns — self-contained snippets, no repo required:
+
+| Example | Shows |
+| ------- | ----- |
+| [Blog with posts list](./examples/blog.md) | Arrays + text fields for a simple blog |
+
+## Reference
+
+This repo also ships a working **[demo](../demo/)** site and **[contributor docs](./dev/README.md)** for architecture and internals.

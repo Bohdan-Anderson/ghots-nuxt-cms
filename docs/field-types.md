@@ -1,105 +1,152 @@
-# Field types (v1)
+# Field types
 
-Phase 4 adds **`link`** and **`richtext`** alongside **`plain_text`**. Structural **`section`** nodes are not editable.
+Field types define what editors can fill in and how values are stored. Schemas live in template or slice definitions; the CMS provides modals and save logic.
 
-## Registry
+## Schema shape
 
-`app/fields/registry.ts` maps each `FieldType` to:
+Each field in a schema:
 
-- Modal component (`FieldEditPlainText`, `FieldEditLink`, `FieldEditRichText`, `FieldEditImage`)
-- `valueToDraft` / `draftToValue` for the save pipeline
-- `supportsOnPageClick` for `PageEditorProvider` click delegation
-- Sidebar preview text
-
-## `plain_text`
-
-- **Storage:** plain string in `fields.value`
-- **Modal:** textarea
-- **Template:** `{{ field('name')?.value }}` with `data-name` / `data-id`
-
-## `link`
-
-- **Storage:** JSON string:
-
-```json
-{ "url": "https://…", "label": "Read more", "target": "_self" | "_blank" }
+```ts
+{ name: 'title', type: 'plain_text', default: 'Hello' }
 ```
 
-- **Modal:** URL, label, open-in select
-- **Template:** `<CmsLink :field="field('cta_link')" />` (sets `data-name` / `data-id` on the anchor)
+| Property | Required | Purpose |
+| -------- | -------- | ------- |
+| `name` | Yes | Stable id; used in `data-name` and `resolveField` |
+| `type` | Yes | One of the types below |
+| `default` | No | Seed value when the field row is created |
+| `children` | For `array` | Schema for each repeated item |
 
-Helpers: `parseLinkValue`, `serializeLinkValue` in `app/types/fieldValues.ts`.
+## Supported types
 
-## `richtext`
+### plain_text
 
-- **Storage:** JSON string:
-
-```json
-{ "source": "markdown…", "html": "<p>…</p>" }
-```
-
-- **Modal:** markdown textarea (subset: paragraphs, `**bold**`, `*italic*`, `[text](url)`)
-- **On save:** `markdownToHtml` → `sanitizeHtml` → persist both `source` and `html`
-- **Template:** `<CmsRichText :field="field('copy')" />` (`v-html` uses sanitized `html` from save time)
-
-### Sanitization policy
-
-Allowed tags after save: `p`, `br`, `strong`, `em`, `a` (http/https only), `ul`, `ol`, `li`, `h2`, `h3`. Scripts, styles, and `javascript:` URLs are stripped. Re-sanitize if you add a server-side import path later.
-
-Editors are trusted; guests only see HTML from the last **generate** (static `dist/`). Do not paste untrusted HTML into the markdown source expecting it to survive — only the markdown subset is converted.
-
-### Editor choice
-
-v1 uses **markdown in a textarea**, not TipTap. Richer WYSIWYG can plug into the same registry later by changing `FieldEditRichText` and `draftToValue`.
-
-## `image`
-
-- **Storage:** JSON string:
+Single-line or short text. Stored as a string.
 
 ```json
-{ "url": "https://…/storage/v1/object/public/cms-media/…", "alt": "Description" }
+{ "name": "title", "type": "plain_text", "default": "" }
 ```
 
-- **Modal:** file upload to Supabase Storage (`cms-media` bucket) + alt text
-- **Template:** `<CmsImage :field="field('photo')" />`
-- **Static generate:** URLs are absolute Supabase public URLs — no runtime Storage calls for guests
+```vue
+<h1 :data-name="'title'">{{ field('title')?.value }}</h1>
+```
 
-Helpers: `parseImageValue`, `serializeImageValue` in `app/types/fieldValues.ts`. Upload via `uploadCmsImage` in `app/composables/useImageUpload.ts`.
+Click-to-edit on page: **yes**.
 
-Apply migration **`005_images_arrays_storage.sql`** for the bucket + RLS policies.
+---
 
-On **`nuxt generate`**, a Nitro `prerender:done` hook downloads cms-media assets into `dist/cms-media/` and rewrites prerendered HTML + `_payload.json` to use local `/cms-media/…` URLs. Editors still see live Supabase URLs while logged in; guests on static hosting do not call Storage.
+### link
 
-## `array` (repeatable)
+URL + label + optional target. Stored as JSON.
 
-- **Storage:** structural field (`value` null); each item is a `section` row (`item_0`, `item_1`, …) with child fields seeded from schema `children`
-- **Schema:** in slice/template registry:
+```json
+{ "name": "cta", "type": "link", "default": "https://example.com" }
+```
+
+Render with the CMS helper:
+
+```vue
+<CmsLink v-if="field('cta')" :field="field('cta')!" data-name="cta" />
+```
+
+Or parse manually with `parseLinkValue(field('cta')?.value)`.
+
+Click-to-edit: **yes**.
+
+---
+
+### richtext
+
+Markdown source + sanitized HTML. Stored as JSON `{ source, html }`.
+
+```json
+{ "name": "body", "type": "richtext", "default": "Hello **world**." }
+```
+
+```vue
+<CmsRichText v-if="field('body')" :field="field('body')!" data-name="body" />
+```
+
+Editors write markdown in the modal; templates render `html`. Click-to-edit: **yes**.
+
+---
+
+### image
+
+Upload to Supabase Storage. Stored as JSON `{ url, alt }`.
+
+```json
+{ "name": "photo", "type": "image" }
+```
+
+```vue
+<CmsImage v-if="field('photo')" :field="field('photo')!" data-name="photo" />
+```
+
+At **`nuxt generate`**, remote image URLs can be copied into `dist/` for fully offline static hosting.
+
+Click-to-edit: **yes**.
+
+---
+
+### array
+
+Repeatable group of child fields. Managed in the **sidebar** (add/remove items), not on the page.
 
 ```json
 {
   "name": "members",
   "type": "array",
   "children": [
-    { "name": "name", "type": "plain_text" },
-    { "name": "photo", "type": "image" }
+    { "name": "name", "type": "plain_text", "default": "" },
+    { "name": "role", "type": "plain_text", "default": "" }
   ]
 }
 ```
 
-- **Sidebar:** Add item / Remove item per array (not on-page)
-- **Template:** `resolveArrayItems(fields, 'members', sliceId)` returns ordered item field groups
+In Vue, resolve items and loop:
 
-Demo: **Team** slice on `/demo`.
+```vue
+<script setup lang="ts">
+const items = computed(() =>
+  resolveArrayItems(props.fields, 'members', props.sliceId),
+)
+</script>
 
-## Database
+<template>
+  <ul>
+    <li v-for="item in items" :key="item.sectionId">
+      {{ resolveField(props.fields, 'name', 'members', props.sliceId, item.sectionId)?.value }}
+    </li>
+  </ul>
+</template>
+```
 
-Apply migration **`004_field_types_link_richtext.sql`** manually:
+Click-to-edit on canvas: **no** (open fields from sidebar).
 
-- Extends `fields.type` check constraint
-- Seeds a **CTA** slice on `/demo` with `copy` (richtext) + `cta_link` (link)
+---
 
-## E2E
+### section
 
-`e2e/field-types.spec.ts` — editor edits link + richtext on `/demo`; guest static unchanged until generate.
+Internal row grouping parent for array items. **Do not** put `section` in your schema — the CMS creates these automatically.
 
-`e2e/images-arrays.spec.ts` — image upload + array add/remove on team slice.
+## resolveField cheat sheet
+
+```ts
+resolveField(fields, fieldName, parentSectionName?, sliceId?, itemSectionId?)
+```
+
+| Use case | Call |
+| -------- | ---- |
+| Page-level field | `resolveField(pageFields, 'title')` |
+| Slice field | `resolveField(fields, 'headline', undefined, sliceId)` |
+| Field inside array item | `resolveField(fields, 'name', 'members', sliceId, item.sectionId)` |
+
+## Sidebar preview
+
+Each type shows a short preview in the content tree (truncated text, link label, etc.).
+
+## Next
+
+- [Examples: blog](./examples/blog.md) — arrays in practice
+- [Templates](./templates.md) — page-level schemas
