@@ -11,16 +11,16 @@ Environment variables (see [Development](./development.md)):
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
 
-Mapped in `nuxt.config.ts` → `runtimeConfig.public`.
+Mapped in `demo/nuxt.config.ts` → `runtimeConfig.public`.
 
 ## Code map
 
 | File | Role |
 | ---- | ---- |
-| `app/composables/useSupabase.ts` | `createClient()` singleton |
-| `app/composables/useAuth.ts` | `user`, `loggedIn`, `signIn`, `signOut` |
-| `app/plugins/supabase.client.ts` | `getSession()` on load; `onAuthStateChange` |
-| `app/pages/login.vue` | Login form; logout when session exists |
+| `packages/nuxt-cms/app/composables/useSupabase.ts` | `createClient()` singleton |
+| `packages/nuxt-cms/app/composables/useAuth.ts` | `user`, `loggedIn`, `signIn`, `signOut` |
+| `packages/nuxt-cms/app/plugins/supabase.client.ts` | `getSession()` on load; `onAuthStateChange` |
+| `packages/nuxt-cms/app/pages/login.vue` | Login form; logout when session exists |
 
 ## Session state
 
@@ -56,19 +56,19 @@ getCachedData(key, nuxtApp) {
 | Logged out + no payload (e.g. dev) | Fetch from Supabase |
 | Logged in | Always fetch Supabase; can **seed** empty fields |
 
-`watch(loggedIn, () => refresh())` in `[...slug].vue` refetches page content when the session changes.
+`watch(loggedIn, () => refresh())` in `useCmsPage()` refetches page content when the session changes.
 
 ### Navigation (`page-list`)
 
-`usePageList()` has **no** `getCachedData`. The nav queries Supabase for **all** users, including guests on a static site.
+`usePageListData()` uses the same `getCachedData` + `loggedIn` bypass as page content. On a successful static deploy, guests should not call Supabase for nav.
 
 ## Editor-only behavior
 
 When logged in:
 
-1. **`CmsSidebar`** in `app.vue` — toggleable left panel (field list + page list). See [CMS sidebar](./cms-sidebar.md).
+1. **`CmsSidebar`** in `demo/app/app.vue` — toggleable left panel (field list + page list). See [CMS sidebar](./cms-sidebar.md).
 2. `PageEditorProvider` `:enabled="loggedIn"` — pointer cursor and click delegation.
-3. `FieldEditModal` — edit `plain_text` values (from page clicks or sidebar).
+3. `FieldEditModal` — edit field values (from page clicks or sidebar).
 4. `seedFieldsFromSchema` on first visit if the page has zero `fields` rows.
 
 ## Database permissions

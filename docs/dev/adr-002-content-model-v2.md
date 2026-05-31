@@ -28,7 +28,7 @@ Phase 3 sidebar and Phase 4 field types depend on this model.
 | JSON document per page | Fewer joins | Hard to query/update single field; poor fit for modal save pipeline |
 | **`page_slices` + `fields.slice_id`** | Matches current field rows; cascade delete; E2E-friendly | More tables |
 
-Slice **types** (Vue component + field schema) live in **code only** (`app/slices/registry.ts`), not in DB. DB stores instance rows with `slice_type_key` text.
+Slice **types** (Vue component + field schema) live in **code only** (`demo/app/slices/registry.ts` in this repo), not in DB. DB stores instance rows with `slice_type_key` text.
 
 ### 2. Page-level fields — same `fields` table, `slice_id IS NULL`
 
@@ -55,7 +55,7 @@ Existing `title` remains the internal/nav label. `meta_title` falls back to `tit
 | Pseudo-pages (`/_global/nav`) | Reuses page loader | Confusing slug routing; pollutes page list |
 | **`globals` + `fields.global_id`** | Clear ownership; same field/save pipeline | Nullable `page_id` on fields |
 
-Global **definitions** (schema) live in code (`app/globals/registry.ts`); DB holds values only.
+Global **definitions** (schema) live in code (`demo/app/globals/registry.ts` in this repo); DB holds values only.
 
 ### 5. Field ownership constraint
 

@@ -14,6 +14,7 @@ Static-first Nuxt CMS backed by Supabase: prerendered pages for visitors, modal 
 | ---- | ------- |
 | [`packages/nuxt-cms/`](./packages/nuxt-cms/) | CMS Nuxt layer |
 | [`demo/`](./demo/) | Reference demo site + E2E |
+| [`examples/minimal/`](./examples/minimal/) | Minimal install smoke-test app |
 | [`docs/`](./docs/) | Documentation |
 
 ## Quick start (demo)
@@ -31,6 +32,7 @@ Static preview: `npm run static` → http://localhost:8000
 | Command | Description |
 | ------- | ----------- |
 | `npm run dev` | Demo dev server |
+| `npm run dev:minimal` | Minimal example dev server |
 | `npm run generate` | Static site → `demo/dist/` |
 | `npm run static` | Generate + serve locally |
 | `npm run test:e2e` | Playwright (demo) |

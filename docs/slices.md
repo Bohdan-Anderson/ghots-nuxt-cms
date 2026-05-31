@@ -4,6 +4,8 @@
 
 Same slice type can appear multiple times on one page.
 
+> **This monorepo:** see [`demo/app/slices/`](../demo/app/slices/). Paths below use `app/` relative to your Nuxt project root.
+
 ## 1. Register a slice type
 
 ```ts

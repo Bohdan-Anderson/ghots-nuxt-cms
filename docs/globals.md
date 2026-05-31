@@ -2,6 +2,8 @@
 
 **Globals** are shared content regions — site name in the nav, footer blurb, social links. Defined once in code, edited like any other fields, available on every page.
 
+> **This monorepo:** see [`demo/app/globals/`](../demo/app/globals/). Paths below use `app/` relative to your Nuxt project root.
+
 ## 1. Register a global
 
 ```ts

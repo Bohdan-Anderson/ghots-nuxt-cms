@@ -4,7 +4,7 @@ Phase 4 adds **`link`** and **`richtext`** alongside **`plain_text`**. Structura
 
 ## Registry
 
-`app/fields/registry.ts` maps each `FieldType` to:
+`packages/nuxt-cms/app/fields/registry.ts` maps each `FieldType` to:
 
 - Modal component (`FieldEditPlainText`, `FieldEditLink`, `FieldEditRichText`, `FieldEditImage`)
 - `valueToDraft` / `draftToValue` for the save pipeline
@@ -28,7 +28,7 @@ Phase 4 adds **`link`** and **`richtext`** alongside **`plain_text`**. Structura
 - **Modal:** URL, label, open-in select
 - **Template:** `<CmsLink :field="field('cta_link')" />` (sets `data-name` / `data-id` on the anchor)
 
-Helpers: `parseLinkValue`, `serializeLinkValue` in `app/types/fieldValues.ts`.
+Helpers: `parseLinkValue`, `serializeLinkValue` in `packages/nuxt-cms/app/types/fieldValues.ts`.
 
 ## `richtext`
 
@@ -64,9 +64,9 @@ v1 uses **markdown in a textarea**, not TipTap. Richer WYSIWYG can plug into the
 - **Template:** `<CmsImage :field="field('photo')" />`
 - **Static generate:** URLs are absolute Supabase public URLs — no runtime Storage calls for guests
 
-Helpers: `parseImageValue`, `serializeImageValue` in `app/types/fieldValues.ts`. Upload via `uploadCmsImage` in `app/composables/useImageUpload.ts`.
+Helpers: `parseImageValue`, `serializeImageValue` in `packages/nuxt-cms/app/types/fieldValues.ts`. Upload via `uploadCmsImage` in `packages/nuxt-cms/app/composables/useImageUpload.ts`.
 
-Apply migration **`005_images_arrays_storage.sql`** for the bucket + RLS policies.
+Apply migration **`packages/nuxt-cms/supabase/migrations/005_images_arrays_storage.sql`** for the bucket + RLS policies.
 
 On **`nuxt generate`**, a Nitro `prerender:done` hook downloads cms-media assets into `dist/cms-media/` and rewrites prerendered HTML + `_payload.json` to use local `/cms-media/…` URLs. Editors still see live Supabase URLs while logged in; guests on static hosting do not call Storage.
 
@@ -93,13 +93,13 @@ Demo: **Team** slice on `/demo`.
 
 ## Database
 
-Apply migration **`004_field_types_link_richtext.sql`** manually:
+Apply migration **`packages/nuxt-cms/supabase/migrations/004_field_types_link_richtext.sql`** manually:
 
 - Extends `fields.type` check constraint
 - Seeds a **CTA** slice on `/demo` with `copy` (richtext) + `cta_link` (link)
 
 ## E2E
 
-`e2e/field-types.spec.ts` — editor edits link + richtext on `/demo`; guest static unchanged until generate.
+`demo/e2e/field-types.spec.ts` — editor edits link + richtext on `/demo`; guest static unchanged until generate.
 
-`e2e/images-arrays.spec.ts` — image upload + array add/remove on team slice.
+`demo/e2e/images-arrays.spec.ts` — image upload + array add/remove on team slice.

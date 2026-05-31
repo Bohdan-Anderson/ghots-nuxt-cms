@@ -2,6 +2,8 @@
 
 A **template** is a Vue page layout plus a **page-level field schema**. Every CMS page points at one template.
 
+> **This monorepo:** working examples live under [`demo/app/templates/`](../demo/app/templates/). Paths below use `app/` relative to your Nuxt project root.
+
 ## Concepts
 
 ```text

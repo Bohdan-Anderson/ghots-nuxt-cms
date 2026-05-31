@@ -133,7 +133,7 @@ flowchart LR
   end
 ```
 
-- **Today:** guests mostly skip page-content Supabase via `getCachedData`; nav still calls Supabase — **must fix for zero guest calls**.
+- **Today:** guests skip Supabase for page content, nav, and globals via `getCachedData` on a successful static deploy.
 - **Target:** guests never call Supabase; all public data comes from prerender.
 
 ### Draft vs published
@@ -143,7 +143,7 @@ flowchart LR
 | Logged-in editor | Live Supabase | N/A |
 | Guest | Last `nuxt generate` output | After **Publish** rebuild |
 
-This matches the existing `loggedIn` → bypass cache behavior in `useGhostPage`.
+This matches the existing `loggedIn` → bypass cache behavior in `useCmsPage()`.
 
 ### Hosting & cost
 
@@ -254,8 +254,8 @@ What exists today (see [Architecture](./architecture.md)):
 
 - Single template (`default`), flat schema (`title`, `main` section, `body`).
 - Page = template instance; **no slice instances**, **no globals**, **no page meta table**.
-- Modal + sidebar for `plain_text` only.
-- Static generate works; guest page cache works; nav still hits Supabase.
+- Modal + sidebar for registered field types (plain_text, link, richtext, image).
+- Static generate works; guest payload cache covers page content, nav, and globals on deploy.
 
 The data model will need to evolve for slices, globals, meta, and new field types. Expect new tables or JSON columns rather than stretching `fields` alone.
 

@@ -3,7 +3,6 @@ const route = useRoute()
 const { loggedIn } = useAuth()
 const { applyPageContent } = useCmsPanel()
 
-/** Clear panel when leaving CMS pages (e.g. login); avoid onUnmounted — page can remount under Suspense. */
 watch(
   () => route.path,
   (path) => {

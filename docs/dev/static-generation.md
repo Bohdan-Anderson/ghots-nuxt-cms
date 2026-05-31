@@ -145,4 +145,4 @@ Guests on static hosting load images from the same origin as HTML — no Supabas
 
 ## Editor store (logged-in)
 
-`useCmsPanel().pageContent` is the single source of truth for in-session edits. `[...slug].vue` reads `displayContent` from `useGhostPage()`, which prefers the panel store when logged in. Modal saves call `patchField` on the store so the sidebar and on-page preview stay in sync. Both sidebar field clicks and `[data-name]` clicks open the same modal via `usePageEditor`.
+`useCmsPanel().pageContent` is the single source of truth for in-session edits. `[...slug].vue` reads `content` from `useCmsPage()`: guests from prerender cache, editors from the panel only. Modal saves call `patchField` on the store so the sidebar and on-page preview stay in sync. Both sidebar field clicks and `[data-name]` clicks open the same modal via `usePageEditor`.

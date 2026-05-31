@@ -22,7 +22,7 @@ ghots-cms/
 │   ├── package.json
 │   └── .env                      # VITE_SUPABASE_* (not committed)
 ├── docs/                         # Project documentation
-├── examples/minimal/             # Smoke-test scaffold docs
+├── examples/minimal/             # Runnable minimal consumer app
 ├── package.json                  # npm workspaces; scripts delegate to demo
 └── README.md
 ```

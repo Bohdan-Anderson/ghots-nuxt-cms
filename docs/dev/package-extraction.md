@@ -21,16 +21,16 @@ See also [vision.md](./vision.md) § Portability and [todo.md](../../todo.md) Ph
 
 | Path | Notes |
 | ---- | ----- |
-| `app/components/Cms*.vue` | Sidebar, publish panel, field render helpers |
-| `app/components/FieldEditModal.vue`, `PageEditorProvider.vue` | Modal + on-page click delegation |
-| `app/components/field-edit/*` | Per-type modal editors |
-| `app/composables/*` | All except `useTemplate.ts` (consumer template map) |
-| `app/fields/registry.ts`, `schemaLookup.ts` | Field-type registry; schema lookup uses injected registries |
-| `app/types/cms.ts`, `fieldValues.ts` | Shared types |
-| `app/utils/slug.ts`, `markdownToHtml.ts`, `sanitizeHtml.ts` | Utilities |
-| `app/assets/cms-panel.css` | Editor chrome styles |
-| `app/plugins/supabase.client.ts` | Session restore |
-| `app/pages/login.vue` | Auth page (optional override in consumer) |
+| `packages/nuxt-cms/app/components/Cms*.vue` | Sidebar, publish panel, field render helpers |
+| `packages/nuxt-cms/app/components/FieldEditModal.vue`, `PageEditorProvider.vue` | Modal + on-page click delegation |
+| `packages/nuxt-cms/app/components/field-edit/*` | Per-type modal editors |
+| `packages/nuxt-cms/app/composables/*` | All except consumer `useTemplate.ts` |
+| `packages/nuxt-cms/app/fields/registry.ts`, `schemaLookup.ts` | Field-type registry; schema lookup uses injected registries |
+| `packages/nuxt-cms/app/types/cms.ts`, `fieldValues.ts` | Shared types |
+| `packages/nuxt-cms/app/utils/slug.ts`, `markdownToHtml.ts`, `sanitizeHtml.ts` | Utilities |
+| `packages/nuxt-cms/app/assets/cms-panel.css` | Editor chrome styles |
+| `packages/nuxt-cms/app/plugins/supabase.client.ts` | Session restore |
+| `packages/nuxt-cms/app/pages/login.vue` | Auth page (optional override in consumer) |
 | `modules/nuxt-cms.ts` | Module entry: aliases, runtimeConfig, auto-imports |
 | `modules/localize-cms-images.ts` | Prerender image localization |
 | `server/utils/localizeCmsImages.ts` | Nitro hook helper |
@@ -130,4 +130,4 @@ Target: **&lt; 30 min** from empty Nuxt app to one editable page (Phase 7 valida
 - [ ] Rename project before public publish (Ghost trademark — see vision.md)
 - [ ] Split demo seeds into reference-only migration
 - [ ] CI smoke test: `examples/minimal/` installs package and passes checklist
-- [ ] Update stale `docs/directory-structure.md`
+- [x] Update `docs/dev/directory-structure.md` for package + demo layout

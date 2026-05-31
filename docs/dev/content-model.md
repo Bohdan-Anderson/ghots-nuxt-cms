@@ -14,9 +14,9 @@ field_schema: [...]   meta_title, …             Slices: hero × 2 → headline
 
 - **Template** — Vue SFC + page-level `field_schema` (fields outside slices).
 - **Page** — URL + template + **meta** columns (`meta_title`, `meta_description`, `og_image`, `noindex`).
-- **Slice type** — Code registry (`app/slices/registry.ts`): component + field schema.
+- **Slice type** — Code registry (`demo/app/slices/registry.ts`): component + field schema.
 - **Slice instance** — Ordered row in `page_slices`; fields keyed by `slice_id`.
-- **Global region** — Code registry (`app/globals/registry.ts`); values in `globals` + `fields.global_id`.
+- **Global region** — Code registry (`demo/app/globals/registry.ts`); values in `globals` + `fields.global_id`.
 - **Field** — Named node (`section`, `plain_text`, `link`, `richtext`) with optional `value`.
 
 ## Field schema (`field_schema`)
@@ -55,7 +55,7 @@ Hierarchy within an owner: `parent_id` → section field `id`.
 
 ## `usePageContent(slug)`
 
-`app/composables/usePageContent.ts`:
+`packages/nuxt-cms/app/composables/usePageContent.ts`:
 
 1. Query `pages` with `templates(*)` by `slug`.
 2. Load `page_slices` ordered by `sort_order`.
@@ -66,11 +66,11 @@ Hierarchy within an owner: `parent_id` → section field `id`.
 
 ## `useGlobalData(key)`
 
-`app/composables/useGlobal.ts` — same caching pattern as page content. Loads `globals` row + fields; seeds from code registry when logged in and empty.
+`packages/nuxt-cms/app/composables/useGlobal.ts` — same caching pattern as page content. Loads `globals` row + fields; seeds from code registry when logged in and empty.
 
 ## Seeding
 
-`seedFieldsFromSchema` (`app/composables/seedFields.ts`) walks a schema tree for page-level, slice, or global context.
+`seedFieldsFromSchema` (`packages/nuxt-cms/app/composables/seedFields.ts`) walks a schema tree for page-level, slice, or global context.
 
 - **Page:** first logged-in visit with zero page-level fields.
 - **Global:** first logged-in visit with zero fields for that global.
@@ -83,9 +83,9 @@ Hierarchy within an owner: `parent_id` → section field `id`.
 - No `sliceId` — page-level fields only.
 - With `sliceId` — fields for that slice instance.
 
-`DefaultPage.vue` — legacy flat page (home `/`).
+`demo/app/templates/DefaultPage.vue` — legacy flat page (home `/`).
 
-`SliceDemoPage.vue` — page-level title + ordered slice stack (`/demo`).
+`demo/app/templates/SliceDemoPage.vue` — page-level title + ordered slice stack (`/demo`).
 
 ## Updates
 

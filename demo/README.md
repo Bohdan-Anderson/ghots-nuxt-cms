@@ -23,12 +23,14 @@ Env file: **`demo/.env`**
 
 ## Site-specific code (yours in a real project)
 
+Paths below are relative to **`demo/app/`** in this repo (your Nuxt project uses the same structure under `app/`):
+
 | Path | Purpose |
 | ---- | ------- |
-| `app/templates/` | Page layouts |
-| `app/slices/` | Slice components + registry |
-| `app/globals/` | Global regions |
-| `app/cms/registries.ts` | Required registry barrel |
-| `app/pages/[...slug].vue` | Nav + CMS shell |
+| `demo/app/templates/` | Page layouts |
+| `demo/app/slices/` | Slice components + registry |
+| `demo/app/globals/` | Global regions |
+| `demo/app/cms/registries.ts` | Required registry barrel |
+| `demo/app/pages/[...slug].vue` | Nav + CMS shell |
 
 Extends [`../packages/nuxt-cms`](../packages/nuxt-cms).

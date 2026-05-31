@@ -6,7 +6,7 @@ export type CmsPanelTab = 'contents' | 'pages' | 'meta'
 /**
  * Returns page content with one field replaced (immutable update for reactivity).
  */
-function patchFieldInContent(
+export function patchFieldInContent(
   current: PageContent,
   updated: FieldRow,
 ): PageContent {
@@ -30,7 +30,7 @@ function patchFieldInContent(
 
 /**
  * Shared state for the logged-in CMS left panel (open/tab/current page).
- * `pageContent` is the single source of truth for in-session edits.
+ * `pageContent` is the single source of truth for in-session editor state.
  */
 export function useCmsPanel() {
   const isOpen = useState<boolean>('cms-panel-open', () => false)
@@ -44,9 +44,15 @@ export function useCmsPanel() {
     isOpen.value = !isOpen.value
   }
 
-  function setPageContent(content: PageContent | null) {
+  /**
+   * Replaces the current page payload in the panel (load, reload, meta save, logout clear).
+   */
+  function applyPageContent(content: PageContent | null) {
     pageContent.value = content
   }
+
+  /** @deprecated Use `applyPageContent` */
+  const setPageContent = applyPageContent
 
   /**
    * Patches a field after a modal save so sidebar and on-page preview stay in sync.
@@ -62,6 +68,7 @@ export function useCmsPanel() {
     activeTab,
     pageContent,
     toggle,
+    applyPageContent,
     setPageContent,
     patchField,
   }

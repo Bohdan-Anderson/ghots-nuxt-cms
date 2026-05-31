@@ -2,18 +2,18 @@
 
 When **`loggedIn`** is true, a fixed **left overlay** is always available: toggle with the **CMS** button. The **Publish** strip at the top explains draft vs guest content and the `npm run publish:static` command. Below that, three tabs — **Content**, **Pages**, and **Meta**.
 
-Guests never see the sidebar (`v-if="loggedIn"` in `app.vue`).
+Guests never see the sidebar (`v-if="loggedIn"` in `demo/app/app.vue`).
 
 ## Components and composables
 
 | File | Role |
 | ---- | ---- |
-| `app/components/CmsSidebar.vue` | Toggle, publish panel, tabs, field tree, page links |
-| `app/components/CmsPublishPanel.vue` | Publish instructions + copy command (v1 manual generate) |
-| `app/composables/usePublish.ts` | Publish command constant + optional webhook stub config |
-| `app/composables/useCmsPanel.ts` | Shared `isOpen`, `activeTab`, `pageContent`, `toggle`, `setPageContent` |
-| `app/app.vue` | Renders `<CmsSidebar v-if="loggedIn" />` above `<NuxtPage />` |
-| `app/pages/[...slug].vue` | Syncs current page data into `useCmsPanel` |
+| `packages/nuxt-cms/app/components/CmsSidebar.vue` | Toggle, publish panel, tabs, field tree, page links |
+| `packages/nuxt-cms/app/components/CmsPublishPanel.vue` | Publish instructions + copy command (v1 manual generate) |
+| `packages/nuxt-cms/app/composables/usePublish.ts` | Publish command constant + optional webhook stub config |
+| `packages/nuxt-cms/app/composables/useCmsPanel.ts` | Shared `isOpen`, `activeTab`, `pageContent`, `toggle`, `applyPageContent` |
+| `demo/app/app.vue` | Renders `<CmsSidebar v-if="loggedIn" />` above `<NuxtPage />` |
+| `demo/app/pages/[...slug].vue` | Site nav + syncs current page data into `useCmsPanel` via `useCmsPage()` |
 
 ## Publish (header)
 
@@ -42,16 +42,16 @@ Guests never see the sidebar (`v-if="loggedIn"` in `app.vue`).
 
 ## Syncing page data (`[...slug].vue` → panel)
 
-The sidebar lives in **`app.vue`**, not under the page route, so the catch-all page **pushes** loaded content into shared state:
+The sidebar lives in **`demo/app/app.vue`**, not under the page route, so the catch-all page **pushes** loaded content into shared state via `useCmsPage()`:
 
 ```ts
 watchEffect(() => {
   const data = content.value
   const currentSlug = slug.value
   if (data?.page.slug === currentSlug) {
-    setPageContent(data)
+    applyPageContent(data)
   } else if (data) {
-    setPageContent(null)
+    applyPageContent(null)
   }
 })
 ```
@@ -62,14 +62,14 @@ watchEffect(() => {
 
 ### Why not clear on `onUnmounted`?
 
-Nuxt **Suspense** (from `await useAsyncData` in page setup) can **remount** the page component on the same URL. `onUnmounted` ran after a successful load and called `setPageContent(null)`, wiping the panel while still on e.g. `/about`.
+Nuxt **Suspense** (from `await useAsyncData` in page setup) can **remount** the page component on the same URL. `onUnmounted` ran after a successful load and called `applyPageContent(null)`, wiping the panel while still on e.g. `/about`.
 
 Panel state is cleared when leaving CMS UI instead:
 
 ```ts
-// app.vue — when navigating to login
+// demo/app/app.vue — when navigating to login
 watch(() => route.path, (path) => {
-  if (path === '/login') setPageContent(null)
+  if (path === '/login') applyPageContent(null)
 })
 ```
 
@@ -79,15 +79,14 @@ watch(() => route.path, (path) => {
 - Slug changes are handled by `useAsyncData` **`watch: [slug]`** on the dynamic key `` `page:${slug}` ``.
 - While `content` is briefly `undefined` during refetch, the panel is **not** cleared (only stale *other-page* data clears via the `else if (data)` branch).
 
-After a field save, `onFieldUpdated` patches `content`; the same object is in `pageContent`, so the sidebar preview updates without a full refresh.
+After a field save, `patchField` updates the panel store; sidebar and on-page preview stay in sync without a full refresh.
 
 ## Styling
 
-Panel styles live in **`app/assets/cms-panel.css`**, imported from `app.vue`, so CSS is in the main bundle when the sidebar mounts client-side on static builds (avoids missing styles from `v-if="loggedIn"` + scoped chunks).
+Panel styles live in **`packages/nuxt-cms/app/assets/cms-panel.css`**, registered in the CMS layer `nuxt.config.ts`, so CSS is in the main bundle when the sidebar mounts client-side on static builds.
 
 ## Limitations (current)
 
-- Only **`plain_text`** fields are editable from the panel (same as inline clicks).
 - No delete-page UI.
 - Logged-in users still see **duplicate** page links in the top nav and the **Pages** tab (intentional for now).
 

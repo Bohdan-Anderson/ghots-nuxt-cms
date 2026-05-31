@@ -40,4 +40,4 @@ Practical patterns — self-contained snippets, no repo required:
 
 ## Reference
 
-This repo also ships a working **[demo](../demo/)** site and **[contributor docs](./dev/README.md)** for architecture and internals.
+This repo also ships a working **[demo](../demo/)** site, a **[minimal example](../examples/minimal/)**, and **[contributor docs](./dev/README.md)** for architecture and internals.

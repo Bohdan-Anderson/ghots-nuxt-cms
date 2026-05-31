@@ -97,7 +97,7 @@ RLS enabled on all tables. Public **anon** read; **authenticated** write on page
 
 ## TypeScript mirror
 
-Domain types in `app/types/cms.ts`. Slice/global definitions in `app/slices/registry.ts`, `app/globals/registry.ts`.
+Domain types in `packages/nuxt-cms/app/types/cms.ts`. Slice/global definitions in `demo/app/slices/registry.ts`, `demo/app/globals/registry.ts`.
 
 ## Queries in the app
 

@@ -4,11 +4,13 @@
   "private": true,
   "workspaces": [
     "demo",
+    "examples/minimal",
     "packages/nuxt-cms"
   ],
   "scripts": {
     "build": "npm run build -w ghots-cms-demo",
     "dev": "npm run dev -w ghots-cms-demo",
+    "dev:minimal": "npm run dev -w ghots-cms-minimal",
     "generate": "npm run generate -w ghots-cms-demo",
     "publish:static": "npm run publish:static -w ghots-cms-demo",
     "preview": "npm run preview -w ghots-cms-demo",

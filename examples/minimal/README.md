@@ -1,37 +1,40 @@
 # Minimal consumer example
 
-Smoke-test scaffold for Phase 7: a fresh Nuxt app that extends `@ghots/nuxt-cms` and renders one editable page.
+Runnable smoke-test app: extends `@ghots/nuxt-cms` and renders one editable home page.
 
-**Status:** scaffold only — see [`demo/`](../demo/) for a full working reference app.
+For slices, globals, and E2E see [`demo/`](../../demo/).
 
-## Checklist (&lt; 30 min target)
+## Quick start
 
-1. Copy this folder to a new Nuxt 4 project (or add as `examples/minimal` workspace)
-2. `npm install` with `@ghots/nuxt-cms` + `@supabase/supabase-js`
-3. Apply migrations from `packages/nuxt-cms/supabase/migrations/`
-4. Set `VITE_SUPABASE_*` env vars
-5. Create Supabase Auth user for login
-6. `npm run dev` → `/` renders home page
-7. Log in → sidebar opens → edit title → save persists
-8. `npm run generate` → static guest sees published content
+```bash
+# From repo root
+npm install
+cp examples/minimal/.env.example examples/minimal/.env
+# Apply packages/nuxt-cms/supabase/migrations/ and create an Auth user
+npm run dev:minimal
+```
 
-## Files to copy from reference app
+Open http://localhost:3000 — log in at `/login` to edit the home page title.
 
-| File | Purpose |
+## Layout
+
+| Path | Purpose |
 | ---- | ------- |
-| `app/cms/registries.ts` | Registry barrel |
-| `app/composables/useTemplate.ts` | Template map |
-| `app/templates/DefaultPage.vue` | Minimal template |
-| `app/pages/[...slug].vue` | Page shell (strip demo nav if desired) |
-| `app/app.vue` | Sidebar + NuxtPage |
+| `app/cms/registries.ts` | Required registry barrel |
+| `app/composables/useTemplate.ts` | Template key → Vue SFC |
+| `app/templates/DefaultPage.vue` | Single-field home layout |
+| `app/pages/[...slug].vue` | Catch-all + `useCmsPage()` |
+| `app/app.vue` | Sidebar + `<NuxtPage />` |
+| `app/slices/registry.ts` | Empty stub (no slices) |
+| `app/globals/registry.ts` | Empty stub (no globals) |
 
-Optional: `app/slices/`, `app/globals/` when you need slices or shared regions.
+Paths above are under `examples/minimal/app/` in this repo; in your own Nuxt project they live under `app/`.
 
 ## nuxt.config.ts
 
 ```ts
 export default defineNuxtConfig({
-  extends: ['@ghots/nuxt-cms'],
+  extends: ['../../packages/nuxt-cms'], // or '@ghots/nuxt-cms' when published
 
   runtimeConfig: {
     public: {
@@ -48,4 +51,4 @@ export default defineNuxtConfig({
 })
 ```
 
-See [Getting started](../../docs/getting-started.md) for full setup steps.
+See [Getting started](../../docs/getting-started.md) for migrations and Supabase setup.

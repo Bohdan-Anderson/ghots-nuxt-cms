@@ -13,21 +13,19 @@ import { updatePageMeta, type PageMetaInput } from '~/composables/usePageMeta'
  * Slice and meta mutations for the CMS sidebar, with panel store refresh.
  */
 export function useCmsPageActions() {
-  const { pageContent, setPageContent } = useCmsPanel()
+  const { pageContent, applyPageContent } = useCmsPanel()
   const route = useRoute()
 
   /**
-   * Refetches page content for the current route (updates useAsyncData + panel sync).
+   * Refetches page content for the current route into the editor panel.
    */
   async function reloadCurrentPage(): Promise<PageContent | null> {
     const slug = normalizeSlug(route.path)
-    const key = `page:${slug}`
-    await refreshNuxtData(key)
-    const content = await usePageContent(slug)
-    if (content?.page.slug === slug) {
-      setPageContent(content)
+    const next = await usePageContent(slug)
+    if (next?.page.slug === slug) {
+      applyPageContent(next)
     }
-    return content
+    return next
   }
 
   /**
@@ -77,7 +75,7 @@ export function useCmsPageActions() {
     if (!current) return
 
     const updatedPage = await updatePageMeta(current.page.id, meta)
-    setPageContent({
+    applyPageContent({
       ...current,
       page: {
         ...current.page,

@@ -2,6 +2,8 @@
 
 Get from zero to one editable page. About 30 minutes if you already have a Supabase project.
 
+Paths below use **`app/`** relative to your Nuxt project root (the consumer app). In this monorepo, the working reference lives under **`demo/app/`**.
+
 ## What you need
 
 - Node.js (LTS)

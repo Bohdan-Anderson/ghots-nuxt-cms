@@ -45,17 +45,17 @@ This phase does **not** need to test every feature — it locks in the three beh
 ### Validate
 
 - `npm run test:e2e` green locally (~20s after browser install)
-- [docs/dev/e2e.md](./docs/dev/e2e.md) documents setup and known gaps (nav still hits Supabase)
+- [docs/dev/e2e.md](./docs/dev/e2e.md) documents setup and known gaps
 
 ### Touches
 
 - `demo/e2e/`, `demo/playwright.config.ts`, `docs/dev/e2e.md`, `demo/.env.example`
-- Minor: [app/pages/login.vue](./app/pages/login.vue) — logout only when logged in
+- Minor: [packages/nuxt-cms/app/pages/login.vue](./packages/nuxt-cms/app/pages/login.vue) — logout only when logged in
 
 ### Notes / known gaps
 
 - Login in E2E uses **API session injection** (not the login form) — still proves editor + auth gating; add form-login test later if desired
-- Nav (`page-list`) still calls Supabase for guests — fixed in Phase 1
+- Nav (`page-list`) guest caching — fixed in Phase 1
 - No CI yet — local only
 
 ---
@@ -66,9 +66,9 @@ This phase does **not** need to test every feature — it locks in the three beh
 
 Two separate problems block the “cheap static hosting” goal:
 
-**1. Editor UX is fragile today.** After a modal save, `patchField` in [useGhostPage.ts](./app/composables/useGhostPage.ts) replaces the page object, but sidebar state ([useCmsPanel.ts](./app/composables/useCmsPanel.ts)) and the page can drift. As we add field types and sidebar-driven edits, we need **one source of truth** for “current page content while editing” so sidebar + on-page preview always match.
+**1. Editor UX is fragile today.** After a modal save, `patchField` in [useCmsPage.ts](./packages/nuxt-cms/app/composables/useCmsPage.ts) replaces the page object, but sidebar state ([useCmsPanel.ts](./packages/nuxt-cms/app/composables/useCmsPanel.ts)) and the page can drift. As we add field types and sidebar-driven edits, we need **one source of truth** for “current page content while editing” so sidebar + on-page preview always match.
 
-**2. Guests still hit Supabase for nav.** [usePageList.ts](./packages/nuxt-cms/app/composables/usePageList.ts) has no `getCachedData` guard (documented in [docs/dev/static-generation.md](./docs/dev/static-generation.md)). That means every guest page load costs a DB round-trip — undermining zero-backend hosting and adding latency.
+**2. Guests still hit Supabase for nav.** [usePageList.ts](./packages/nuxt-cms/app/composables/usePageList.ts) had no `getCachedData` guard (documented in [docs/dev/static-generation.md](./docs/dev/static-generation.md)). Fixed in this phase via `usePageListData()`.
 
 Phase 1 completes the **static-first guest story** started in Phase 0 (page body only) and hardens the editor before we change the data model.
 
@@ -79,7 +79,7 @@ Phase 1 completes the **static-first guest story** started in Phase 0 (page body
 ### Tasks
 
 - [x] **Editor store** — centralize logged-in page content (Pinia store or dedicated composable); sidebar + `[...slug].vue` read/write the same state; saves patch store instead of ad hoc `content.value = { ... }`
-- [x] **Single edit path** — sidebar field click and page `[data-name]` click both open the same modal via [usePageEditor.ts](./app/composables/usePageEditor.ts); enforce when adding field types
+- [x] **Single edit path** — sidebar field click and page `[data-name]` click both open the same modal via [usePageEditor.ts](./packages/nuxt-cms/app/composables/usePageEditor.ts); enforce when adding field types
 - [x] **Cache nav for guests** — add `getCachedData` + `loggedIn` bypass to `useAsyncData('page-list', …)` mirroring page content pattern
 - [x] **Prerender nav** — ensure `nuxt generate` bakes page list into payload or HTML so guests never need runtime fetch
 - [x] **E2E:** extend `guest-static.spec.ts` — assert zero Supabase requests total (or zero except none), not just `fields`
@@ -93,9 +93,9 @@ Phase 1 completes the **static-first guest story** started in Phase 0 (page body
 
 ### Touches
 
-- `app/composables/useGhostPage.ts`, `useCmsPanel.ts`, `usePageList.ts`
-- `app/components/CmsSidebar.vue`, `PageEditorProvider.vue`
-- `e2e/guest-static.spec.ts`, new or updated editor spec
+- `packages/nuxt-cms/app/composables/useCmsPage.ts`, `useCmsPanel.ts`, `usePageList.ts`
+- `packages/nuxt-cms/app/components/CmsSidebar.vue`, `PageEditorProvider.vue`
+- `demo/e2e/guest-static.spec.ts`, new or updated editor spec
 - [docs/dev/static-generation.md](./docs/dev/static-generation.md)
 
 ### Design notes
@@ -109,7 +109,7 @@ Phase 1 completes the **static-first guest story** started in Phase 0 (page body
 
 ### Why
 
-Today’s schema is **one template → fixed field tree per page** ([001_pages_fields.sql](./supabase/migrations/001_pages_fields.sql)). That matches a demo, not the product vision:
+Today’s schema is **one template → fixed field tree per page** ([001_pages_fields.sql](./packages/nuxt-cms/supabase/migrations/001_pages_fields.sql)). That matches a demo, not the product vision:
 
 - **Slices** — reusable sections (Prismic/Storyblok style), add/remove/reorder on any page, project-wide slice types
 - **Page-level fields** — content outside slices (hero title, SEO)
@@ -126,13 +126,13 @@ Without this migration, Phase 3 sidebar and Phase 4 field types have nowhere to 
 
 - [x] **Design doc / ADR** in `docs/` — slice storage choice (`page_slices` table vs JSON), global storage (`globals` table vs pseudo-pages), field ownership (page vs slice instance vs global)
 - [x] **Migration 002** — new tables/columns; RLS policies; seed data for dev
-- [x] **Slice registry in code** — map slice type key → Vue component + field schema (like [useTemplate.ts](./app/composables/useTemplate.ts) today)
+- [x] **Slice registry in code** — map slice type key → Vue component + field schema (like [useTemplate.ts](./demo/app/composables/useTemplate.ts) today)
 - [x] **Page slice instances** — ordered rows per page; FK to slice type key
 - [x] **Page-level fields** — fields with `page_id` but no slice parent (or explicit `scope` column)
 - [x] **Page meta** — columns or `meta` jsonb on `pages` (slug, title, meta_title, meta_description, og_image, noindex)
 - [x] **Globals** — `useGlobal(key)` composable; load + cache like page content
 - [x] **Seed on add** — inserting a slice instance creates field rows from schema; delete cascades
-- [x] **Update** [app/types/cms.ts](./app/types/cms.ts) and [usePageContent.ts](./app/composables/usePageContent.ts) (or split into slice-aware loader)
+- [x] **Update** [cms.ts](./packages/nuxt-cms/app/types/cms.ts) and [usePageContent.ts](./packages/nuxt-cms/app/composables/usePageContent.ts) (or split into slice-aware loader)
 
 ### Validate
 
@@ -143,8 +143,8 @@ Without this migration, Phase 3 sidebar and Phase 4 field types have nowhere to 
 
 ### Touches
 
-- `supabase/migrations/`, `app/types/cms.ts`, `app/composables/usePageContent.ts`
-- New: slice registry, `useGlobal.ts`, example slice components under `app/slices/` or `app/templates/`
+- `packages/nuxt-cms/supabase/migrations/`, `packages/nuxt-cms/app/types/cms.ts`, `packages/nuxt-cms/app/composables/usePageContent.ts`
+- New: `demo/app/slices/registry.ts`, `packages/nuxt-cms/app/composables/useGlobal.ts`, example slice components under `demo/app/slices/` or `demo/app/templates/`
 - [docs/dev/content-model.md](./docs/dev/content-model.md), [docs/dev/database.md](./docs/dev/database.md)
 
 ### Open decisions (resolve during this phase)
@@ -160,7 +160,7 @@ Without this migration, Phase 3 sidebar and Phase 4 field types have nowhere to 
 
 **Usability is top priority** — editors should feel like they’re editing the site, not filling a database form. The sidebar is the **primary CMS chrome**: structure navigation, page list, meta, slice management. Everything opens the **one modal** (vision principle).
 
-Today [CmsSidebar.vue](./app/components/CmsSidebar.vue) only lists a flat field tree and page links. Phase 2’s model needs UI for slices, meta, and page creation. Build this **after** the schema so we’re not redoing UI when tables change.
+Today [CmsSidebar.vue](./packages/nuxt-cms/app/components/CmsSidebar.vue) only lists a flat field tree and page links. Phase 2’s model needs UI for slices, meta, and page creation. Build this **after** the schema so we’re not redoing UI when tables change.
 
 ### Depends on
 
@@ -177,15 +177,15 @@ Today [CmsSidebar.vue](./app/components/CmsSidebar.vue) only lists a flat field 
 
 ### Validate
 
-- [x] Playwright: `e2e/sidebar.spec.ts` — create page → add slice → edit field via tree → meta saves
+- [x] Playwright: `demo/e2e/sidebar.spec.ts` — create page → add slice → edit field via tree → meta saves
 - [x] Manual: reorder slices → page render order updates for logged-in user
 
 ### Touches
 
-- `app/components/CmsSidebar.vue`, `app/app.vue`
-- `app/composables/useCmsPanel.ts` — may need slice/page CRUD actions
+- `packages/nuxt-cms/app/components/CmsSidebar.vue`, `demo/app/app.vue`
+- `packages/nuxt-cms/app/composables/useCmsPanel.ts` — may need slice/page CRUD actions
 - New sidebar subcomponents if tree grows large
-- `e2e/` — new `sidebar.spec.ts` or extend editor specs
+- `demo/e2e/` — new `sidebar.spec.ts` or extend editor specs
 
 ---
 
@@ -210,19 +210,19 @@ Defer **image** and **array** to Phase 6 — they need Storage and more complex 
 - [x] **Field type registry** — map `FieldType` → modal component + save/load helpers
 - [x] **`link`** — modal: url, label, optional target; JSON or structured `value`; template helper to render `<a>`
 - [x] **`richtext`** — modal editor (markdown textarea v1); on save persist **source + rendered HTML**; templates render HTML
-- [x] **Extend** [FieldEditModal.vue](./app/components/FieldEditModal.vue) or split per-type modals behind registry
-- [x] **Click delegation** — [PageEditorProvider.vue](./app/components/PageEditorProvider.vue) opens modal for types that support on-page click (not just `plain_text`)
+- [x] **Extend** [FieldEditModal.vue](./packages/nuxt-cms/app/components/FieldEditModal.vue) or split per-type modals behind registry
+- [x] **Click delegation** — [PageEditorProvider.vue](./packages/nuxt-cms/app/components/PageEditorProvider.vue) opens modal for types that support on-page click (not just `plain_text`)
 - [x] **Update** DB check constraint on `fields.type` if needed
 
 ### Validate
 
-- [x] Playwright: `e2e/field-types.spec.ts` — edit link + richtext on demo CTA slice
+- [x] Playwright: `demo/e2e/field-types.spec.ts` — edit link + richtext on demo CTA slice
 - [x] Manual: richtext HTML renders safely (sanitization decision documented in [docs/dev/field-types.md](./docs/dev/field-types.md))
 
 ### Touches
 
-- `app/components/FieldEditModal.vue`, new `FieldEdit*.vue` modals
-- `app/types/cms.ts`, `app/composables/usePageEditor.ts`
+- `packages/nuxt-cms/app/components/FieldEditModal.vue`, new `FieldEdit*.vue` modals
+- `packages/nuxt-cms/app/types/cms.ts`, `packages/nuxt-cms/app/composables/usePageEditor.ts`
 - Example slice/template using both types
 
 ---
@@ -314,11 +314,11 @@ Packaging too early duplicates refactor pain across consumers.
 
 ### Tasks
 
-- [x] **Boundary audit** — [docs/dev/package-extraction.md](./docs/dev/package-extraction.md); demo site in `demo/`
+- [x] **Boundary audit** — [docs/dev/package-extraction.md](./docs/dev/package-extraction.md); demo site in `demo/`; root `app/` removed
 - [x] **Nuxt module or layer** — `packages/nuxt-cms` with `#cms/registries` injection
 - [ ] **npm package** — publish privately or public; versioning
 - [x] **Getting started guide** — [docs/getting-started.md](./docs/getting-started.md)
-- [ ] **Smoke test** — `examples/minimal/` wired app (scaffold only)
+- [x] **Smoke test** — `examples/minimal/` runnable workspace (`npm run dev:minimal`)
 
 ### Validate
 
@@ -356,4 +356,4 @@ Items not scheduled — revisit after relevant phase.
 3 Sidebar UI  →  4 Field types  →  5 Publish  →  6 Images/arrays  →  7 Package
 ```
 
-**Current focus:** Phase 7 — Package extraction (layer scaffold done; npm publish + smoke test remaining)
+**Current focus:** Phase 7 — npm publish

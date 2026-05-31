@@ -57,7 +57,7 @@ npm run static
 Open http://localhost:8000 — serves files from `dist/` only.
 
 - Page **body** should come from HTML + `_payload.json` (check Network: no Supabase fetch for `pages`+`fields` on `/` when logged out).
-- **Nav** still calls Supabase (`page-list`). See [Static generation](./static-generation.md).
+- **Nav and globals** use the same payload cache — no runtime Supabase on a successful static deploy.
 
 ### Dev with hot reload
 
@@ -87,8 +87,8 @@ Deploy the updated `dist/` folder to your static host when ready.
 | Empty page for guests | `pages` row for slug; fields exist or were seeded at build time |
 | Editor can’t save | Logged in; RLS; Network tab |
 | New page not in `dist/` | `npm run generate`; link in nav for crawler |
-| Guest still hits Supabase for **page body** | Use `npm run static`, not `dev`; confirm logged out; check `getCachedData` in `[...slug].vue` |
-| Guest hits Supabase for **nav only** | Expected — `usePageList` has no payload cache yet |
+| Guest still hits Supabase for **page body** | Use `npm run static`, not `dev`; confirm logged out; check `getCachedData` in `useCmsPage()` |
+| Guest hits Supabase at all on static deploy | Re-run `npm run generate`; confirm `demo/dist/_payload.json` exists; check Network tab |
 | Stale content when logged in | `watch(loggedIn, refresh)`; hard refresh after logout |
 
 ## Documentation index

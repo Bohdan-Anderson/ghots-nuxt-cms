@@ -7,17 +7,20 @@ import { normalizeSlug } from '~/utils/slug'
  * Loads the current CMS page (cached via useAsyncData), nav list, and sidebar sync.
  * Must stay synchronous (no `await`) so `watch` / `watchEffect` run inside setup.
  * Call from `[...slug].vue` setup only so prerender payload and edit patches stay correct.
+ *
+ * Guest: `useAsyncData` + prerender payload only.
+ * Editor: `useCmsPanel().pageContent` only (populated from Supabase fetch, not from merge).
  */
 export function useCmsPage() {
   const route = useRoute()
   const { loggedIn } = useAuth()
-  const { pageContent, setPageContent, patchField } = useCmsPanel()
+  const { pageContent, applyPageContent, patchField } = useCmsPanel()
 
   const slug = computed(() => normalizeSlug(route.path))
 
   const {
-    data: content,
-    status,
+    data: cachedContent,
+    status: fetchStatus,
     refresh,
   } = useAsyncData(
     () => `page:${slug.value}`,
@@ -36,22 +39,26 @@ export function useCmsPage() {
   const { data: pageList, refresh: refreshPageList } = usePageListData()
 
   /**
-   * Logged-in editors read from the panel store after fetch; guests use prerender cache.
+   * Guest: prerender/async cache. Editor: panel store for the current slug only.
    */
-  const displayContent = computed(() => {
-    const currentSlug = slug.value
+  const content = computed(() => {
     if (loggedIn.value) {
       const panel = pageContent.value
-      if (panel?.page.slug === currentSlug) {
-        return panel
-      }
+      return panel?.page.slug === slug.value ? panel : null
     }
-    return content.value ?? null
+    return cachedContent.value ?? null
+  })
+
+  const status = computed(() => {
+    if (loggedIn.value && content.value) {
+      return 'success'
+    }
+    return fetchStatus.value
   })
 
   const templateComponent = computed(() => {
-    if (!displayContent.value) return null
-    return resolveTemplateComponent(displayContent.value.template.key)
+    if (!content.value) return null
+    return resolveTemplateComponent(content.value.template.key)
   })
 
   watch(loggedIn, () => {
@@ -60,24 +67,25 @@ export function useCmsPage() {
   })
 
   /**
-   * Sync sidebar store only when content matches the current route slug.
-   * Stale content from the previous page is ignored. While refetching, content may
-   * be undefined briefly; the panel is left as-is (do not clear on unmount).
+   * When logged in, copy async fetch results into the panel (editor source of truth).
+   * Guests never read the panel for page body — only the prerender cache above.
    */
   watchEffect(() => {
-    const data = content.value
+    if (!loggedIn.value) return
+
+    const data = cachedContent.value
     const currentSlug = slug.value
     if (data?.page.slug === currentSlug) {
-      setPageContent(data)
+      applyPageContent(data)
     } else if (data) {
-      setPageContent(null)
+      applyPageContent(null)
     }
   })
 
   return {
     route,
     slug,
-    content: displayContent,
+    content,
     status,
     refresh,
     pageList,
