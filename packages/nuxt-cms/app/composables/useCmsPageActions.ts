@@ -1,9 +1,6 @@
-import type { PageContent } from '~/types/cms'
 import {
   fetchFieldsForSlice,
-  usePageContent,
-} from '~/composables/usePageContent'
-import { normalizeSlug } from '~/utils/slug'
+} from '~/fields/queries'
 import {
   deletePageSlice,
   insertPageSlice,
@@ -11,8 +8,8 @@ import {
 } from '~/composables/usePageSlices'
 import { insertArrayItem, deleteArrayItem } from '~/composables/useArrayFields'
 import { updatePageMeta, type PageMetaInput } from '~/composables/usePageMeta'
-import { collectFieldSubtreeIds } from '~/composables/seedFields'
-import { rebuildPageContent } from '~/composables/seedFields'
+import { collectFieldSubtreeIds } from '~/fields/maps'
+import { rebuildPageContent } from '~/fields/pageContent'
 import { useCmsPanel } from '~/composables/useCmsPanel'
 
 /**
@@ -20,20 +17,6 @@ import { useCmsPanel } from '~/composables/useCmsPanel'
  */
 export function useCmsPageActions() {
   const { pageContent, applyPageContent } = useCmsPanel()
-  const { loggedIn } = useAuth()
-  const route = useRoute()
-
-  /**
-   * Refetches page content for the current route into the editor panel.
-   */
-  async function reloadCurrentPage(): Promise<PageContent | null> {
-    const slug = normalizeSlug(route.path)
-    const next = await usePageContent(slug, { loggedIn: loggedIn.value })
-    if (next?.page.slug === slug) {
-      applyPageContent(next)
-    }
-    return next
-  }
 
   /**
    * Adds a slice instance and patches the panel store in place.
@@ -42,8 +25,9 @@ export function useCmsPageActions() {
     const current = pageContent.value
     if (!current) return
 
+    const supabase = useSupabase()
     const slice = await insertPageSlice(current.page.id, sliceTypeKey)
-    const newFields = await fetchFieldsForSlice(slice.id)
+    const newFields = await fetchFieldsForSlice(supabase, slice.id)
     const slices = [...current.slices, slice].sort(
       (a, b) => a.sort_order - b.sort_order,
     )
@@ -128,13 +112,11 @@ export function useCmsPageActions() {
     if (!current) return
 
     const newFields = await insertArrayItem(current, arrayFieldId)
-    const existingIds = new Set(current.fields.map((field) => field.id))
-    const merged = [
-      ...current.fields,
-      ...newFields.filter((field) => !existingIds.has(field.id)),
-    ]
-
-    applyPageContent(rebuildPageContent(current, { fields: merged }))
+    applyPageContent(
+      rebuildPageContent(current, {
+        fields: [...current.fields, ...newFields],
+      }),
+    )
   }
 
   /**
@@ -154,7 +136,6 @@ export function useCmsPageActions() {
   }
 
   return {
-    reloadCurrentPage,
     addSlice,
     removeSlice,
     moveSlice,

@@ -1,6 +1,18 @@
 import type { FieldRow } from '../types/cms'
 
 /**
+ * Limits fields to one slice instance or page-level rows.
+ */
+export function scopeFields(
+  fields: FieldRow[],
+  sliceId?: string | null,
+): FieldRow[] {
+  return fields.filter((field) =>
+    sliceId ? field.slice_id === sliceId : field.slice_id === null,
+  )
+}
+
+/**
  * Resolves a field by name, optionally scoped to a parent section and/or slice instance.
  */
 export function resolveField(
@@ -9,9 +21,7 @@ export function resolveField(
   parentSectionName?: string,
   sliceId?: string | null,
 ): FieldRow | undefined {
-  const scoped = fields.filter((field) =>
-    sliceId ? field.slice_id === sliceId : field.slice_id === null,
-  )
+  const scoped = scopeFields(fields, sliceId)
 
   if (!parentSectionName) {
     return scoped.find((field) => field.name === name && field.parent_id === null)
@@ -37,9 +47,7 @@ export function resolveArrayItems(
   arrayName: string,
   sliceId?: string | null,
 ): FieldRow[][] {
-  const scoped = fields.filter((field) =>
-    sliceId ? field.slice_id === sliceId : field.slice_id === null,
-  )
+  const scoped = scopeFields(fields, sliceId)
 
   const arrayField = scoped.find(
     (field) => field.name === arrayName && field.type === 'array',

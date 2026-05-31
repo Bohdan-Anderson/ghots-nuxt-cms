@@ -4,11 +4,8 @@ import type {
   PageRow,
   TemplateRow,
 } from '~/types/cms'
-import {
-  buildFieldMaps,
-  loadFieldsForOwner,
-  pageLevelFields,
-} from '~/composables/seedFields'
+import { buildPageContentPayload } from '~/fields/pageContent'
+import { loadFieldsForOwner } from '~/composables/seedFields'
 import { fetchPageSlices } from '~/composables/usePageSlices'
 import { normalizeSlug } from '~/utils/slug'
 
@@ -43,87 +40,8 @@ export async function usePageContent(
     seedContext: { pageId: page.id },
     isEmpty: (rows) => rows.filter((f) => f.slice_id === null).length === 0,
   })
-  const { fieldsById, fieldsByName, fieldsBySliceId } = buildFieldMaps(fieldList)
 
-  return buildPageContentPayload(
-    page,
-    template,
-    slices,
-    fieldList,
-    fieldsById,
-    fieldsByName,
-    fieldsBySliceId,
-  )
-}
-
-/**
- * Fetches all fields for a page (sidebar patch after array insert).
- */
-export async function fetchFieldsForPage(pageId: string): Promise<FieldRow[]> {
-  const supabase = useSupabase()
-  const { data, error } = await supabase
-    .from('fields')
-    .select('*')
-    .eq('page_id', pageId)
-    .order('sort_order', { ascending: true })
-
-  if (error) throw error
-  return (data ?? []) as FieldRow[]
-}
-
-/**
- * Fetches fields for one slice instance (sidebar patch after add slice).
- */
-export async function fetchFieldsForSlice(sliceId: string): Promise<FieldRow[]> {
-  const supabase = useSupabase()
-  const { data, error } = await supabase
-    .from('fields')
-    .select('*')
-    .eq('slice_id', sliceId)
-    .order('sort_order', { ascending: true })
-
-  if (error) throw error
-  return (data ?? []) as FieldRow[]
-}
-
-/**
- * Returns a JSON-serializable page payload for useAsyncData / prerender.
- */
-export function buildPageContentPayload(
-  page: PageRow,
-  template: TemplateRow,
-  slices: PageContent['slices'],
-  fields: FieldRow[],
-  fieldsById: Record<string, FieldRow>,
-  fieldsByName: Record<string, FieldRow>,
-  fieldsBySliceId: Record<string, FieldRow[]>,
-): PageContent {
-  return {
-    page: {
-      id: page.id,
-      slug: page.slug,
-      template_id: page.template_id,
-      title: page.title,
-      meta_title: page.meta_title ?? null,
-      meta_description: page.meta_description ?? null,
-      og_image: page.og_image ?? null,
-      noindex: page.noindex ?? false,
-      created_at: page.created_at,
-      updated_at: page.updated_at,
-    },
-    template: {
-      id: template.id,
-      key: template.key,
-      label: template.label,
-      field_schema: template.field_schema,
-    },
-    slices,
-    fields,
-    pageFields: pageLevelFields(fields),
-    fieldsBySliceId,
-    fieldsById,
-    fieldsByName,
-  }
+  return buildPageContentPayload(page, template, slices, fieldList)
 }
 
 /**

@@ -28,11 +28,13 @@ function previewValue(field: FieldRow): string {
 }
 
 /**
- * Returns the parent array field for an array item section row.
+ * Label for an array item section row in the sidebar.
  */
-function parentArrayField(field: FieldRow): FieldRow | undefined {
-  if (!field.parent_id) return undefined
-  return props.fieldsById[field.parent_id]
+function arrayItemDisplayLabel(field: FieldRow): string {
+  if (!field.parent_id) return field.name
+  const parent = props.fieldsById[field.parent_id]
+  if (!parent) return field.name
+  return arrayItemLabel(field, parent, props.fields)
 }
 </script>
 
@@ -44,11 +46,7 @@ function parentArrayField(field: FieldRow): FieldRow | undefined {
       class="cms-sidebar-field-row"
       :style="{ paddingLeft: `${depth * 0.75}rem` }"
     >
-      <div
-        v-if="field.type === 'array'"
-        class="cms-sidebar-array"
-        :style="{ paddingLeft: `${depth * 0.75}rem` }"
-      >
+      <div v-if="field.type === 'array'" class="cms-sidebar-array">
         <span class="cms-sidebar-section-label">{{ field.name }}</span>
         <button
           type="button"
@@ -62,18 +60,9 @@ function parentArrayField(field: FieldRow): FieldRow | undefined {
       <div
         v-else-if="isArrayItemSection(field, fieldsById)"
         class="cms-sidebar-array-item"
-        :style="{ paddingLeft: `${depth * 0.75}rem` }"
       >
         <span class="cms-sidebar-section-label">
-          {{
-            parentArrayField(field)
-              ? arrayItemLabel(
-                  field,
-                  parentArrayField(field)!,
-                  fields,
-                )
-              : field.name
-          }}
+          {{ arrayItemDisplayLabel(field) }}
         </span>
         <button
           type="button"

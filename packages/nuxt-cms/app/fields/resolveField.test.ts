@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { FieldRow } from '../types/cms'
-import { resolveArrayItems, resolveField } from './resolveField'
+import { resolveArrayItems, resolveField, scopeFields } from './resolveField'
 
 function field(
   partial: Partial<FieldRow> & Pick<FieldRow, 'id' | 'name' | 'type'>,
@@ -17,6 +17,23 @@ function field(
     ...partial,
   }
 }
+
+describe('scopeFields', () => {
+  const fields: FieldRow[] = [
+    field({ id: '1', name: 'title', type: 'plain_text' }),
+    field({ id: '2', name: 'headline', type: 'plain_text', slice_id: 'slice-a' }),
+  ]
+
+  it('returns page-level rows when slice id is omitted', () => {
+    expect(scopeFields(fields)).toHaveLength(1)
+    expect(scopeFields(fields)[0]?.id).toBe('1')
+  })
+
+  it('returns rows for one slice instance', () => {
+    expect(scopeFields(fields, 'slice-a')).toHaveLength(1)
+    expect(scopeFields(fields, 'slice-a')[0]?.id).toBe('2')
+  })
+})
 
 describe('resolveField', () => {
   const pageFields: FieldRow[] = [

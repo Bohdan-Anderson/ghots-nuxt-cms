@@ -1,34 +1,7 @@
 import type { FieldRow, PageContent } from '~/types/cms'
-import { buildFieldMaps, pageLevelFields } from '~/composables/seedFields'
-
-export { rebuildPageContent } from '~/composables/seedFields'
+import { patchFieldInContent } from '~/fields/pageContent'
 
 export type CmsPanelTab = 'contents' | 'pages' | 'meta'
-
-/**
- * Returns page content with one field replaced (immutable update for reactivity).
- */
-export function patchFieldInContent(
-  current: PageContent,
-  updated: FieldRow,
-): PageContent {
-  const index = current.fields.findIndex((f) => f.id === updated.id)
-  const fields =
-    index >= 0
-      ? current.fields.map((f, i) => (i === index ? updated : f))
-      : [...current.fields, updated]
-
-  const { fieldsById, fieldsByName, fieldsBySliceId } = buildFieldMaps(fields)
-
-  return {
-    ...current,
-    fields,
-    pageFields: pageLevelFields(fields),
-    fieldsBySliceId,
-    fieldsById,
-    fieldsByName,
-  }
-}
 
 /**
  * Shared state for the logged-in CMS left panel (open/tab/current page).
@@ -75,3 +48,5 @@ export function useCmsPanel() {
     patchField,
   }
 }
+
+export { patchFieldInContent } from '~/fields/pageContent'

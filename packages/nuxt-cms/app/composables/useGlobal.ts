@@ -4,7 +4,8 @@ import type {
   GlobalRow,
 } from '~/types/cms'
 import { getGlobalDefinition } from '#cms/registries'
-import { buildFieldMaps, loadFieldsForOwner } from '~/composables/seedFields'
+import { buildFieldMaps } from '~/fields/maps'
+import { loadFieldsForOwner } from '~/composables/seedFields'
 
 /**
  * Loads a global region and its fields; seeds from code registry when logged in and empty.

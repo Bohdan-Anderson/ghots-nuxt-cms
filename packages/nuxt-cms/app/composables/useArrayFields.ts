@@ -1,12 +1,6 @@
 import type { FieldRow, PageContent } from '~/types/cms'
 import { getArrayItemSchema } from '~/fields/schemaLookup'
-import {
-  collectFieldSubtreeIds,
-  seedArrayItem,
-} from '~/composables/seedFields'
-import { fetchFieldsForPage } from '~/composables/usePageContent'
-
-type SupabaseClient = ReturnType<typeof useSupabase>
+import { seedArrayItem } from '~/composables/seedFields'
 
 /**
  * Counts existing item sections under an array field.
@@ -36,17 +30,7 @@ export async function insertArrayItem(
   const itemSchema = getArrayItemSchema(content, arrayField)
   const nextIndex = countArrayItems(content.fields, arrayFieldId)
 
-  const itemSection = await seedArrayItem(
-    supabase,
-    arrayField,
-    nextIndex,
-    itemSchema,
-  )
-
-  const pageId = content.page.id
-  const allFields = await fetchFieldsForPage(pageId)
-  const subtreeIds = collectFieldSubtreeIds(allFields, itemSection.id)
-  return allFields.filter((field) => subtreeIds.has(field.id))
+  return seedArrayItem(supabase, arrayField, nextIndex, itemSchema)
 }
 
 /**
