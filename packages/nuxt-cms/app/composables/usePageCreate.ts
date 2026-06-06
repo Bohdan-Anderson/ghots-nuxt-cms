@@ -65,3 +65,13 @@ export async function createPage(input: CreatePageInput): Promise<PageRow> {
 
   return page
 }
+
+/**
+ * Deletes a page; slice and field rows cascade via FK.
+ */
+export async function deletePage(pageId: string): Promise<void> {
+  const supabase = useSupabase()
+  const { error } = await supabase.from('pages').delete().eq('id', pageId)
+
+  if (error) throw error
+}

@@ -1,6 +1,6 @@
 # CMS sidebar (logged-in)
 
-When **`loggedIn`** is true, a fixed **left overlay** is always available: toggle with the **CMS** button. The **Publish** strip at the top explains draft vs guest content and the `npm run publish:static` command. Below that, three tabs — **Content**, **Pages**, and **Meta**.
+When **`loggedIn`** is true, a fixed **left overlay** is always available: toggle with the **CMS** button. Four tabs — **Content**, **Pages**, **Meta**, and **Publish** (deployment instructions).
 
 Guests never see the sidebar (`v-if="loggedIn"` in `demo/app/app.vue`).
 
@@ -8,14 +8,17 @@ Guests never see the sidebar (`v-if="loggedIn"` in `demo/app/app.vue`).
 
 | File | Role |
 | ---- | ---- |
-| `packages/nuxt-cms/app/components/CmsSidebar.vue` | Toggle, publish panel, tabs, field tree, page links |
-| `packages/nuxt-cms/app/components/CmsPublishPanel.vue` | Publish instructions + copy command (v1 manual generate) |
+| `packages/nuxt-cms/app/components/CmsSidebar.vue` | Toggle, tab routing |
+| `packages/nuxt-cms/app/components/CmsSidebarContentsTab.vue` | Field tree, slices, add slice |
+| `packages/nuxt-cms/app/components/CmsSidebarPagesTab.vue` | Page links, create page form |
+| `packages/nuxt-cms/app/components/CmsSidebarMetaTab.vue` | Meta form, delete page |
+| `packages/nuxt-cms/app/components/CmsPublishPanel.vue` | Publish instructions + copy command (Publish tab) |
 | `packages/nuxt-cms/app/composables/usePublish.ts` | Publish command constant + optional webhook stub config |
 | `packages/nuxt-cms/app/composables/useCmsPanel.ts` | Shared `isOpen`, `activeTab`, `pageContent`, `toggle`, `applyPageContent` |
 | `demo/app/app.vue` | Renders `<CmsSidebar v-if="loggedIn" />` above `<NuxtPage />` |
 | `demo/app/pages/[...slug].vue` | Site nav + syncs current page data into `useCmsPanel` via `useCmsPage()` |
 
-## Publish (header)
+## Publish tab
 
 - Explains **draft vs published**: guests see last `dist/` build; editor saves are live in Supabase only.
 - **Copy** button for `npm run publish:static` (alias for `nuxt generate`).
@@ -39,6 +42,7 @@ Guests never see the sidebar (`v-if="loggedIn"` in `demo/app/app.vue`).
 
 - Edits `pages` meta columns: title, meta_title, meta_description, og_image, noindex (slug read-only).
 - Saves via **`usePageMeta`**; panel store + `<head>` update without full navigation.
+- **Delete page** — removes the current page (cascades slices/fields); home `/` cannot be deleted.
 
 ## Syncing page data (`[...slug].vue` → panel)
 
@@ -87,7 +91,6 @@ Panel styles live in **`packages/nuxt-cms/app/assets/cms-panel.css`**, registere
 
 ## Limitations (current)
 
-- No delete-page UI.
 - Logged-in users still see **duplicate** page links in the top nav and the **Pages** tab (intentional for now).
 
 ## Related

@@ -18,20 +18,3 @@ export async function fetchFieldsForPage(
   if (error) throw error
   return (data ?? []) as FieldRow[]
 }
-
-/**
- * Fetches fields for one slice instance, ordered by sort_order.
- */
-export async function fetchFieldsForSlice(
-  supabase: SupabaseClient,
-  sliceId: string,
-): Promise<FieldRow[]> {
-  const { data, error } = await supabase
-    .from('fields')
-    .select('*')
-    .eq('slice_id', sliceId)
-    .order('sort_order', { ascending: true })
-
-  if (error) throw error
-  return (data ?? []) as FieldRow[]
-}

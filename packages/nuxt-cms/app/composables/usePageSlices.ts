@@ -1,4 +1,4 @@
-import type { PageSliceRow } from '~/types/cms'
+import type { FieldRow, PageSliceRow } from '~/types/cms'
 import { getSliceDefinition } from '#cms/registries'
 import { seedFieldsFromSchema } from '~/composables/seedFields'
 
@@ -11,7 +11,7 @@ export async function insertPageSlice(
   pageId: string,
   sliceTypeKey: string,
   sortOrder?: number,
-): Promise<PageSliceRow> {
+): Promise<{ slice: PageSliceRow; fields: FieldRow[] }> {
   const supabase = useSupabase()
   const definition = getSliceDefinition(sliceTypeKey)
 
@@ -46,12 +46,12 @@ export async function insertPageSlice(
 
   const slice = inserted as PageSliceRow
 
-  await seedFieldsFromSchema(supabase, definition.fieldSchema, {
+  const fields = await seedFieldsFromSchema(supabase, definition.fieldSchema, {
     pageId,
     sliceId: slice.id,
   })
 
-  return slice
+  return { slice, fields }
 }
 
 /**

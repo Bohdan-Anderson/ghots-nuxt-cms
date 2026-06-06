@@ -1,12 +1,10 @@
 import {
-  fetchFieldsForSlice,
-} from '~/fields/queries'
-import {
   deletePageSlice,
   insertPageSlice,
   reorderPageSlices,
 } from '~/composables/usePageSlices'
 import { insertArrayItem, deleteArrayItem } from '~/composables/useArrayFields'
+import { deletePage } from '~/composables/usePageCreate'
 import { updatePageMeta, type PageMetaInput } from '~/composables/usePageMeta'
 import { collectFieldSubtreeIds } from '~/fields/maps'
 import { rebuildPageContent } from '~/fields/pageContent'
@@ -25,9 +23,7 @@ export function useCmsPageActions() {
     const current = pageContent.value
     if (!current) return
 
-    const supabase = useSupabase()
-    const slice = await insertPageSlice(current.page.id, sliceTypeKey)
-    const newFields = await fetchFieldsForSlice(supabase, slice.id)
+    const { slice, fields } = await insertPageSlice(current.page.id, sliceTypeKey)
     const slices = [...current.slices, slice].sort(
       (a, b) => a.sort_order - b.sort_order,
     )
@@ -35,7 +31,7 @@ export function useCmsPageActions() {
     applyPageContent(
       rebuildPageContent(current, {
         slices,
-        fields: [...current.fields, ...newFields],
+        fields: [...current.fields, ...fields],
       }),
     )
   }
@@ -120,6 +116,17 @@ export function useCmsPageActions() {
   }
 
   /**
+   * Deletes the current page and clears the panel store.
+   */
+  async function deleteCurrentPage(): Promise<void> {
+    const current = pageContent.value
+    if (!current) return
+
+    await deletePage(current.page.id)
+    applyPageContent(null)
+  }
+
+  /**
    * Removes an array item section and patches the panel store in place.
    */
   async function removeArrayItem(itemSectionId: string): Promise<void> {
@@ -140,6 +147,7 @@ export function useCmsPageActions() {
     removeSlice,
     moveSlice,
     saveMeta,
+    deleteCurrentPage,
     addArrayItem,
     removeArrayItem,
   }

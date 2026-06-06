@@ -10,6 +10,7 @@ test('publish panel shows manual command and copy works', async ({
   await loginAsEditor(page, 'http://localhost:3001')
 
   await page.getByRole('button', { name: 'CMS' }).click()
+  await page.getByRole('button', { name: 'Publish' }).click()
   await expect(page.getByRole('region', { name: 'Publish' })).toBeVisible()
   await expect(page.getByText(PUBLISH_STATIC_COMMAND)).toBeVisible()
   await expect(

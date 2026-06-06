@@ -1,7 +1,7 @@
 import type { FieldRow, PageContent } from '~/types/cms'
 import { patchFieldInContent } from '~/fields/pageContent'
 
-export type CmsPanelTab = 'contents' | 'pages' | 'meta'
+export type CmsPanelTab = 'contents' | 'pages' | 'meta' | 'publish'
 
 /**
  * Shared state for the logged-in CMS left panel (open/tab/current page).
