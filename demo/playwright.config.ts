@@ -49,6 +49,7 @@ export default defineConfig({
       testMatch: [
         'editor-edit.spec.ts',
         'content-model-v2-editor.spec.ts',
+        'no-site-editor.spec.ts',
         'sidebar.spec.ts',
         'field-types.spec.ts',
         'images-arrays.spec.ts',

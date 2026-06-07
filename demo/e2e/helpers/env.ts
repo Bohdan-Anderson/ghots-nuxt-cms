@@ -7,6 +7,8 @@ export interface E2eEnv {
   supabaseServiceRoleKey: string | null
   editorEmail: string
   editorPassword: string
+  /** Authenticated user who must not belong to the configured site (optional). */
+  noSiteEmail: string | null
   cmsSiteKey: string
 }
 
@@ -35,6 +37,7 @@ export function getE2eEnv(): E2eEnv {
     supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() || null,
     editorEmail: process.env.E2E_EDITOR_EMAIL!.trim(),
     editorPassword: process.env.E2E_EDITOR_PASSWORD!.trim(),
+    noSiteEmail: process.env.E2E_NO_SITE_EMAIL?.trim() || null,
     cmsSiteKey: process.env.CMS_SITE_KEY?.trim() || 'demo',
   }
 }

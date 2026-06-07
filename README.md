@@ -27,6 +27,16 @@ npm run dev                      # http://localhost:3000
 
 Static preview: `npm run static` → http://localhost:8000
 
+## Publish the npm package
+
+The CMS layer is published as **`@ghots/nuxt-cms`**. See [docs/dev/npm-publish.md](./docs/dev/npm-publish.md) for the release checklist.
+
+```bash
+cd packages/nuxt-cms
+npm pack --dry-run   # inspect tarball
+npm publish --access public
+```
+
 ## Scripts
 
 | Command | Description |
@@ -35,4 +45,5 @@ Static preview: `npm run static` → http://localhost:8000
 | `npm run dev:minimal` | Minimal example dev server |
 | `npm run generate` | Static site → `demo/dist/` |
 | `npm run static` | Generate + serve locally |
+| `npm run test:unit` | Vitest (package) |
 | `npm run test:e2e` | Playwright (demo) |

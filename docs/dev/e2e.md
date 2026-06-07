@@ -13,6 +13,7 @@ Playwright tests run locally against **real Supabase** and validate editor vs gu
    - `SUPABASE_SERVICE_ROLE_KEY` (E2E only — bootstraps `site_members` for the test editor)
    - `E2E_EDITOR_EMAIL`
    - `E2E_EDITOR_PASSWORD`
+   - `E2E_NO_SITE_EMAIL` (optional — authenticated user **not** in `site_members`; skips `no-site-editor.spec.ts` if unset)
 4. Install Chromium for Playwright (once):
 
 ```bash
@@ -70,6 +71,7 @@ Notes:
 | `demo/e2e/sidebar.spec.ts` | Create page (slice-demo template), add slice, edit via content tree, save meta |
 | `demo/e2e/publish-split.spec.ts` | After edit, dev shows new title immediately; static guest still shows old title until `nuxt generate`; guest sees new title after regenerate |
 | `demo/e2e/publish-ui.spec.ts` | Publish panel visible for editor; copy command to clipboard |
+| `demo/e2e/no-site-editor.spec.ts` | Authenticated user without site membership sees CMS UI but save is rejected (RLS) |
 
 ## DB reset
 

@@ -14,8 +14,10 @@ function getSupabaseStorageKey(supabaseUrl: string): string {
  * Signs in via Supabase API and injects the session into the browser.
  * @param baseURL - Optional origin (e.g. http://localhost:3001) when project has no baseURL.
  */
-export async function loginAsEditor(
+export async function loginWithCredentials(
   page: Page,
+  email: string,
+  password: string,
   baseURL?: string,
 ): Promise<void> {
   const env = getE2eEnv()
@@ -23,8 +25,8 @@ export async function loginAsEditor(
   const supabase = createE2eSupabase()
 
   const { error } = await supabase.auth.signInWithPassword({
-    email: env.editorEmail,
-    password: env.editorPassword,
+    email,
+    password,
   })
   if (error) throw new Error(`E2E sign-in failed: ${error.message}`)
 
@@ -63,6 +65,38 @@ export async function loginAsEditor(
 }
 
 /**
+ * Signs in as the configured E2E editor (site member).
+ */
+export async function loginAsEditor(
+  page: Page,
+  baseURL?: string,
+): Promise<void> {
+  const env = getE2eEnv()
+  await loginWithCredentials(page, env.editorEmail, env.editorPassword, baseURL)
+}
+
+/**
+ * Signs in as an authenticated user who is not a member of the configured site.
+ */
+export async function loginAsNoSiteUser(
+  page: Page,
+  baseURL?: string,
+): Promise<void> {
+  const env = getE2eEnv()
+  if (!env.noSiteEmail) {
+    throw new Error(
+      'E2E_NO_SITE_EMAIL is not set — add the no-site test user to demo/.env',
+    )
+  }
+  await loginWithCredentials(
+    page,
+    env.noSiteEmail,
+    env.editorPassword,
+    baseURL,
+  )
+}
+
+/**
  * Opens the plain_text edit modal for a field by data-name and saves a value.
  */
 export async function editPlainTextField(
@@ -77,4 +111,25 @@ export async function editPlainTextField(
   await dialog.locator('textarea').fill(value)
   await dialog.getByRole('button', { name: 'Save' }).click()
   await expect(dialog).not.toBeVisible()
+}
+
+/**
+ * Attempts to save a plain_text field; returns true only when the modal closes (save accepted).
+ */
+export async function tryEditPlainTextField(
+  page: Page,
+  fieldName: string,
+  value: string,
+): Promise<boolean> {
+  await page.locator(`[data-name="${fieldName}"]`).click()
+  const dialog = page.locator('dialog.field-edit-modal')
+  await expect(dialog).toBeVisible()
+
+  await dialog.locator('textarea').fill(value)
+  await dialog.getByRole('button', { name: 'Save' }).click()
+  await expect(dialog.getByRole('button', { name: 'Saving…' })).toBeHidden({
+    timeout: 10_000,
+  })
+
+  return !(await dialog.isVisible())
 }

@@ -34,12 +34,13 @@ Paths above are under `examples/minimal/app/` in this repo; in your own Nuxt pro
 
 ```ts
 export default defineNuxtConfig({
-  extends: ['../../packages/nuxt-cms'], // or '@ghots/nuxt-cms' when published
+  extends: ['../../packages/nuxt-cms'], // or '@ghots/nuxt-cms' from npm
 
   runtimeConfig: {
     public: {
       supabaseUrl: process.env.VITE_SUPABASE_URL ?? '',
       supabaseAnonKey: process.env.VITE_SUPABASE_ANON_KEY ?? '',
+      cmsSiteKey: process.env.CMS_SITE_KEY ?? 'minimal',
     },
   },
 

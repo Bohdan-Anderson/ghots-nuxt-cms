@@ -2,6 +2,12 @@
 
 Add live-editable content to a static Nuxt site. You define templates and slices in Vue; editors change copy on the deployed site; guests get fast prerendered HTML.
 
+```bash
+npm install @ghots/nuxt-cms @supabase/supabase-js
+```
+
+See **[Getting started](./getting-started.md)** for the full setup.
+
 ## How it works
 
 | Who | What they see |

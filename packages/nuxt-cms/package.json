@@ -1,26 +1,43 @@
 {
   "name": "@ghots/nuxt-cms",
   "version": "0.0.1",
-  "description": "Static-first Supabase page builder for Nuxt",
+  "description": "Static-first Supabase page builder for Nuxt 4",
   "type": "module",
   "license": "MIT",
+  "keywords": [
+    "nuxt",
+    "nuxt-layer",
+    "cms",
+    "supabase",
+    "static-site",
+    "page-builder",
+    "headless-cms"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run test"
   },
   "exports": {
-    ".": "./nuxt.config.ts"
+    ".": "./nuxt.config.ts",
+    "./test-utils": "./test-utils/e2e.ts"
   },
   "files": [
     "app",
+    "!app/**/*.test.ts",
     "modules",
     "server",
     "supabase",
     "test-utils",
     "nuxt.config.ts",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "peerDependencies": {
+    "@nuxt/kit": "^4.0.0",
     "nuxt": "^4.0.0",
     "vue": "^3.5.0"
   },
@@ -29,5 +46,8 @@
   },
   "devDependencies": {
     "vitest": "^3.2.4"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

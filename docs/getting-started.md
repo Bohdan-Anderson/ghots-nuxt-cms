@@ -12,18 +12,7 @@ Paths below use **`app/`** relative to your Nuxt project root (the consumer app)
 
 ## 1. Install the CMS layer
 
-### Option A — from this repo (today)
-
-Clone or copy `packages/nuxt-cms` into your project, then extend it:
-
-```ts
-// nuxt.config.ts
-export default defineNuxtConfig({
-  extends: ['../packages/nuxt-cms'], // adjust path to the layer
-})
-```
-
-### Option B — npm (when published)
+### Option A — npm (recommended)
 
 ```bash
 npm install @ghots/nuxt-cms @supabase/supabase-js
@@ -32,6 +21,17 @@ npm install @ghots/nuxt-cms @supabase/supabase-js
 ```ts
 export default defineNuxtConfig({
   extends: ['@ghots/nuxt-cms'],
+})
+```
+
+### Option B — from this monorepo (local development)
+
+Clone the repo and extend the layer by path:
+
+```ts
+// nuxt.config.ts
+export default defineNuxtConfig({
+  extends: ['../packages/nuxt-cms'], // adjust path to the layer
 })
 ```
 
@@ -45,7 +45,10 @@ See **[Supabase setup](./supabase.md)** — apply migrations, set env vars, crea
 # .env
 VITE_SUPABASE_URL=https://xxx.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJ...
+CMS_SITE_KEY=demo
 ```
+
+`CMS_SITE_KEY` must match a row in the `sites` table. Migrations seed `demo` and `minimal` sites — see [Supabase setup](./supabase.md).
 
 ```ts
 // nuxt.config.ts
@@ -56,6 +59,7 @@ export default defineNuxtConfig({
     public: {
       supabaseUrl: process.env.VITE_SUPABASE_URL ?? '',
       supabaseAnonKey: process.env.VITE_SUPABASE_ANON_KEY ?? '',
+      cmsSiteKey: process.env.CMS_SITE_KEY ?? 'demo',
     },
   },
 
