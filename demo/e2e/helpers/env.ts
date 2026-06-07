@@ -3,8 +3,11 @@ import './loadEnv'
 export interface E2eEnv {
   supabaseUrl: string
   supabaseAnonKey: string
+  /** Optional — when set, db-reset auto-links the editor to the site via service role. */
+  supabaseServiceRoleKey: string | null
   editorEmail: string
   editorPassword: string
+  cmsSiteKey: string
 }
 
 const REQUIRED_KEYS = [
@@ -29,8 +32,10 @@ export function getE2eEnv(): E2eEnv {
   return {
     supabaseUrl: process.env.VITE_SUPABASE_URL!.trim(),
     supabaseAnonKey: process.env.VITE_SUPABASE_ANON_KEY!.trim(),
+    supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() || null,
     editorEmail: process.env.E2E_EDITOR_EMAIL!.trim(),
     editorPassword: process.env.E2E_EDITOR_PASSWORD!.trim(),
+    cmsSiteKey: process.env.CMS_SITE_KEY?.trim() || 'demo',
   }
 }
 

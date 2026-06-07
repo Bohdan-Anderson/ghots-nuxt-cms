@@ -17,8 +17,16 @@ export interface FieldSchemaNode {
   children?: FieldSchemaNode[]
 }
 
+export interface SiteRow {
+  id: string
+  key: string
+  label: string
+  created_at: string
+}
+
 export interface TemplateRow {
   id: string
+  site_id: string
   key: string
   label: string
   field_schema: FieldSchemaNode[]
@@ -26,6 +34,7 @@ export interface TemplateRow {
 
 export interface PageRow {
   id: string
+  site_id: string
   slug: string
   template_id: string
   title: string | null
@@ -47,6 +56,7 @@ export interface PageSliceRow {
 
 export interface GlobalRow {
   id: string
+  site_id: string
   key: string
   label: string
   created_at: string

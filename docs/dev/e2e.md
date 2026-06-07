@@ -4,11 +4,13 @@ Playwright tests run locally against **real Supabase** and validate editor vs gu
 
 ## Prerequisites
 
-1. Apply migrations in order: `001_pages_fields.sql`, `002_slices_meta_globals.sql`, `003_rls_hardening.sql`.
+1. Apply migrations in order through **`007_sites.sql`** (see [`demo/supabase/README.md`](../../demo/supabase/README.md)).
 2. Create a Supabase Auth user (email/password) for editing.
 3. Copy [`demo/.env.example`](../../demo/.env.example) to `demo/.env` and set:
    - `VITE_SUPABASE_URL`
    - `VITE_SUPABASE_ANON_KEY`
+   - `CMS_SITE_KEY` (default `demo` — must match a site in the DB)
+   - `SUPABASE_SERVICE_ROLE_KEY` (E2E only — bootstraps `site_members` for the test editor)
    - `E2E_EDITOR_EMAIL`
    - `E2E_EDITOR_PASSWORD`
 4. Install Chromium for Playwright (once):
@@ -30,6 +32,8 @@ npm run test:e2e:ui
 ```
 
 The first run takes longer: **global setup** resets home page fields to a known baseline and runs `npm run generate` to build `dist/`.
+
+**Important:** Apply migration `007` in Supabase before running E2E. Without it, site-scoped queries and RLS will fail.
 
 ## Feature videos
 
@@ -70,7 +74,7 @@ Notes:
 ## DB reset
 
 - **globalSetup** and **globalTeardown** call `resetE2eBaselines()` to restore home `/` and demo `/demo` fields to known values.
-- Helpers sign in with `E2E_EDITOR_*` and update via Supabase (RLS authenticated write).
+- Helpers sign in with `E2E_EDITOR_*`, link the editor to the configured site via `site_members` (service role), and update fields via Supabase (RLS authenticated write).
 - If home page has no `fields` rows yet, setup seeds them from the default template schema.
 
 Baseline constants live in [`demo/e2e/helpers/db-reset.ts`](../../demo/e2e/helpers/db-reset.ts) (`BASELINE` for home, `DEMO_BASELINE` for `/demo`).
@@ -86,8 +90,9 @@ Baseline constants live in [`demo/e2e/helpers/db-reset.ts`](../../demo/e2e/helpe
 | ----- | ----- |
 | Missing env error | All vars in `demo/.env`; see `demo/.env.example` |
 | Sign-in failed | Auth user exists; email/password match `E2E_EDITOR_*` |
+| Write denied / RLS error | Migration `007` applied; editor in `site_members` (db-reset does this via service role) |
 | `ENOTFOUND` / fetch failed on setup | Network/VPN; Supabase project paused; verify `VITE_SUPABASE_URL` in `demo/.env` |
 | Login works in app but not tests | E2E injects session via Supabase API + localStorage; check `demo/.env` vars |
-| Generate fails in setup | Supabase reachable; migration applied; home page at `/` |
+| Generate fails in setup | Supabase reachable; migration `007` applied; home page at `/` for `CMS_SITE_KEY` site |
 | Static test fails on h1 text | Run `npm run generate` manually after checking baseline in DB |
 | Port in use | E2E uses 3001 + 8000; stop anything bound to those ports |

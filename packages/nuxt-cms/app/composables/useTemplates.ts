@@ -5,9 +5,11 @@ import type { TemplateRow } from '~/types/cms'
  */
 export async function fetchTemplates(): Promise<TemplateRow[]> {
   const supabase = useSupabase()
+  const siteId = await resolveSiteId()
   const { data, error } = await supabase
     .from('templates')
-    .select('id, key, label, field_schema')
+    .select('id, site_id, key, label, field_schema')
+    .eq('site_id', siteId)
     .order('label', { ascending: true })
 
   if (error) throw error
@@ -18,5 +20,8 @@ export async function fetchTemplates(): Promise<TemplateRow[]> {
  * Cached template list for sidebar page creation.
  */
 export function useTemplatesData() {
-  return useGuestCachedAsyncData('cms-templates', () => fetchTemplates())
+  const siteKey = useSiteKey()
+  return useGuestCachedAsyncData(`cms-templates:${siteKey}`, () =>
+    fetchTemplates(),
+  )
 }

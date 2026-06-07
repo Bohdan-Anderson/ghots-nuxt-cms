@@ -17,13 +17,14 @@ export function useCmsPage() {
   const { pageContent, applyPageContent, patchField } = useCmsPanel()
 
   const slug = computed(() => normalizeSlug(route.path))
+  const siteKey = useSiteKey()
 
   const {
     data: cachedContent,
     status: fetchStatus,
     refresh,
   } = useGuestCachedAsyncData(
-    () => `page:${slug.value}`,
+    () => `page:${siteKey}:${slug.value}`,
     () => usePageContent(slug.value, { loggedIn: loggedIn.value }),
     { watch: [slug] },
   )

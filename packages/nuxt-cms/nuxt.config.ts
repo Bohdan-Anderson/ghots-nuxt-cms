@@ -14,6 +14,7 @@ export default defineNuxtConfig({
       supabaseUrl: '',
       supabaseAnonKey: '',
       cmsPublishWebhookUrl: '',
+      cmsSiteKey: '',
     },
   },
 

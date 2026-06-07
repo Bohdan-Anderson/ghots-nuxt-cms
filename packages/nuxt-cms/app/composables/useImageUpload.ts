@@ -3,12 +3,12 @@ const CMS_MEDIA_BUCKET = 'cms-media'
 /**
  * Builds a unique storage path for a CMS image upload.
  */
-function buildStoragePath(fieldId: string, file: File): string {
+function buildStoragePath(siteId: string, fieldId: string, file: File): string {
   const ext = file.name.includes('.')
     ? file.name.slice(file.name.lastIndexOf('.'))
     : ''
   const safeExt = ext.toLowerCase().replace(/[^a-z0-9.]/g, '')
-  return `${fieldId}/${crypto.randomUUID()}${safeExt}`
+  return `${siteId}/${fieldId}/${crypto.randomUUID()}${safeExt}`
 }
 
 /**
@@ -28,7 +28,8 @@ export async function uploadCmsImage(
   file: File,
 ): Promise<string> {
   const supabase = useSupabase()
-  const path = buildStoragePath(fieldId, file)
+  const siteId = await requireSiteId()
+  const path = buildStoragePath(siteId, fieldId, file)
 
   const { error } = await supabase.storage
     .from(CMS_MEDIA_BUCKET)

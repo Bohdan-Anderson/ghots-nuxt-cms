@@ -8,6 +8,7 @@ export default defineNuxtConfig({
     public: {
       supabaseUrl: process.env.VITE_SUPABASE_URL ?? '',
       supabaseAnonKey: process.env.VITE_SUPABASE_ANON_KEY ?? '',
+      cmsSiteKey: process.env.CMS_SITE_KEY ?? 'minimal',
     },
   },
 

@@ -4,7 +4,7 @@ import {
   seedFieldsFromSchema,
   type FieldSchemaNode,
 } from '../../../packages/nuxt-cms/test-utils/e2e'
-import { createE2eSupabase } from './supabase'
+import { createE2eSupabase, createE2eServiceSupabase } from './supabase'
 import {
   assertSupabaseReachable,
   getE2eEnv,
@@ -51,7 +51,44 @@ const SIGN_IN_MAX_ATTEMPTS = 3
 const SIGN_IN_RETRY_MS = 1500
 
 /**
- * Signs in as the E2E editor user.
+ * Resolves the E2E deployment site id from the sites table.
+ */
+async function resolveE2eSiteId(supabase: SupabaseClient): Promise<string> {
+  const { cmsSiteKey } = getE2eEnv()
+  const { data, error } = await supabase
+    .from('sites')
+    .select('id')
+    .eq('key', cmsSiteKey)
+    .single()
+
+  if (error) throw error
+  return data.id as string
+}
+
+/**
+ * Ensures the signed-in editor is a member of the configured site.
+ * Skipped when SUPABASE_SERVICE_ROLE_KEY is unset (manual site_members provisioning).
+ */
+async function ensureEditorSiteMembership(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<void> {
+  const { supabaseServiceRoleKey } = getE2eEnv()
+  if (!supabaseServiceRoleKey) return
+
+  const siteId = await resolveE2eSiteId(supabase)
+  const serviceSupabase = createE2eServiceSupabase()
+
+  const { error } = await serviceSupabase.from('site_members').upsert(
+    { site_id: siteId, user_id: userId },
+    { onConflict: 'site_id,user_id' },
+  )
+
+  if (error) throw error
+}
+
+/**
+ * Signs in as the E2E editor user and links them to the configured site.
  */
 export async function signInAsEditor(
   supabase: SupabaseClient = createE2eSupabase(),
@@ -67,7 +104,18 @@ export async function signInAsEditor(
       password: editorPassword,
     })
 
-    if (!error) return supabase
+    if (!error) {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser()
+
+      if (userError) throw userError
+      if (!user) throw new Error('E2E sign-in succeeded but no user session')
+
+      await ensureEditorSiteMembership(supabase, user.id)
+      return supabase
+    }
 
     lastMessage = error.message
 
@@ -130,10 +178,12 @@ async function seedHomePageFieldsIfEmpty(
  */
 export async function resetHomePageFields(): Promise<void> {
   const supabase = await signInAsEditor()
+  const siteId = await resolveE2eSiteId(supabase)
 
   const { data: page, error: pageError } = await supabase
     .from('pages')
     .select('id')
+    .eq('site_id', siteId)
     .eq('slug', '/')
     .maybeSingle()
 
@@ -170,10 +220,12 @@ export async function resetHomePageFields(): Promise<void> {
  */
 export async function resetDemoPageFields(): Promise<void> {
   const supabase = await signInAsEditor()
+  const siteId = await resolveE2eSiteId(supabase)
 
   const { data: page, error: pageError } = await supabase
     .from('pages')
     .select('id')
+    .eq('site_id', siteId)
     .eq('slug', '/demo')
     .maybeSingle()
 

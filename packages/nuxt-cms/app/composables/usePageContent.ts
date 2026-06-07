@@ -19,10 +19,12 @@ export async function usePageContent(
   const supabase = useSupabase()
   const loggedIn = options?.loggedIn ?? false
   const slug = normalizeSlug(slugInput)
+  const siteId = await resolveSiteId()
 
   const { data: pageData, error: pageError } = await supabase
     .from('pages')
     .select('*, templates(*)')
+    .eq('site_id', siteId)
     .eq('slug', slug)
     .maybeSingle()
 

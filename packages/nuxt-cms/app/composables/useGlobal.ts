@@ -17,12 +17,14 @@ export async function fetchGlobalContent(
   const supabase = useSupabase()
   const loggedIn = options?.loggedIn ?? false
   const definition = getGlobalDefinition(key)
+  const siteId = await resolveSiteId()
 
   if (!definition) return null
 
   const { data: globalData, error: globalError } = await supabase
     .from('globals')
     .select('*')
+    .eq('site_id', siteId)
     .eq('key', key)
     .maybeSingle()
 
@@ -33,7 +35,11 @@ export async function fetchGlobalContent(
   if (!global && loggedIn) {
     const { data: inserted, error: insertError } = await supabase
       .from('globals')
-      .insert({ key: definition.key, label: definition.label })
+      .insert({
+        site_id: siteId,
+        key: definition.key,
+        label: definition.label,
+      })
       .select('*')
       .single()
 
@@ -63,7 +69,8 @@ export async function fetchGlobalContent(
  */
 export function useGlobalData(key: string) {
   const { loggedIn } = useAuth()
-  return useGuestCachedAsyncData(`global:${key}`, () =>
+  const siteKey = useSiteKey()
+  return useGuestCachedAsyncData(`global:${siteKey}:${key}`, () =>
     fetchGlobalContent(key, { loggedIn: loggedIn.value }),
   )
 }

@@ -53,6 +53,18 @@ export default defineNuxtModule<ModuleOptions>({
         nuxt.options.runtimeConfig.public.cmsPublishWebhookUrl ??
         process.env.CMS_PUBLISH_WEBHOOK_URL ??
         '',
+      cmsSiteKey:
+        nuxt.options.runtimeConfig.public.cmsSiteKey ??
+        process.env.CMS_SITE_KEY ??
+        '',
+    }
+
+    const cmsSiteKey = nuxt.options.runtimeConfig.public.cmsSiteKey
+    if (!cmsSiteKey) {
+      throw new Error(
+        '@ghots/nuxt-cms: cmsSiteKey is required. Set runtimeConfig.public.cmsSiteKey ' +
+          'or CMS_SITE_KEY in the environment.',
+      )
     }
 
     const resolveFieldModule = resolvePath('../app/fields/resolveField')

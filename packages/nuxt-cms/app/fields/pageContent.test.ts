@@ -25,6 +25,7 @@ function field(
 const base: PageContent = {
   page: {
     id: 'page-1',
+    site_id: 'site-1',
     slug: '/',
     template_id: 'tpl-1',
     title: 'Old',
@@ -37,6 +38,7 @@ const base: PageContent = {
   },
   template: {
     id: 'tpl-1',
+    site_id: 'site-1',
     key: 'default',
     label: 'Default',
     field_schema: [],

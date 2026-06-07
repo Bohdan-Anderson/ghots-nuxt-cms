@@ -11,6 +11,7 @@ const videoSlowMo = Number(process.env.E2E_VIDEO_SLOW_MO ?? 400)
 const supabaseEnv = {
   VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL ?? '',
   VITE_SUPABASE_ANON_KEY: process.env.VITE_SUPABASE_ANON_KEY ?? '',
+  CMS_SITE_KEY: process.env.CMS_SITE_KEY ?? 'demo',
   E2E_EDITOR_EMAIL: process.env.E2E_EDITOR_EMAIL ?? '',
   E2E_EDITOR_PASSWORD: process.env.E2E_EDITOR_PASSWORD ?? '',
   NUXT_IGNORE_LOCK: '1',

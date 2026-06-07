@@ -14,9 +14,11 @@ export interface CreatePageInput {
 export async function slugExists(slug: string): Promise<boolean> {
   const supabase = useSupabase()
   const normalized = normalizeSlug(slug)
+  const siteId = await resolveSiteId()
   const { data, error } = await supabase
     .from('pages')
     .select('id')
+    .eq('site_id', siteId)
     .eq('slug', normalized)
     .maybeSingle()
 
@@ -30,6 +32,7 @@ export async function slugExists(slug: string): Promise<boolean> {
 export async function createPage(input: CreatePageInput): Promise<PageRow> {
   const supabase = useSupabase()
   const slug = normalizeSlug(input.slug)
+  const siteId = await resolveSiteId()
 
   if (await slugExists(slug)) {
     throw new Error(`A page with slug "${slug}" already exists.`)
@@ -38,6 +41,7 @@ export async function createPage(input: CreatePageInput): Promise<PageRow> {
   const { data: template, error: templateError } = await supabase
     .from('templates')
     .select('field_schema')
+    .eq('site_id', siteId)
     .eq('id', input.templateId)
     .single()
 
@@ -46,6 +50,7 @@ export async function createPage(input: CreatePageInput): Promise<PageRow> {
   const { data: inserted, error } = await supabase
     .from('pages')
     .insert({
+      site_id: siteId,
       slug,
       template_id: input.templateId,
       title: input.title.trim() || null,
