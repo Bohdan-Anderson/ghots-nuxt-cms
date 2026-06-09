@@ -4,6 +4,15 @@
   "description": "Static-first Supabase page builder for Nuxt 4",
   "type": "module",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Bohdan-Anderson/ghots-nuxt-cms.git",
+    "directory": "packages/nuxt-cms"
+  },
+  "homepage": "https://github.com/Bohdan-Anderson/ghots-nuxt-cms/tree/main/docs",
+  "bugs": {
+    "url": "https://github.com/Bohdan-Anderson/ghots-nuxt-cms/issues"
+  },
   "keywords": [
     "nuxt",
     "nuxt-layer",

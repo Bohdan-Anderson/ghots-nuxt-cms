@@ -36,7 +36,7 @@ Unscoped packages publish to your personal npm account — no org setup required
 
 ## After publish
 
-1. Add `"repository"` to `package.json` pointing at the GitHub repo.
+1. ~~Add `"repository"` to `package.json` pointing at the GitHub repo.~~ → `https://github.com/Bohdan-Anderson/ghots-nuxt-cms`
 2. Tag the release: `git tag ghots-nuxt-cms@0.0.1 && git push origin ghots-nuxt-cms@0.0.1`
 3. Update `examples/minimal` to depend on `ghots-nuxt-cms` and use `extends: ['ghots-nuxt-cms']` in CI smoke test.
 4. Bump version for the next change (`npm version patch` in `packages/nuxt-cms/`).

@@ -8,6 +8,8 @@ npm install ghots-nuxt-cms @supabase/supabase-js
 
 See **[Getting started](./getting-started.md)** for the full setup.
 
+Full docs online: [github.com/Bohdan-Anderson/ghots-nuxt-cms/tree/main/docs](https://github.com/Bohdan-Anderson/ghots-nuxt-cms/tree/main/docs)
+
 ## How it works
 
 | Who | What they see |

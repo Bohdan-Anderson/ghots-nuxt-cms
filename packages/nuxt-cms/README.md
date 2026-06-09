@@ -71,7 +71,7 @@ where s.key = 'demo';
 
 **Note:** Migration `007` enables multi-site support and re-seeds demo sites. Read the migration before applying on an existing database.
 
-Tables, RLS, and storage are documented in the [ghots-cms repo](https://github.com/ghots/ghots-cms/tree/main/docs).
+Tables, RLS, and storage are documented in the [ghots-nuxt-cms repo](https://github.com/Bohdan-Anderson/ghots-nuxt-cms/tree/main/docs).
 
 ## What you provide
 
@@ -197,12 +197,12 @@ Use `<CmsLink>`, `<CmsRichText>`, `<CmsImage>` in templates. See the repo docs f
 
 Full guides (templates, slices, globals, publishing, examples):
 
-**[github.com/ghots/ghots-cms/tree/main/docs](https://github.com/ghots/ghots-cms/tree/main/docs)**
+**[github.com/Bohdan-Anderson/ghots-nuxt-cms/tree/main/docs](https://github.com/Bohdan-Anderson/ghots-nuxt-cms/tree/main/docs)**
 
 Reference apps in that repo:
 
-- [`demo/`](https://github.com/ghots/ghots-cms/tree/main/demo) — full-featured example + E2E
-- [`examples/minimal/`](https://github.com/ghots/ghots-cms/tree/main/examples/minimal) — smallest working install
+- [`demo/`](https://github.com/Bohdan-Anderson/ghots-nuxt-cms/tree/main/demo) — full-featured example + E2E
+- [`examples/minimal/`](https://github.com/Bohdan-Anderson/ghots-nuxt-cms/tree/main/examples/minimal) — smallest working install
 
 ## License
 

@@ -127,7 +127,7 @@ Target: **&lt; 30 min** from empty Nuxt app to one editable page (Phase 7 valida
 ## Open items
 
 - [ ] Publish `ghots-nuxt-cms` to npm — package README, LICENSE, metadata, and `.npmignore` are ready; run `npm publish` from `packages/nuxt-cms/` after `npm login`
-- [ ] Add `repository` URL to `package.json` once the GitHub remote is set
+- [x] Add `repository` URL to `package.json` — [github.com/Bohdan-Anderson/ghots-nuxt-cms](https://github.com/Bohdan-Anderson/ghots-nuxt-cms)
 - [ ] Rename project before public publish if desired (Ghost trademark — see vision.md; `ghots-nuxt-cms` is the current scoped name)
 - [ ] Split demo seeds into reference-only migration
 - [ ] CI smoke test: `examples/minimal/` installs package from npm and passes checklist

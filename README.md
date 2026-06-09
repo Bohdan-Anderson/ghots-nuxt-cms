@@ -1,12 +1,16 @@
-# ghots-cms
+# ghots-nuxt-cms
 
 Static-first Nuxt CMS backed by Supabase: prerendered pages for visitors, modal editing for authenticated users.
+
+**Repository:** [github.com/Bohdan-Anderson/ghots-nuxt-cms](https://github.com/Bohdan-Anderson/ghots-nuxt-cms)
 
 ## Documentation
 
 **[docs/README.md](./docs/README.md)** — consumer guides: install, templates, slices, field types, publish, examples.
 
 **[docs/dev/](./docs/dev/)** — architecture and contributor docs.
+
+Online: [github.com/Bohdan-Anderson/ghots-nuxt-cms/tree/main/docs](https://github.com/Bohdan-Anderson/ghots-nuxt-cms/tree/main/docs)
 
 ## Repository layout
 
@@ -34,7 +38,7 @@ The CMS layer is published as **`ghots-nuxt-cms`**. See [docs/dev/npm-publish.md
 ```bash
 cd packages/nuxt-cms
 npm pack --dry-run   # inspect tarball
-npm publish --access public
+npm publish
 ```
 
 ## Scripts
