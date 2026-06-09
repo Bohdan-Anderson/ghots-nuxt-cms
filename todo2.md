@@ -229,7 +229,7 @@ No file crosses 1k lines yet.
 - [x] No wrong-layer exports (`resolveField` in fetch module)
 - [x] No dead public API (`updateGlobalFieldValue`)
 - [x] No wrong public docs (`resolveField` signature)
-- [ ] npm publish (`@ghots/nuxt-cms`) — still open in `todo.md` Phase 7
+- [ ] npm publish (`ghots-nuxt-cms`) — still open in `todo.md` Phase 7
 
 ---
 

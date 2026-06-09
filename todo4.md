@@ -26,7 +26,7 @@ The package extraction and recent field-layer refactors are real progress — no
 ghots-cms/                          # npm workspaces root
 ├── package.json                    # orchestrates demo + minimal + package tests
 ├── docs/                           # consumer + contributor docs
-├── packages/nuxt-cms/              # @ghots/nuxt-cms — Nuxt layer (CMS core)
+├── packages/nuxt-cms/              # ghots-nuxt-cms — Nuxt layer (CMS core)
 │   ├── modules/nuxt-cms.ts         # module entry, #cms/registries alias
 │   ├── app/
 │   │   ├── composables/  (19)      # Supabase + editor state + page loading
@@ -60,7 +60,7 @@ No file approaches 1000 lines. Largest non-UI code: `seedFields.ts` (169), `useP
 
 | Layer | Owns |
 |-------|------|
-| `@ghots/nuxt-cms` | Editor UI, field-type system, Supabase composables, auth, static-first caching, DB migrations |
+| `ghots-nuxt-cms` | Editor UI, field-type system, Supabase composables, auth, static-first caching, DB migrations |
 | `demo` / `minimal` | Templates, slice components/schemas, globals, site chrome, prerender routes, E2E |
 
 Consumers extend via `extends: ['../packages/nuxt-cms']` and **must** provide `app/cms/registries.ts` (wired to `#cms/registries` by the module).
@@ -497,7 +497,7 @@ Copied identically in 5 test files:
 |-------------|------|--------|
 | Supabase migrations in `packages/nuxt-cms/supabase/` and `demo/supabase/` | Silent schema drift | Symlink, copy script in CI, or "package owns migrations" |
 | `demo/app/cms/registries.ts` ≈ `examples/minimal/app/cms/registries.ts` | Expected | Optional shared starter in package docs |
-| `DefaultPage.vue` field wrapper in demo + minimal | Expected consumer duplication | Optional `@ghots/nuxt-cms` starter template |
+| `DefaultPage.vue` field wrapper in demo + minimal | Expected consumer duplication | Optional `ghots-nuxt-cms` starter template |
 | Root `app/` vs package | **None** — migration complete | — |
 
 - [ ] Enforce single-source migrations (pick one approach and document in `supabase/README.md`)

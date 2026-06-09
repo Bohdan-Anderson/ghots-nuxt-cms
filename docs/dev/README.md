@@ -25,7 +25,7 @@ Architecture, implementation details, and repo maintenance. **Consumers** should
 | [Modal editing](./inline-editing.md) | Click delegation, components |
 | [CMS sidebar](./cms-sidebar.md) | Panel state, tabs |
 | [Publish workflow (internal)](./publish.md) | Implementation notes |
-| [npm publish checklist](./npm-publish.md) | First release of `@ghots/nuxt-cms` |
+| [npm publish checklist](./npm-publish.md) | First release of `ghots-nuxt-cms` |
 
 ## Repo development
 

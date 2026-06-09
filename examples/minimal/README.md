@@ -1,6 +1,6 @@
 # Minimal consumer example
 
-Runnable smoke-test app: extends `@ghots/nuxt-cms` and renders one editable home page.
+Runnable smoke-test app: extends `ghots-nuxt-cms` and renders one editable home page.
 
 For slices, globals, and E2E see [`demo/`](../../demo/).
 
@@ -34,7 +34,7 @@ Paths above are under `examples/minimal/app/` in this repo; in your own Nuxt pro
 
 ```ts
 export default defineNuxtConfig({
-  extends: ['../../packages/nuxt-cms'], // or '@ghots/nuxt-cms' from npm
+  extends: ['../../packages/nuxt-cms'], // or 'ghots-nuxt-cms' from npm
 
   runtimeConfig: {
     public: {

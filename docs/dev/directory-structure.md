@@ -2,7 +2,7 @@
 
 ```
 ghots-cms/
-├── packages/nuxt-cms/            # @ghots/nuxt-cms — CMS layer (editor, composables, migrations)
+├── packages/nuxt-cms/            # ghots-nuxt-cms — CMS layer (editor, composables, migrations)
 │   ├── app/                      # Auto-imported CMS source
 │   ├── modules/nuxt-cms.ts       # Module entry (#cms/registries alias)
 │   └── supabase/migrations/      # Canonical DB migrations

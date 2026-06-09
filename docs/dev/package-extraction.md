@@ -1,6 +1,6 @@
 # Package extraction — boundary audit
 
-Phase 7 plan for extracting **ghots-cms** into a reusable Nuxt layer (`@ghots/nuxt-cms`). This document is the boundary audit: what moves into the package vs what stays in each consumer project.
+Phase 7 plan for extracting **ghots-cms** into a reusable Nuxt layer (`ghots-nuxt-cms`). This document is the boundary audit: what moves into the package vs what stays in each consumer project.
 
 See also [vision.md](./vision.md) § Portability and [todo.md](../../todo.md) Phase 7.
 
@@ -10,7 +10,7 @@ See also [vision.md](./vision.md) § Portability and [todo.md](../../todo.md) Ph
 
 | Layer | Responsibility |
 | ----- | -------------- |
-| **`@ghots/nuxt-cms`** | Editor UI, field-type system, Supabase composables, auth plugin, static-first defaults, image localization module, DB migrations (schema + RLS) |
+| **`ghots-nuxt-cms`** | Editor UI, field-type system, Supabase composables, auth plugin, static-first defaults, image localization module, DB migrations (schema + RLS) |
 | **Consumer project** | Templates, slice components + schemas, global region definitions, site layout/chrome, prerender route list, demo seed data |
 
 ---
@@ -57,7 +57,7 @@ See also [vision.md](./vision.md) § Portability and [todo.md](../../todo.md) Ph
 Generic CMS code must **not** import `~/slices/registry` or `~/globals/registry` directly. Instead:
 
 1. Consumer defines `app/cms/registries.ts` exporting template/slice/global resolvers.
-2. `@ghots/nuxt-cms` module sets alias `#cms/registries` → consumer file.
+2. `ghots-nuxt-cms` module sets alias `#cms/registries` → consumer file.
 3. Package code imports from `#cms/registries`.
 
 **Files that previously coupled to site registries:**
@@ -89,7 +89,7 @@ For a fresh consumer: apply package migrations, then add own templates/pages via
 - `runtimeConfig.public.supabaseUrl`, `supabaseAnonKey`, `cmsPublishWebhookUrl`
 - `nitro.output.publicDir: 'dist'`
 - `routeRules['/**'].prerender: true`
-- Module: `@ghots/nuxt-cms`
+- Module: `ghots-nuxt-cms`
 
 **Consumer overrides**:
 
@@ -110,7 +110,7 @@ Other composable names (`useCmsPanel`, `usePageContent`, …) stay as-is.
 
 ## Consumer checklist
 
-1. `npm install @ghots/nuxt-cms` (or `extends: './packages/nuxt-cms'` during development)
+1. `npm install ghots-nuxt-cms` (or `extends: './packages/nuxt-cms'` during development)
 2. Apply Supabase migrations from package
 3. Set `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
 4. Create `app/cms/registries.ts`
@@ -126,9 +126,9 @@ Target: **&lt; 30 min** from empty Nuxt app to one editable page (Phase 7 valida
 
 ## Open items
 
-- [ ] Publish `@ghots/nuxt-cms` to npm — package README, LICENSE, metadata, and `.npmignore` are ready; run `npm publish` from `packages/nuxt-cms/` after `npm login`
+- [ ] Publish `ghots-nuxt-cms` to npm — package README, LICENSE, metadata, and `.npmignore` are ready; run `npm publish` from `packages/nuxt-cms/` after `npm login`
 - [ ] Add `repository` URL to `package.json` once the GitHub remote is set
-- [ ] Rename project before public publish if desired (Ghost trademark — see vision.md; `@ghots/nuxt-cms` is the current scoped name)
+- [ ] Rename project before public publish if desired (Ghost trademark — see vision.md; `ghots-nuxt-cms` is the current scoped name)
 - [ ] Split demo seeds into reference-only migration
 - [ ] CI smoke test: `examples/minimal/` installs package from npm and passes checklist
 - [x] Update `docs/dev/directory-structure.md` for package + demo layout

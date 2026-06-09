@@ -1,6 +1,6 @@
 # Reference demo site
 
-Working example of **@ghots/nuxt-cms** — home page, `/demo` slice showcase, sidebar, publish flow.
+Working example of **ghots-nuxt-cms** — home page, `/demo` slice showcase, sidebar, publish flow.
 
 **Docs:** [../docs/README.md](../docs/README.md)
 

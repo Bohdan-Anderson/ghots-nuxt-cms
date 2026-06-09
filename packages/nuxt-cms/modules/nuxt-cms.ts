@@ -13,11 +13,11 @@ export interface ModuleOptions {
 }
 
 /**
- * @ghots/nuxt-cms — static-first Supabase page builder for Nuxt.
+ * ghots-nuxt-cms — static-first Supabase page builder for Nuxt.
  */
 export default defineNuxtModule<ModuleOptions>({
   meta: {
-    name: '@ghots/nuxt-cms',
+    name: 'ghots-nuxt-cms',
     configKey: 'cms',
   },
   defaults: {
@@ -32,7 +32,7 @@ export default defineNuxtModule<ModuleOptions>({
 
     if (!existsSync(consumerRegistries)) {
       throw new Error(
-        `@ghots/nuxt-cms: missing consumer registries at ${consumerRegistries}. ` +
+        `ghots-nuxt-cms: missing consumer registries at ${consumerRegistries}. ` +
           'Create app/cms/registries.ts — see package README.',
       )
     }
@@ -62,7 +62,7 @@ export default defineNuxtModule<ModuleOptions>({
     const cmsSiteKey = nuxt.options.runtimeConfig.public.cmsSiteKey
     if (!cmsSiteKey) {
       throw new Error(
-        '@ghots/nuxt-cms: cmsSiteKey is required. Set runtimeConfig.public.cmsSiteKey ' +
+        'ghots-nuxt-cms: cmsSiteKey is required. Set runtimeConfig.public.cmsSiteKey ' +
           'or CMS_SITE_KEY in the environment.',
       )
     }

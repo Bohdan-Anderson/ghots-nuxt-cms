@@ -29,7 +29,7 @@ Static preview: `npm run static` → http://localhost:8000
 
 ## Publish the npm package
 
-The CMS layer is published as **`@ghots/nuxt-cms`**. See [docs/dev/npm-publish.md](./docs/dev/npm-publish.md) for the release checklist.
+The CMS layer is published as **`ghots-nuxt-cms`**. See [docs/dev/npm-publish.md](./docs/dev/npm-publish.md) for the release checklist.
 
 ```bash
 cd packages/nuxt-cms

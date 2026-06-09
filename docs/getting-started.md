@@ -15,12 +15,12 @@ Paths below use **`app/`** relative to your Nuxt project root (the consumer app)
 ### Option A — npm (recommended)
 
 ```bash
-npm install @ghots/nuxt-cms @supabase/supabase-js
+npm install ghots-nuxt-cms @supabase/supabase-js
 ```
 
 ```ts
 export default defineNuxtConfig({
-  extends: ['@ghots/nuxt-cms'],
+  extends: ['ghots-nuxt-cms'],
 })
 ```
 
@@ -53,7 +53,7 @@ CMS_SITE_KEY=demo
 ```ts
 // nuxt.config.ts
 export default defineNuxtConfig({
-  extends: ['@ghots/nuxt-cms'],
+  extends: ['ghots-nuxt-cms'],
 
   runtimeConfig: {
     public: {

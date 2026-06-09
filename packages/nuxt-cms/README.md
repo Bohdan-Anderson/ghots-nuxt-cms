@@ -1,4 +1,4 @@
-# @ghots/nuxt-cms
+# ghots-nuxt-cms
 
 Static-first Supabase page builder for [Nuxt 4](https://nuxt.com).
 
@@ -23,13 +23,13 @@ Developers define **templates**, **slices**, and **globals** in Vue. Editors cha
 ## Install
 
 ```bash
-npm install @ghots/nuxt-cms @supabase/supabase-js
+npm install ghots-nuxt-cms @supabase/supabase-js
 ```
 
 ```ts
 // nuxt.config.ts
 export default defineNuxtConfig({
-  extends: ['@ghots/nuxt-cms'],
+  extends: ['ghots-nuxt-cms'],
 
   runtimeConfig: {
     public: {
@@ -58,7 +58,7 @@ CMS_SITE_KEY=demo
 
 ## Supabase setup
 
-1. Apply SQL migrations from **`node_modules/@ghots/nuxt-cms/supabase/migrations/`** in order (`001` → `007`).
+1. Apply SQL migrations from **`node_modules/ghots-nuxt-cms/supabase/migrations/`** in order (`001` → `007`).
 2. Create an email/password user in Supabase Auth for editors.
 3. Grant site access:
 
