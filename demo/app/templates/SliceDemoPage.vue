@@ -27,6 +27,7 @@ function sliceComponent(slice: PageSliceRow) {
   <article>
     <h1
       data-name="title"
+      data-type="plain_text"
       :data-id="field('title')?.id ?? ''"
     >
       {{ field('title')?.value }}

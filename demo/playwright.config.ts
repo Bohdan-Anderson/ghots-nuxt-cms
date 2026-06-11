@@ -48,6 +48,7 @@ export default defineConfig({
       name: 'editor',
       testMatch: [
         'editor-edit.spec.ts',
+        'field-sync.spec.ts',
         'content-model-v2-editor.spec.ts',
         'no-site-editor.spec.ts',
         'sidebar.spec.ts',

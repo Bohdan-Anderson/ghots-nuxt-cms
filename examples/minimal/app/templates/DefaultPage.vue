@@ -17,6 +17,7 @@ function field(name: string, parentSectionName?: string): FieldRow | undefined {
   <main>
     <h1
       data-name="title"
+      data-type="plain_text"
       :data-id="field('title')?.id ?? ''"
     >
       {{ field('title')?.value }}

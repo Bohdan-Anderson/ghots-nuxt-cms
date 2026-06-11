@@ -54,6 +54,7 @@
     "@supabase/supabase-js": "^2.105.4"
   },
   "devDependencies": {
+    "happy-dom": "^20.10.2",
     "vitest": "^3.2.4"
   }
 }

@@ -15,12 +15,14 @@ const image = computed(() => parseImageValue(props.field?.value ?? null))
     :src="image.url"
     :alt="image.alt"
     :data-name="field?.name"
+    :data-type="field?.type ?? 'image'"
     :data-id="field?.id ?? ''"
     class="cms-image"
   />
   <span
     v-else
     :data-name="field?.name"
+    :data-type="field?.type ?? 'image'"
     :data-id="field?.id ?? ''"
     class="cms-image-empty"
   >

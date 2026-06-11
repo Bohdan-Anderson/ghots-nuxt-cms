@@ -17,17 +17,29 @@ function field(name: string, parentSectionName?: string): FieldRow | undefined {
   <article>
     <h1
       data-name="title"
+      data-type="plain_text"
       :data-id="field('title')?.id ?? ''"
     >
       {{ field('title')?.value }}
     </h1>
 
+    <p
+      class="page-subtitle"
+      data-name="subtitle"
+      data-type="plain_text"
+      :data-id="field('subtitle')?.id ?? ''"
+    >
+      {{ field('subtitle')?.value }}
+    </p>
+
     <section
       data-name="main"
+      data-type="section"
       :data-id="field('main')?.id ?? ''"
     >
       <p
         data-name="body"
+        data-type="plain_text"
         :data-id="field('body', 'main')?.id ?? ''"
       >
         {{ field('body', 'main')?.value }}
@@ -35,3 +47,9 @@ function field(name: string, parentSectionName?: string): FieldRow | undefined {
     </section>
   </article>
 </template>
+
+<style scoped>
+.page-subtitle {
+  min-height: 1.25rem;
+}
+</style>

@@ -36,6 +36,7 @@ function itemField(itemFields: FieldRow[], name: string): FieldRow | undefined {
   >
     <h2
       data-name="heading"
+      data-type="plain_text"
       :data-id="field('heading')?.id ?? ''"
     >
       {{ field('heading')?.value }}

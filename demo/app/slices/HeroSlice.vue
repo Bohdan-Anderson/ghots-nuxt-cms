@@ -22,6 +22,7 @@ function field(name: string, parentSectionName?: string): FieldRow | undefined {
   >
     <h2
       data-name="headline"
+      data-type="plain_text"
       :data-id="field('headline')?.id ?? ''"
     >
       {{ field('headline')?.value }}

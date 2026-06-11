@@ -193,9 +193,19 @@ export async function resetHomePageFields(): Promise<void> {
   const fields = await seedHomePageFieldsIfEmpty(supabase, page.id)
   const titleField = resolveField(fields, 'title')
   const bodyField = resolveField(fields, 'body', 'main')
+  const subtitleField = resolveField(fields, 'subtitle')
 
   if (!titleField || !bodyField) {
     throw new Error('Home page title or body field not found after seed')
+  }
+
+  if (subtitleField) {
+    const { error: deleteSubtitleError } = await supabase
+      .from('fields')
+      .delete()
+      .eq('id', subtitleField.id)
+
+    if (deleteSubtitleError) throw deleteSubtitleError
   }
 
   const updates = [
@@ -213,6 +223,40 @@ export async function resetHomePageFields(): Promise<void> {
   }
 
   await supabase.auth.signOut()
+}
+
+/**
+ * Returns a root-level home page field row by name, or null when missing.
+ */
+export async function getHomePageRootField(
+  name: string,
+): Promise<FieldRow | null> {
+  const supabase = await signInAsEditor()
+  const siteId = await resolveE2eSiteId(supabase)
+
+  const { data: page, error: pageError } = await supabase
+    .from('pages')
+    .select('id')
+    .eq('site_id', siteId)
+    .eq('slug', '/')
+    .maybeSingle()
+
+  if (pageError) throw pageError
+  if (!page) {
+    await supabase.auth.signOut()
+    return null
+  }
+
+  const { data: fields, error: fieldsError } = await supabase
+    .from('fields')
+    .select('*')
+    .eq('page_id', page.id)
+
+  if (fieldsError) throw fieldsError
+
+  const field = resolveField((fields ?? []) as FieldRow[], name)
+  await supabase.auth.signOut()
+  return field ?? null
 }
 
 /**

@@ -13,6 +13,7 @@ const html = computed(() => parseRichTextValue(props.field?.value ?? null).html)
   <div
     class="cms-richtext"
     :data-name="field?.name"
+    :data-type="field?.type ?? 'richtext'"
     :data-id="field?.id ?? ''"
     v-html="html"
   />

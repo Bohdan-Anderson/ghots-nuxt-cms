@@ -16,6 +16,7 @@ const link = computed(() => parseLinkValue(props.field?.value ?? null))
     :target="link.target === '_blank' ? '_blank' : undefined"
     :rel="link.target === '_blank' ? 'noopener noreferrer' : undefined"
     :data-name="field?.name"
+    :data-type="field?.type ?? 'link'"
     :data-id="field?.id ?? ''"
   >
     {{ link.label || link.url }}
@@ -23,6 +24,7 @@ const link = computed(() => parseLinkValue(props.field?.value ?? null))
   <span
     v-else
     :data-name="field?.name"
+    :data-type="field?.type ?? 'link'"
     :data-id="field?.id ?? ''"
     class="cms-link-empty"
   >
