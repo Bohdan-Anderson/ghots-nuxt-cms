@@ -3,11 +3,9 @@ import type { FieldRow, GlobalContent } from '~/types/cms'
 import { fieldTypeSupportsOnPageClick } from '~/fields/registry'
 import { buildFieldMaps } from '~/fields/maps'
 import { syncFieldsFromDom } from '~/fields/syncFieldsFromDom'
-import {
-  ensureField,
-  ensureInputFromElement,
-} from '~/fields/ensureField'
-import { resolveFieldParentContext } from '~/fields/domContext'
+import { ensureField } from '~/fields/ensureField'
+import { resolveFieldBinding } from '~/fields/domContext'
+import { buildEnsureInput } from '~/fields/syncFieldsFromDom'
 
 const props = defineProps<{
   enabled: boolean
@@ -96,9 +94,11 @@ async function ensureFieldForElement(el: HTMLElement): Promise<FieldRow | null> 
   const current = localContent.value
   if (!current) return null
 
-  const context = resolveFieldParentContext(el)
-  const input = ensureInputFromElement(el, context)
-  if (!input) return null
+  const binding = resolveFieldBinding(el, {
+    fieldsById: current.fieldsById,
+    fieldsByParentAndName: current.fieldsByParentAndName,
+  })
+  if (!binding || binding.field) return binding?.field ?? null
 
   syncing.value = true
   try {
@@ -114,7 +114,10 @@ async function ensureFieldForElement(el: HTMLElement): Promise<FieldRow | null> 
         fieldsByName: current.fieldsByName,
         fieldsByParentAndName: current.fieldsByParentAndName,
       },
-      { ...input, context: { ...input.context, globalId: current.global.id } },
+      {
+        ...buildEnsureInput(el, binding, 0),
+        context: { ...binding.context, globalId: current.global.id },
+      },
       current.fields,
     )
     if (result) applySyncedField(result)

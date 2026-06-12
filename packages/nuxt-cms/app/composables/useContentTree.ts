@@ -1,4 +1,4 @@
-import type { ContentTreeNode } from '~/types/cms'
+import type { ContentTreeNode, FieldRow } from '~/types/cms'
 import {
   enrichTreeWithFields,
   scanContentTree,
@@ -15,9 +15,10 @@ export function useContentTree() {
    */
   function rebuildFromDom(
     root: HTMLElement,
-    fieldsById: Record<string, import('~/types/cms').FieldRow>,
+    fieldsById: Record<string, FieldRow>,
+    fieldsByParentAndName: Record<string, FieldRow>,
   ) {
-    const scanned = scanContentTree(root)
+    const scanned = scanContentTree(root, { fieldsById, fieldsByParentAndName })
     tree.value = enrichTreeWithFields(scanned, fieldsById)
   }
 

@@ -34,11 +34,13 @@ Editors and developers want **Vue templates to be the schema**: structure comes 
 | `data-type` (leaf) | Editor UI: `plain_text`, `link`, `richtext`, `image` |
 | `data-id` | Stable UUID after ensure |
 
-Parent resolution walks DOM ancestors for nearest `data-type="section"` or `data-type="page"`, or `data-global` for globals.
+Parent resolution walks DOM ancestors for the nearest structural parent (`section` or `array`) by `data-name`, then resolves its field row id from the registry (or `data-id` when present). `data-global` ancestors scope fields to the global namespace.
 
 ### 3. Lazy ensure — no proactive schema seeding
 
 **Choice:** `ensureField(parentId, name)` creates empty rows on demand for logged-in editors. No `seedFieldsFromSchema` on first visit. `templates.field_schema` deprecated (empty).
+
+On first editor visit, markup may render before any field rows exist (`:data-id` empty). `syncFieldsFromDom` collects all `[data-name]` nodes missing a valid registry id, sorts them **shallowest-first** by DOM depth, and ensures each in one pass — parents are always created before children. The same `resolveFieldBinding` helper is used for sync, click-to-edit, globals, and the sidebar tree.
 
 ### 4. Drop slice instances
 

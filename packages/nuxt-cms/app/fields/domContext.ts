@@ -1,4 +1,5 @@
 import type { FieldKind, FieldParentContext, FieldRow } from '~/types/cms'
+import { parentNameKey } from '~/fields/maps'
 
 const STRUCTURAL_DOM_TYPES = new Set(['page', 'section', 'array'])
 const EDITABLE_DOM_TYPES = new Set([
@@ -7,6 +8,23 @@ const EDITABLE_DOM_TYPES = new Set([
   'link',
   'image',
 ])
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+/** Lookup maps used to resolve DOM names to field rows. */
+export interface FieldRegistry {
+  fieldsById: Record<string, FieldRow>
+  fieldsByParentAndName: Record<string, FieldRow>
+}
+
+/** Resolved binding for a DOM field element. */
+export interface FieldBinding {
+  name: string
+  parentId: string | null
+  context: FieldParentContext
+  field: FieldRow | null
+}
 
 /**
  * Parses a data-type attribute into a known DOM type string.
@@ -41,80 +59,50 @@ export function domTypeToKind(domType: string | null): FieldKind | null {
 }
 
 /**
- * Walks DOM ancestors to resolve page/global scope and parent field id.
+ * Returns true when a string is a valid field row uuid.
  */
-export function resolveFieldParentContext(
-  element: HTMLElement,
-): FieldParentContext {
-  let pageId: string | null = null
-  let globalId: string | null = null
-  let parentId: string | null = null
+export function isValidFieldId(id: string | undefined): boolean {
+  const trimmed = id?.trim()
+  return !!trimmed && UUID_RE.test(trimmed)
+}
 
-  let current: HTMLElement | null = element
-
-  while (current) {
-    const globalKey = current.dataset.global
-    if (globalKey) {
-      return {
-        pageId: null,
-        globalId: current.dataset.id ?? null,
-        parentId: null,
-      }
+/**
+ * Resolves page/global scope for a DOM element.
+ */
+export function resolveFieldScope(element: HTMLElement): FieldParentContext {
+  const globalEl = element.closest('[data-global]') as HTMLElement | null
+  if (globalEl) {
+    return {
+      pageId: null,
+      globalId: globalEl.dataset.id?.trim() ?? null,
+      parentId: null,
     }
-
-    const domType = parseDomType(current.dataset.type)
-
-    if (domType === 'section' && current.dataset.id) {
-      parentId = current.dataset.id
-      break
-    }
-
-    if (domType === 'page' && current.dataset.id) {
-      pageId = current.dataset.id
-      parentId = null
-      break
-    }
-
-    current = current.parentElement
   }
 
-  if (!pageId && !globalId) {
-    const pageEl = element.closest(
-      '[data-type="page"]',
-    ) as HTMLElement | null
-    pageId = pageEl?.dataset.id ?? null
+  const pageEl = element.closest('[data-type="page"]') as HTMLElement | null
+  return {
+    pageId: pageEl?.dataset.id?.trim() ?? null,
+    globalId: null,
+    parentId: null,
   }
-
-  return { pageId, globalId, parentId }
 }
 
 /**
  * Resolves the array field id that owns an array item section in the DOM.
  */
-function resolveArrayContainerParentId(
+function resolveArrayItemParentId(
   itemElement: HTMLElement,
-  fields: FieldRow[],
+  registry: FieldRegistry,
 ): string | null {
   const hostSection = itemElement.parentElement?.closest(
     '[data-type="section"][data-name]:not([data-name^="item_"])',
   ) as HTMLElement | null
   if (!hostSection) return null
 
-  const hostName = hostSection.dataset.name?.trim()
-  if (!hostName) return null
-
-  const hostId =
-    hostSection.dataset.id?.trim()
-    ?? fields.find(
-      (field) =>
-        field.name === hostName
-        && field.parent_id === null
-        && field.kind === 'section',
-    )?.id
-
+  const hostId = resolveFieldIdForContainer(hostSection, registry)
   if (!hostId) return null
 
-  const arrayField = fields.find(
+  const arrayField = Object.values(registry.fieldsById).find(
     (field) => field.parent_id === hostId && field.kind === 'array',
   )
 
@@ -122,63 +110,123 @@ function resolveArrayContainerParentId(
 }
 
 /**
- * Resolves a section/array parent id from DB when the DOM ancestor has no data-id yet.
+ * Resolves a section/array container element to its field row id.
  */
-export function resolveParentIdFromFields(
-  element: HTMLElement,
-  fields: FieldRow[],
+function resolveFieldIdForContainer(
+  container: HTMLElement,
+  registry: FieldRegistry,
 ): string | null {
-  const domType = parseDomType(element.dataset.type)
-  const elementName = element.dataset.name?.trim()
-
-  if (domType === 'section' && elementName?.startsWith('item_')) {
-    return resolveArrayContainerParentId(element, fields)
+  const dataId = container.dataset.id?.trim()
+  if (dataId && registry.fieldsById[dataId]) {
+    return dataId
   }
 
-  const itemSection = element.closest(
-    '[data-type="section"][data-name^="item_"]',
-  ) as HTMLElement | null
+  const name = container.dataset.name?.trim()
+  if (!name) return null
 
-  if (itemSection && itemSection !== element) {
-    const itemId = itemSection.dataset.id?.trim()
-    if (itemId) return itemId
+  const containerParentId = resolveParentFieldId(container, registry)
+  const key = parentNameKey(containerParentId, name)
+  return registry.fieldsByParentAndName[key]?.id ?? null
+}
 
-    const itemName = itemSection.dataset.name?.trim()
-    if (itemName) {
-      const itemRow = fields.find(
-        (field) => field.name === itemName && field.kind === 'section',
-      )
-      if (itemRow) return itemRow.id
-    }
+/**
+ * Resolves the parent field row id for a DOM element (its `parent_id` in DB).
+ */
+export function resolveParentFieldId(
+  element: HTMLElement,
+  registry: FieldRegistry,
+): string | null {
+  if (element.closest('[data-global]') && !element.dataset.global) {
+    return null
+  }
+
+  const domType = parseDomType(element.dataset.type)
+  const name = element.dataset.name?.trim()
+
+  if (domType === 'section' && name?.startsWith('item_')) {
+    return resolveArrayItemParentId(element, registry)
   }
 
   let current: HTMLElement | null = element.parentElement
 
   while (current) {
-    const domType = parseDomType(current.dataset.type)
+    if (current.dataset.global) return null
 
-    if (domType === 'section' || domType === 'array') {
-      const dataId = current.dataset.id?.trim()
-      if (dataId) return dataId
+    const parentDomType = parseDomType(current.dataset.type)
 
-      const name = current.dataset.name?.trim()
-      if (name) {
-        const containerParentId = resolveParentIdFromFields(current, fields)
-        const match = fields.find(
-          (field) =>
-            field.name === name
-            && field.parent_id === containerParentId
-            && (field.kind === 'section' || field.kind === 'array'),
-        )
-        if (match) return match.id
+    if (parentDomType === 'section' || parentDomType === 'array') {
+      const parentName = current.dataset.name?.trim()
+      if (parentName) {
+        return resolveFieldIdForContainer(current, registry)
       }
     }
 
-    if (domType === 'page') return null
+    if (parentDomType === 'page') break
     current = current.parentElement
   }
 
   return null
+}
+
+/**
+ * Resolves a field binding from a DOM element and the current field registry.
+ */
+export function resolveFieldBinding(
+  element: HTMLElement,
+  registry: FieldRegistry,
+): FieldBinding | null {
+  if (element.dataset.global) return null
+
+  const name = element.dataset.name?.trim()
+  if (!name) return null
+
+  const dataId = element.dataset.id?.trim()
+  if (dataId && registry.fieldsById[dataId]) {
+    const field = registry.fieldsById[dataId]!
+    return {
+      name: field.name,
+      parentId: field.parent_id,
+      context: {
+        ...resolveFieldScope(element),
+        parentId: field.parent_id,
+      },
+      field,
+    }
+  }
+
+  const parentId = resolveParentFieldId(element, registry)
+  const context: FieldParentContext = {
+    ...resolveFieldScope(element),
+    parentId,
+  }
+  const field = registry.fieldsByParentAndName[parentNameKey(parentId, name)] ?? null
+
+  return { name, parentId, context, field }
+}
+
+/**
+ * Computes DOM depth for shallowest-first ensure ordering.
+ */
+export function computeDomDepth(element: HTMLElement): number {
+  let depth = 0
+  let current: HTMLElement | null = element.parentElement
+
+  while (current) {
+    if (current.dataset.global) break
+
+    const domType = parseDomType(current.dataset.type)
+    if (
+      current.hasAttribute('data-name') &&
+      (domType === 'section' || domType === 'array')
+    ) {
+      depth++
+    }
+
+    if (domType === 'page') break
+    current = current.parentElement
+  }
+
+  return depth
 }
 
 /**

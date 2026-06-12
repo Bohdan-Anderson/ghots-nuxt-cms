@@ -4,6 +4,8 @@ import {
   isEditableDomType,
   isStructuralDomType,
   parseDomType,
+  resolveFieldBinding,
+  type FieldRegistry,
 } from '~/fields/domContext'
 import { firstPopulatedColumn } from '~/fields/fieldValues'
 
@@ -32,7 +34,11 @@ function computeDepth(element: HTMLElement): number {
 /**
  * Creates a tree node from a DOM element.
  */
-function nodeFromElement(element: HTMLElement, depth: number): ContentTreeNode {
+function nodeFromElement(
+  element: HTMLElement,
+  depth: number,
+  registry?: FieldRegistry,
+): ContentTreeNode {
   const domType = parseDomType(element.dataset.type)
   const name = element.dataset.name?.trim() ?? 'page'
   const kind = domTypeToKind(domType)
@@ -42,12 +48,15 @@ function nodeFromElement(element: HTMLElement, depth: number): ContentTreeNode {
     previewColumn = domType
   }
 
+  const binding = registry ? resolveFieldBinding(element, registry) : null
+
   return {
     id: element.dataset.id?.trim() || null,
     name,
     domType,
     kind: kind as FieldKind | null,
     depth,
+    parentFieldId: binding?.parentId ?? null,
     children: [],
     previewColumn,
   }
@@ -56,14 +65,17 @@ function nodeFromElement(element: HTMLElement, depth: number): ContentTreeNode {
 /**
  * Scans rendered page DOM and builds a nested content tree for the sidebar.
  */
-export function scanContentTree(root: HTMLElement): ContentTreeNode[] {
+export function scanContentTree(
+  root: HTMLElement,
+  registry?: FieldRegistry,
+): ContentTreeNode[] {
   const elements = root.querySelectorAll('[data-name], [data-type="page"]')
   const flat: ContentTreeNode[] = []
 
   for (const node of elements) {
     const element = node as HTMLElement
     if (!element.dataset.name && element.dataset.type !== 'page') continue
-    flat.push(nodeFromElement(element, computeDepth(element)))
+    flat.push(nodeFromElement(element, computeDepth(element), registry))
   }
 
   return buildNestedTree(flat)

@@ -97,6 +97,8 @@ export interface ContentTreeNode {
   kind: FieldKind | null
   depth: number
   children: ContentTreeNode[]
+  /** Resolved parent field row id for registry lookup. */
+  parentFieldId?: string | null
   /** Set on editable leaves — which column has content for preview. */
   previewColumn?: ValueColumn | null
 }

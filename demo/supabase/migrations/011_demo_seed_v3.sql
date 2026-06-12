@@ -31,8 +31,13 @@ begin
 
   delete from fields where page_id = v_demo_page_id;
 
+  update pages
+  set title = 'Sections demo page',
+      meta_title = 'Sections demo — ghots-cms'
+  where id = v_demo_page_id;
+
   insert into fields (page_id, parent_id, name, kind, plain_text, sort_order)
-  values (v_demo_page_id, null, 'title', null, 'Slice demo page', 0);
+  values (v_demo_page_id, null, 'title', null, 'Sections demo page', 0);
 
   insert into fields (page_id, parent_id, name, kind, sort_order)
   values (v_demo_page_id, null, 'hero1', 'section', 1)

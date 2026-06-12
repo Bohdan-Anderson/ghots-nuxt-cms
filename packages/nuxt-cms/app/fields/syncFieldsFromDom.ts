@@ -1,85 +1,91 @@
 import type { FieldRow, PageContent } from '~/types/cms'
+import { buildFieldMaps } from '~/fields/maps'
 import {
   ensureField,
-  ensureInputFromElement,
   type EnsureFieldInput,
 } from '~/fields/ensureField'
 import {
-  isStructuralDomType,
-  parseDomType,
-  resolveFieldParentContext,
-  resolveParentIdFromFields,
+  computeDomDepth,
+  resolveFieldBinding,
+  type FieldRegistry,
 } from '~/fields/domContext'
 
 type SupabaseClient = ReturnType<typeof useSupabase>
 
 /**
- * Assigns sort_order from sibling index among entries with the same parent.
+ * Collects CMS DOM nodes that still need a field row, shallowest first.
  */
-function assignSortOrders(
-  entries: EnsureFieldInput[],
-): EnsureFieldInput[] {
-  const counters = new Map<string, number>()
-
-  return entries.map((entry) => {
-    const key = entry.parentId ?? 'root'
-    const order = counters.get(key) ?? 0
-    counters.set(key, order + 1)
-    return { ...entry, sortOrder: order }
-  })
-}
-
-/**
- * Collects ensure inputs from all [data-name] elements in the DOM.
- */
-export function collectEnsureInputs(
+export function collectUnresolvedNodes(
   root: HTMLElement,
-  fields: FieldRow[] = [],
-): EnsureFieldInput[] {
-  const elements = root.querySelectorAll('[data-name]')
-  const entries: EnsureFieldInput[] = []
-  const seen = new Set<string>()
+  registry: FieldRegistry,
+): HTMLElement[] {
+  const nodes: HTMLElement[] = []
 
-  for (const node of elements) {
+  for (const node of root.querySelectorAll('[data-name]')) {
     const element = node as HTMLElement
-    const context = resolveFieldParentContext(element)
-    const parentId =
-      context.parentId ?? resolveParentIdFromFields(element, fields)
+    if (element.dataset.global) continue
 
-    const input = ensureInputFromElement(element, { ...context, parentId })
-    if (!input) continue
+    const id = element.dataset.id?.trim()
+    if (id && registry.fieldsById[id]) continue
 
-    input.element = element
-
-    const dedupeKey = `${input.parentId ?? 'root'}:${input.name}`
-    if (seen.has(dedupeKey)) continue
-    seen.add(dedupeKey)
-
-    entries.push(input)
+    nodes.push(element)
   }
 
-  return assignSortOrders(entries)
+  return nodes.sort((a, b) => {
+    const depthDiff = computeDomDepth(a) - computeDomDepth(b)
+    if (depthDiff !== 0) return depthDiff
+    if (a === b) return 0
+    const position = a.compareDocumentPosition(b)
+    if (position & Node.DOCUMENT_POSITION_FOLLOWING) return -1
+    if (position & Node.DOCUMENT_POSITION_PRECEDING) return 1
+    return 0
+  })
 }
 
 /**
- * Sorts ensure inputs so section/array parents are created before children.
+ * Assigns sort_order from sibling index among unresolved nodes with the same parent.
  */
-export function sortEnsureInputs(
-  entries: EnsureFieldInput[],
-): EnsureFieldInput[] {
-  return [...entries].sort((a, b) => {
-    const aStructural = isStructuralDomType(parseDomType(a.domType ?? undefined))
-    const bStructural = isStructuralDomType(parseDomType(b.domType ?? undefined))
-    if (aStructural && !bStructural) return -1
-    if (bStructural && !aStructural) return 1
-    if (a.parentId && !b.parentId) return 1
-    if (!a.parentId && b.parentId) return -1
-    return (a.sortOrder ?? 0) - (b.sortOrder ?? 0)
-  })
+function assignSortOrders(
+  elements: HTMLElement[],
+  registry: FieldRegistry,
+): Map<HTMLElement, number> {
+  const counters = new Map<string, number>()
+  const result = new Map<HTMLElement, number>()
+
+  for (const element of elements) {
+    const binding = resolveFieldBinding(element, registry)
+    if (!binding) continue
+
+    const key = binding.parentId ?? 'root'
+    const order = counters.get(key) ?? 0
+    counters.set(key, order + 1)
+    result.set(element, order)
+  }
+
+  return result
+}
+
+/**
+ * Builds ensure input from a DOM element and resolved binding.
+ */
+export function buildEnsureInput(
+  element: HTMLElement,
+  binding: NonNullable<ReturnType<typeof resolveFieldBinding>>,
+  sortOrder: number,
+): EnsureFieldInput {
+  return {
+    name: binding.name,
+    parentId: binding.parentId,
+    context: binding.context,
+    domType: element.dataset.type ?? null,
+    sortOrder,
+    element,
+  }
 }
 
 /**
  * Ensures all DOM-declared fields exist in Supabase for logged-in editors.
+ * Processes shallowest missing nodes first in a single pass.
  */
 export async function syncFieldsFromDom(
   supabase: SupabaseClient,
@@ -88,91 +94,40 @@ export async function syncFieldsFromDom(
 ): Promise<FieldRow[]> {
   const fields = [...content.fields]
   const changed: FieldRow[] = []
+  const changedIds = new Set<string>()
 
-  for (let pass = 0; pass < 8; pass++) {
-    const inputs = sortEnsureInputs(collectEnsureInputs(root, fields))
-    if (inputs.length === 0) break
+  let registry = buildFieldMaps(fields)
+  const unresolved = collectUnresolvedNodes(root, registry)
+  if (unresolved.length === 0) return []
 
-    let passChanged = false
+  const sortOrders = assignSortOrders(unresolved, registry)
 
-    for (const input of inputs) {
-      const beforeIds = new Set(fields.map((row) => row.id))
+  for (const element of unresolved) {
+    registry = buildFieldMaps(fields)
+    const binding = resolveFieldBinding(element, registry)
+    if (!binding || binding.field) continue
 
-      let parentId =
-        input.parentId
-        ?? (input.element
-          ? resolveParentIdFromFields(input.element, fields)
-          : null)
+    const beforeIds = new Set(fields.map((row) => row.id))
+    const result = await ensureField(
+      supabase,
+      content,
+      buildEnsureInput(element, binding, sortOrders.get(element) ?? 0),
+      fields,
+    )
 
-      const parentContainer = input.element?.parentElement?.closest(
-        '[data-type="section"], [data-type="array"]',
-      ) as HTMLElement | null
+    if (!result) continue
 
-      if (
-        !parentId
-        && parentContainer
-        && parentContainer !== input.element
-      ) {
-        continue
-      }
-
-      if (parentId) {
-        const parentEl = root.querySelector(
-          `[data-id="${parentId}"]`,
-        ) as HTMLElement | null
-        if (parentEl && !fields.some((f) => f.id === parentId)) {
-          const parentContext = resolveFieldParentContext(parentEl)
-          const parentInput = ensureInputFromElement(parentEl, parentContext)
-          if (parentInput) {
-            const parentRow = await ensureField(
-              supabase,
-              content,
-              parentInput,
-              fields,
-            )
-            if (parentRow) {
-              const idx = fields.findIndex((f) => f.id === parentRow.id)
-              if (idx >= 0) fields[idx] = parentRow
-              else fields.push(parentRow)
-              parentId = parentRow.id
-              if (!beforeIds.has(parentRow.id)) {
-                changed.push(parentRow)
-                passChanged = true
-              }
-            }
-          }
-        }
-      }
-
-      const existing = fields.find(
-        (row) =>
-          row.name === input.name && row.parent_id === (parentId ?? null),
-      )
-      if (existing) continue
-
-      const result = await ensureField(
-        supabase,
-        content,
-        { ...input, parentId },
-        fields,
-      )
-
-      if (!result) continue
-
-      const existingIndex = fields.findIndex((row) => row.id === result.id)
-      if (existingIndex >= 0) {
-        fields[existingIndex] = result
-      } else {
-        fields.push(result)
-      }
-
-      if (!beforeIds.has(result.id)) {
-        changed.push(result)
-        passChanged = true
-      }
+    const existingIndex = fields.findIndex((row) => row.id === result.id)
+    if (existingIndex >= 0) {
+      fields[existingIndex] = result
+    } else {
+      fields.push(result)
     }
 
-    if (!passChanged) break
+    if (!beforeIds.has(result.id) && !changedIds.has(result.id)) {
+      changed.push(result)
+      changedIds.add(result.id)
+    }
   }
 
   return changed

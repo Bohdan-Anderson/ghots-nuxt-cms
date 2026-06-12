@@ -354,6 +354,16 @@ export async function resetDemoPageFields(): Promise<void> {
     throw new Error('Demo page title field not found')
   }
 
+  const { error: pageMetaError } = await supabase
+    .from('pages')
+    .update({
+      title: DEMO_BASELINE.pageTitle,
+      meta_title: DEMO_BASELINE.metaTitle,
+    })
+    .eq('id', page.id)
+
+  if (pageMetaError) throw pageMetaError
+
   const updates: { id: string; patch: Record<string, string> }[] = [
     { id: titleField.id, patch: { plain_text: DEMO_BASELINE.pageTitle } },
   ]

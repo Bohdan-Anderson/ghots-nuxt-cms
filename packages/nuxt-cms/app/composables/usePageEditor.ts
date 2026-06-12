@@ -5,9 +5,8 @@ import { updateFieldColumn } from '~/composables/usePageContent'
 import {
   isEditableDomType,
   parseDomType,
-  resolveFieldParentContext,
+  resolveFieldBinding,
 } from '~/fields/domContext'
-import { parentNameKey } from '~/fields/maps'
 
 interface PageEditorRegistry {
   fieldsById: Record<string, FieldRow>
@@ -117,29 +116,7 @@ export function usePageEditor() {
    */
   function resolveFieldFromElement(el: HTMLElement): FieldRow | null {
     if (!registry.value) return null
-
-    const id = el.dataset.id
-    if (id && registry.value.fieldsById[id]) {
-      return registry.value.fieldsById[id]
-    }
-
-    const name = el.dataset.name
-    if (!name) return null
-
-    const context = resolveFieldParentContext(el)
-    const key = parentNameKey(context.parentId, name)
-    if (registry.value.fieldsByParentAndName[key]) {
-      return registry.value.fieldsByParentAndName[key]
-    }
-
-    if (!context.parentId) {
-      const rootMatches = Object.values(registry.value.fieldsById).filter(
-        (f) => f.name === name && f.parent_id === null,
-      )
-      if (rootMatches.length === 1) return rootMatches[0]!
-    }
-
-    return null
+    return resolveFieldBinding(el, registry.value)?.field ?? null
   }
 
   /**

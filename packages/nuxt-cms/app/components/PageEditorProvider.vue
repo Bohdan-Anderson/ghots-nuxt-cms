@@ -3,13 +3,9 @@ import type { FieldRow } from '~/types/cms'
 import { fieldTypeSupportsOnPageClick } from '~/fields/registry'
 import { rebuildPageContent } from '~/fields/pageContent'
 import { syncFieldsFromDom } from '~/fields/syncFieldsFromDom'
-import {
-  ensureField,
-  ensureInputFromElement,
-} from '~/fields/ensureField'
-import {
-  resolveFieldParentContext,
-} from '~/fields/domContext'
+import { ensureField } from '~/fields/ensureField'
+import { resolveFieldBinding } from '~/fields/domContext'
+import { buildEnsureInput } from '~/fields/syncFieldsFromDom'
 
 /**
  * Wraps a page template for inline CMS editing.
@@ -39,9 +35,10 @@ function syncRegistry() {
 
 function refreshContentTree(
   fieldsById: Record<string, FieldRow> = props.fieldsById,
+  fieldsByParentAndName: Record<string, FieldRow> = props.fieldsByParentAndName,
 ) {
   if (!props.enabled || !rootRef.value) return
-  rebuildFromDom(rootRef.value, fieldsById)
+  rebuildFromDom(rootRef.value, fieldsById, fieldsByParentAndName)
 }
 
 function applySyncedFields(changed: FieldRow[]) {
@@ -61,7 +58,7 @@ function applySyncedFields(changed: FieldRow[]) {
 
   applyPageContent(rebuilt)
   syncRegistry()
-  refreshContentTree(rebuilt.fieldsById)
+  refreshContentTree(rebuilt.fieldsById, rebuilt.fieldsByParentAndName)
 }
 
 async function runFieldSync() {
@@ -81,7 +78,10 @@ async function runFieldSync() {
   } finally {
     syncing.value = false
     await nextTick()
-    refreshContentTree(pageContent.value?.fieldsById ?? props.fieldsById)
+    refreshContentTree(
+      pageContent.value?.fieldsById ?? props.fieldsById,
+      pageContent.value?.fieldsByParentAndName ?? props.fieldsByParentAndName,
+    )
   }
 }
 
@@ -89,9 +89,11 @@ async function ensureFieldForElement(el: HTMLElement): Promise<FieldRow | null> 
   const current = pageContent.value
   if (!current) return null
 
-  const context = resolveFieldParentContext(el)
-  const input = ensureInputFromElement(el, context)
-  if (!input) return null
+  const binding = resolveFieldBinding(el, {
+    fieldsById: current.fieldsById,
+    fieldsByParentAndName: current.fieldsByParentAndName,
+  })
+  if (!binding || binding.field) return binding?.field ?? null
 
   syncing.value = true
   try {
@@ -99,7 +101,7 @@ async function ensureFieldForElement(el: HTMLElement): Promise<FieldRow | null> 
     const result = await ensureField(
       supabase,
       current,
-      input,
+      buildEnsureInput(el, binding, 0),
       current.fields,
     )
     if (result) {

@@ -1,10 +1,11 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { FieldRow, PageContent } from '../types/cms'
 import {
-  collectEnsureInputs,
-  sortEnsureInputs,
+  buildEnsureInput,
+  collectUnresolvedNodes,
   syncFieldsFromDom,
 } from './syncFieldsFromDom'
+import { resolveFieldBinding } from './domContext'
 
 function field(
   partial: Partial<FieldRow> & Pick<FieldRow, 'id' | 'name'>,
@@ -96,25 +97,28 @@ function createMockSupabase(inserts: FieldRow[]) {
   }
 }
 
-describe('collectEnsureInputs', () => {
-  it('dedupes entries with the same parent and name', () => {
-    const duplicate = el('p', {
+describe('collectUnresolvedNodes', () => {
+  it('skips nodes that already have a valid field id in the registry', () => {
+    const existing = field({ id: 'title-id', name: 'title', plain_text: 'Hi' })
+    const title = el('h1', {
       'data-name': 'title',
       'data-type': 'plain_text',
+      'data-id': 'title-id',
     })
     const root = el('article', {
       'data-type': 'page',
       'data-id': 'page-1',
-    }, [duplicate, duplicate.cloneNode(true) as HTMLElement])
+    }, [title])
 
-    const inputs = collectEnsureInputs(root, [])
-    expect(inputs.filter((row) => row.name === 'title')).toHaveLength(1)
+    const registry = {
+      fieldsById: { 'title-id': existing },
+      fieldsByParentAndName: { ':title': existing },
+    }
+
+    expect(collectUnresolvedNodes(root, registry)).toHaveLength(0)
   })
 
-  it('assigns parent id from DB when section lacks data-id', () => {
-    const fields = [
-      field({ id: 'hero1-id', name: 'hero1', kind: 'section' }),
-    ]
+  it('orders shallowest nodes first', () => {
     const headline = el('h2', {
       'data-name': 'headline',
       'data-type': 'plain_text',
@@ -128,38 +132,20 @@ describe('collectEnsureInputs', () => {
       'data-id': 'page-1',
     }, [section])
 
-    const inputs = collectEnsureInputs(root, fields)
-    const headlineInput = inputs.find((row) => row.name === 'headline')
+    const unresolved = collectUnresolvedNodes(root, {
+      fieldsById: {},
+      fieldsByParentAndName: {},
+    })
 
-    expect(headlineInput?.parentId).toBe('hero1-id')
-  })
-})
-
-describe('sortEnsureInputs', () => {
-  it('orders structural containers before leaf fields', () => {
-    const sorted = sortEnsureInputs([
-      {
-        name: 'headline',
-        parentId: 'hero1-id',
-        context: { pageId: 'page-1', globalId: null, parentId: 'hero1-id' },
-        domType: 'plain_text',
-        sortOrder: 1,
-      },
-      {
-        name: 'hero1',
-        parentId: null,
-        context: { pageId: 'page-1', globalId: null, parentId: null },
-        domType: 'section',
-        sortOrder: 0,
-      },
+    expect(unresolved.map((node) => node.dataset.name)).toEqual([
+      'hero1',
+      'headline',
     ])
-
-    expect(sorted.map((row) => row.name)).toEqual(['hero1', 'headline'])
   })
 })
 
 describe('syncFieldsFromDom', () => {
-  it('creates section then nested headline across passes when section has no data-id', async () => {
+  it('creates section then nested headline in one shallowest-first pass', async () => {
     const heroSection = field({ id: 'hero1-id', name: 'hero1', kind: 'section' })
     const headline = field({
       id: 'headline-id',
@@ -191,7 +177,7 @@ describe('syncFieldsFromDom', () => {
     expect(supabase.chain.insert).toHaveBeenCalledTimes(2)
   })
 
-  it('defers nested fields until parent section exists in the field list', async () => {
+  it('ensures nested fields when parent section already exists in the field list', async () => {
     const heroSection = field({ id: 'hero1-id', name: 'hero1', kind: 'section' })
     const headline = field({
       id: 'headline-id',
@@ -236,7 +222,7 @@ describe('syncFieldsFromDom', () => {
       name: 'headline',
       parent_id: 'h2',
     })
-    const supabase = createMockSupabase([hero1, headline1, hero2, headline2])
+    const supabase = createMockSupabase([hero1, hero2, headline1, headline2])
     const content = pageContent([])
 
     const buildHero = (name: string) => {
@@ -295,9 +281,12 @@ describe('syncFieldsFromDom', () => {
     ])
     const root = el('div', {}, [nav])
 
-    const inputs = collectEnsureInputs(root, [])
-    expect(inputs).toHaveLength(1)
-    expect(inputs[0]).toMatchObject({
+    const binding = resolveFieldBinding(navLabel, {
+      fieldsById: {},
+      fieldsByParentAndName: {},
+    })
+
+    expect(binding).toMatchObject({
       name: 'nav_label',
       parentId: null,
       context: {
@@ -306,6 +295,10 @@ describe('syncFieldsFromDom', () => {
         parentId: null,
       },
     })
+
+    expect(
+      collectUnresolvedNodes(root, { fieldsById: {}, fieldsByParentAndName: {} }),
+    ).toHaveLength(1)
   })
 
   it('assigns sort_order among siblings with the same parent', () => {
@@ -319,8 +312,13 @@ describe('syncFieldsFromDom', () => {
       'data-id': 'page-1',
     }, [title, subtitle])
 
-    const inputs = collectEnsureInputs(root, [])
-    expect(inputs.find((row) => row.name === 'title')?.sortOrder).toBe(0)
-    expect(inputs.find((row) => row.name === 'subtitle')?.sortOrder).toBe(1)
+    const emptyRegistry = { fieldsById: {}, fieldsByParentAndName: {} }
+    const unresolved = collectUnresolvedNodes(root, emptyRegistry)
+    const titleBinding = resolveFieldBinding(title, emptyRegistry)!
+    const subtitleBinding = resolveFieldBinding(subtitle, emptyRegistry)!
+
+    expect(buildEnsureInput(title, titleBinding, 0).sortOrder).toBe(0)
+    expect(buildEnsureInput(subtitle, subtitleBinding, 1).sortOrder).toBe(1)
+    expect(unresolved).toHaveLength(2)
   })
 })
