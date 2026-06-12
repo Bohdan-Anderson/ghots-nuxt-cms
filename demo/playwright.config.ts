@@ -53,6 +53,7 @@ export default defineConfig({
         'no-site-editor.spec.ts',
         'sidebar.spec.ts',
         'field-types.spec.ts',
+        'global-editor.spec.ts',
         'images-arrays.spec.ts',
         'publish-ui.spec.ts',
       ],

@@ -46,6 +46,10 @@ export function useCmsPageActions() {
         fields: [...current.fields, ...newFields],
       }),
     )
+
+    const { requestFieldSync } = useCmsFieldSync()
+    await nextTick()
+    await requestFieldSync()
   }
 
   /**

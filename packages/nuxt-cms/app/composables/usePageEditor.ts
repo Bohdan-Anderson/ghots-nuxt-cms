@@ -14,8 +14,8 @@ interface PageEditorRegistry {
   fieldsByParentAndName: Record<string, FieldRow>
 }
 
-/** Client-only callback — must not live in useState (breaks prerender payload). */
-let fieldUpdatedHandler: ((field: FieldRow) => void) | null = null
+/** Client-only callbacks — must not live in useState (breaks prerender payload). */
+const fieldUpdatedHandlers = new Set<(field: FieldRow) => void>()
 
 /**
  * Singleton editor state: active field, modal, save to Supabase.
@@ -39,17 +39,35 @@ export function usePageEditor() {
   function setFieldUpdatedHandler(
     handler: ((field: FieldRow) => void) | null,
   ) {
-    fieldUpdatedHandler = handler
+    fieldUpdatedHandlers.clear()
+    if (handler) fieldUpdatedHandlers.add(handler)
   }
 
   /**
-   * Registers the current page field maps for click-delegation lookup.
+   * Adds a save listener without replacing existing handlers (e.g. globals + page).
+   */
+  function addFieldUpdatedHandler(
+    handler: (field: FieldRow) => void,
+  ): () => void {
+    fieldUpdatedHandlers.add(handler)
+    return () => fieldUpdatedHandlers.delete(handler)
+  }
+
+  /**
+   * Registers field maps for click-delegation lookup (merges with existing globals).
    */
   function registerFields(
     fieldsById: Record<string, FieldRow>,
     fieldsByParentAndName: Record<string, FieldRow>,
   ) {
-    registry.value = { fieldsById, fieldsByParentAndName }
+    const current = registry.value
+    registry.value = {
+      fieldsById: { ...current?.fieldsById, ...fieldsById },
+      fieldsByParentAndName: {
+        ...current?.fieldsByParentAndName,
+        ...fieldsByParentAndName,
+      },
+    }
   }
 
   /**
@@ -88,7 +106,9 @@ export function usePageEditor() {
 
     const value = config.draftToValue(draftValue.value)
     const updated = await updateFieldColumn(field.id, column, value)
-    fieldUpdatedHandler?.(updated)
+    for (const handler of fieldUpdatedHandlers) {
+      handler(updated)
+    }
     close()
   }
 
@@ -160,6 +180,7 @@ export function usePageEditor() {
     isOpen,
     registerFields,
     setFieldUpdatedHandler,
+    addFieldUpdatedHandler,
     open,
     close,
     save,

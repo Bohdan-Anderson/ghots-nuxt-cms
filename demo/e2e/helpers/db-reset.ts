@@ -15,10 +15,10 @@ export const BASELINE = {
 
 /** Known baseline values for /demo page. */
 export const DEMO_BASELINE = {
-  pageTitle: 'Slice demo page',
+  pageTitle: 'Sections demo page',
   firstHeroHeadline: 'First hero headline',
   secondHeroHeadline: 'Second hero headline',
-  metaTitle: 'Slice demo — ghots-cms',
+  metaTitle: 'Sections demo — ghots-cms',
   navLabel: 'My Site',
   ctaLinkLabel: 'Learn more',
   ctaRichTextSnippet: 'Welcome to our',
@@ -470,9 +470,49 @@ export async function resetDemoPageFields(): Promise<void> {
 }
 
 /**
+ * Resets site global fields (nav_label) to baseline values.
+ */
+export async function resetGlobalSiteFields(): Promise<void> {
+  const supabase = await signInAsEditor()
+  const siteId = await resolveE2eSiteId(supabase)
+
+  const { data: globalRow, error: globalError } = await supabase
+    .from('globals')
+    .select('id')
+    .eq('site_id', siteId)
+    .eq('key', 'site')
+    .maybeSingle()
+
+  if (globalError) throw globalError
+  if (!globalRow) throw new Error('Site global (key site) not found in Supabase')
+
+  const { data: fields, error: fieldsError } = await supabase
+    .from('fields')
+    .select('*')
+    .eq('global_id', globalRow.id)
+
+  if (fieldsError) throw fieldsError
+
+  const navLabel = resolveField((fields ?? []) as FieldRow[], 'nav_label')
+  if (!navLabel) {
+    throw new Error('Global nav_label field not found in Supabase')
+  }
+
+  const { error: updateError } = await supabase
+    .from('fields')
+    .update({ plain_text: DEMO_BASELINE.navLabel })
+    .eq('id', navLabel.id)
+
+  if (updateError) throw updateError
+
+  await supabase.auth.signOut()
+}
+
+/**
  * Resets all E2E baseline pages (home + demo) before/after a test run.
  */
 export async function resetE2eBaselines(): Promise<void> {
   await resetHomePageFields()
   await resetDemoPageFields()
+  await resetGlobalSiteFields()
 }

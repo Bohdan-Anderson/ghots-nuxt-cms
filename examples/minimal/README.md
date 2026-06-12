@@ -25,7 +25,6 @@ Open http://localhost:3000 — log in at `/login` to edit the home page title.
 | `app/templates/DefaultPage.vue` | Single-field home layout |
 | `app/pages/[...slug].vue` | Catch-all + `useCmsPage()` |
 | `app/app.vue` | Sidebar + `<NuxtPage />` |
-| `app/slices/registry.ts` | Empty stub (no slices) |
 | `app/globals/registry.ts` | Empty stub (no globals) |
 
 Paths above are under `examples/minimal/app/` in this repo; in your own Nuxt project they live under `app/`.

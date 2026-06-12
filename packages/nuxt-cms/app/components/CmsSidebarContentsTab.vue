@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { EditableFieldType, FieldRow } from '~/types/cms'
-import { flattenTreeForSidebar } from '~/composables/buildContentTree'
 import { flattenContentTree } from '~/fields/scanContentTree'
 import { isEditableFieldType } from '~/fields/registry'
 
@@ -11,12 +10,7 @@ const { addArrayItem, removeArrayItem } = useCmsPageActions()
 
 const arrayBusy = ref(false)
 
-const flatNodes = computed(() => {
-  if (contentTree.value.length > 0) {
-    return flattenContentTree(contentTree.value)
-  }
-  return flattenTreeForSidebar(contentTree.value)
-})
+const flatNodes = computed(() => flattenContentTree(contentTree.value))
 
 /**
  * Opens the edit modal for an editable field and scrolls to it on the page.

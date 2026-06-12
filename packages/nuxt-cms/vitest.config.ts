@@ -15,13 +15,37 @@ export default defineConfig({
       '~/fields/maps': resolve(appDir, 'fields/maps.ts'),
       '~/fields/domContext': resolve(appDir, 'fields/domContext.ts'),
       '~/fields/fieldValues': resolve(appDir, 'fields/fieldValues.ts'),
+      '~/fields/pageContent': resolve(appDir, 'fields/pageContent.ts'),
       '~/fields/ensureField': resolve(appDir, 'fields/ensureField.ts'),
       '~/fields/syncFieldsFromDom': resolve(appDir, 'fields/syncFieldsFromDom.ts'),
       '~/fields/scanContentTree': resolve(appDir, 'fields/scanContentTree.ts'),
+      '~/fields/registry': resolve(appDir, 'fields/registry.ts'),
+      '~/composables/useCmsField': resolve(appDir, 'composables/useCmsField.ts'),
+      '~/composables/usePageEditor': resolve(appDir, 'composables/usePageEditor.ts'),
+      '~/composables/useCmsFieldSync': resolve(appDir, 'composables/useCmsFieldSync.ts'),
+      '~/composables/seedFields': resolve(appDir, 'composables/seedFields.ts'),
+      '~/composables/usePageContent': resolve(appDir, 'composables/usePageContent.ts'),
+      '~/components/field-edit/FieldEditPlainText.vue': resolve(
+        __dirname,
+        'test-utils/vue-component-stub.ts',
+      ),
+      '~/components/field-edit/FieldEditLink.vue': resolve(
+        __dirname,
+        'test-utils/vue-component-stub.ts',
+      ),
+      '~/components/field-edit/FieldEditRichText.vue': resolve(
+        __dirname,
+        'test-utils/vue-component-stub.ts',
+      ),
+      '~/components/field-edit/FieldEditImage.vue': resolve(
+        __dirname,
+        'test-utils/vue-component-stub.ts',
+      ),
     },
   },
   test: {
     include: ['app/**/*.test.ts'],
     environment: 'happy-dom',
+    setupFiles: [resolve(__dirname, 'test-utils/vitest.setup.ts')],
   },
 })

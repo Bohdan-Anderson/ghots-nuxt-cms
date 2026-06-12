@@ -144,12 +144,21 @@ async function onClick(event: MouseEvent) {
   editor.open(field, column)
 }
 
+let removeFieldUpdatedListener: (() => void) | null = null
+
 onMounted(() => {
+  removeFieldUpdatedListener = editor.addFieldUpdatedHandler((updated) => {
+    if (!updated.global_id) return
+    applySyncedField(updated)
+    emit('fieldUpdated', updated)
+  })
   rootRef.value?.addEventListener('click', onClick)
   void nextTick(() => runFieldSync())
 })
 
 onUnmounted(() => {
+  removeFieldUpdatedListener?.()
+  removeFieldUpdatedListener = null
   rootRef.value?.removeEventListener('click', onClick)
 })
 </script>

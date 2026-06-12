@@ -72,20 +72,12 @@ async function runFieldSync() {
   syncing.value = true
   try {
     const supabase = useSupabase()
-    let current = pageContent.value
-
-    for (let pass = 0; pass < 5; pass++) {
-      const changed = await syncFieldsFromDom(
-        supabase,
-        current,
-        rootRef.value,
-      )
-      if (changed.length === 0) break
-
-      applySyncedFields(changed)
-      current = pageContent.value ?? current
-      await nextTick()
-    }
+    const changed = await syncFieldsFromDom(
+      supabase,
+      pageContent.value,
+      rootRef.value,
+    )
+    applySyncedFields(changed)
   } finally {
     syncing.value = false
     await nextTick()
@@ -148,14 +140,7 @@ watch(
   { deep: true },
 )
 
-watch(
-  () => pageContent.value?.fields.length,
-  async () => {
-    if (!props.enabled) return
-    await nextTick()
-    await runFieldSync()
-  },
-)
+const { registerFieldSync } = useCmsFieldSync()
 
 async function onClick(event: MouseEvent) {
   if (!props.enabled) return
@@ -179,15 +164,23 @@ async function onClick(event: MouseEvent) {
   editor.open(field, column)
 }
 
+let removeFieldUpdatedListener: (() => void) | null = null
+
 onMounted(() => {
   syncRegistry()
-  editor.setFieldUpdatedHandler((updated) => emit('fieldUpdated', updated))
+  registerFieldSync(runFieldSync)
+  removeFieldUpdatedListener = editor.addFieldUpdatedHandler((updated) => {
+    if (updated.global_id) return
+    emit('fieldUpdated', updated)
+  })
   rootRef.value?.addEventListener('click', onClick)
   void nextTick(() => runFieldSync())
 })
 
 onUnmounted(() => {
-  editor.setFieldUpdatedHandler(null)
+  removeFieldUpdatedListener?.()
+  removeFieldUpdatedListener = null
+  registerFieldSync(null)
   rootRef.value?.removeEventListener('click', onClick)
   clearTree()
 })
@@ -199,8 +192,8 @@ onUnmounted(() => {
     :class="{ 'page--editing': enabled }"
   >
     <slot />
-    <FieldEditModal v-if="enabled" />
   </div>
+  <FieldEditModal v-if="enabled" />
 </template>
 
 <style scoped>

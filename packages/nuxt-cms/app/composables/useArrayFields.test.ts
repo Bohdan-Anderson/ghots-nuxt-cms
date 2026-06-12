@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { FieldRow, PageContent } from '../types/cms'
+import { countArrayItems } from './useArrayFields'
 import { collectFieldSubtreeIds } from '../fields/maps'
 import { rebuildPageContent } from '../fields/pageContent'
 
@@ -19,6 +20,33 @@ function field(
     ...partial,
   }
 }
+
+describe('countArrayItems', () => {
+  it('counts only section children under the array field', () => {
+    const fields = [
+      field({ id: 'arr', name: 'members', kind: 'array' }),
+      field({
+        id: 'item-0',
+        name: 'item_0',
+        kind: 'section',
+        parent_id: 'arr',
+      }),
+      field({
+        id: 'item-1',
+        name: 'item_1',
+        kind: 'section',
+        parent_id: 'arr',
+      }),
+      field({
+        id: 'name-0',
+        name: 'name',
+        parent_id: 'item-0',
+      }),
+    ]
+
+    expect(countArrayItems(fields, 'arr')).toBe(2)
+  })
+})
 
 describe('array item panel patch', () => {
   const baseFields: FieldRow[] = [

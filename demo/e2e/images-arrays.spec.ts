@@ -44,7 +44,11 @@ test('editor can upload image and add/remove team array items', async ({
   await expect(secondMember.locator('.cms-image-empty')).toBeVisible()
   await waitForPageFieldSync(page, 'name', 1)
 
-  await secondMember.locator('[data-name="name"]').click()
+  await sidebar
+    .locator('.cms-sidebar-field-btn')
+    .filter({ hasText: 'name:' })
+    .last()
+    .click()
   const dialog = page.locator('dialog.field-edit-modal')
   await expect(dialog).toBeVisible()
   await dialog.locator('textarea').fill(newMemberName)

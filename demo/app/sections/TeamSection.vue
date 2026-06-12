@@ -22,13 +22,27 @@ function field(name: string): FieldRow {
 
 const membersArray = computed(() => field('members'))
 
-const members = computed(() => {
+const memberSections = computed(() => {
   if (!membersArray.value.id) return []
-  return resolveArrayItems(props.fields, membersArray.value.id)
+  return props.fields
+    .filter(
+      (row) =>
+        row.parent_id === membersArray.value.id && row.kind === 'section',
+    )
+    .sort((a, b) => a.sort_order - b.sort_order)
 })
 
-function itemField(itemFields: FieldRow[], name: string): FieldRow | undefined {
-  return itemFields.find((row) => row.name === name)
+/**
+ * Returns child fields for an array item section.
+ */
+function itemFields(itemSectionId: string): FieldRow[] {
+  return props.fields
+    .filter((row) => row.parent_id === itemSectionId)
+    .sort((a, b) => a.sort_order - b.sort_order)
+}
+
+function itemField(itemSectionId: string, name: string): FieldRow | undefined {
+  return itemFields(itemSectionId).find((row) => row.name === name)
 }
 </script>
 
@@ -56,21 +70,29 @@ function itemField(itemFields: FieldRow[], name: string): FieldRow | undefined {
 
     <ul class="team-section__members">
       <li
-        v-for="(itemFields, index) in members"
-        :key="itemFields[0]?.parent_id ?? index"
+        v-for="itemSection in memberSections"
+        :key="itemSection.id"
         class="team-section__member"
         data-type="section"
-        :data-name="itemFields[0]?.name ?? `item_${index}`"
-        :data-id="itemFields[0]?.id ?? ''"
+        :data-name="itemSection.name"
+        :data-id="itemSection.id"
       >
-        <CmsImage :field="itemField(itemFields, 'photo')" name="photo" />
+        <CmsImage
+          :field="itemField(itemSection.id, 'photo')"
+          name="photo"
+        />
         <p
           class="team-section__name"
           data-name="name"
           data-type="plain_text"
-          :data-id="itemField(itemFields, 'name')?.id ?? ''"
+          :data-id="itemField(itemSection.id, 'name')?.id ?? ''"
         >
-          {{ cmsColumnValue(itemField(itemFields, 'name') ?? field('name'), 'plain_text') }}
+          {{
+            cmsColumnValue(
+              itemField(itemSection.id, 'name') ?? field('name'),
+              'plain_text',
+            )
+          }}
         </p>
       </li>
     </ul>

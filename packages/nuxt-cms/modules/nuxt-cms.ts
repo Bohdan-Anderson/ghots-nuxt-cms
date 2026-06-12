@@ -8,7 +8,7 @@ import {
 } from '@nuxt/kit'
 
 export interface ModuleOptions {
-  /** Path to consumer `registries.ts` (template/slice/global resolvers). */
+  /** Path to consumer `registries.ts` (template + global resolvers). */
   registriesPath?: string
 }
 

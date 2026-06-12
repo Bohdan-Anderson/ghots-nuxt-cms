@@ -11,6 +11,8 @@ export interface EnsureFieldInput {
   context: FieldParentContext
   domType?: string | null
   sortOrder?: number
+  /** Source element for parent re-resolution during multi-pass sync. */
+  element?: HTMLElement
 }
 
 /**

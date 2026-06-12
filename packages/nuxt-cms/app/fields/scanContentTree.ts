@@ -90,7 +90,10 @@ function buildNestedTree(flat: ContentTreeNode[]): ContentTreeNode[] {
     }
 
     const domType = node.domType
-    if (isStructuralDomType(domType) || domType === 'array') {
+    if (
+      domType !== 'page'
+      && (isStructuralDomType(domType) || domType === 'array')
+    ) {
       stack.push(copy)
     }
   }

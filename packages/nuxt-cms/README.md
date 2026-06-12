@@ -79,10 +79,10 @@ The layer ships editor UI, composables, auth, and DB schema. Your app provides c
 
 | File / folder | Purpose |
 | ------------- | ------- |
-| `app/cms/registries.ts` | **Required** — exports template, slice, and global resolvers |
+| `app/cms/registries.ts` | **Required** — exports template and global resolvers |
 | `app/composables/useTemplate.ts` | Maps DB template keys → Vue SFCs |
 | `app/templates/*.vue` | Page layouts with CMS fields |
-| `app/slices/registry.ts` | Slice components + field schemas (optional) |
+| `app/sections/*.vue` | Reusable section components (optional) |
 | `app/globals/registry.ts` | Shared nav/footer/settings (optional) |
 | `app/pages/[...slug].vue` | Catch-all page using `useCmsPage()` |
 | `app/app.vue` | Site shell + `<CmsSidebar v-if="loggedIn" />` |
@@ -92,11 +92,6 @@ The layer ships editor UI, composables, auth, and DB schema. Your app provides c
 ```ts
 // app/cms/registries.ts
 export { resolveTemplateComponent } from '~/composables/useTemplate'
-export {
-  getSliceDefinition,
-  listSliceDefinitions,
-  resolveSliceComponent,
-} from '~/slices/registry'
 export {
   getGlobalDefinition,
   listGlobalDefinitions,
