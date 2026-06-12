@@ -59,6 +59,13 @@ export async function loginWithCredentials(
 
   await page.goto(`${root}/`)
   await expect(page.locator('h1')).toBeVisible()
+
+  const serverError = page.getByText('Internal Server Error')
+  if (await serverError.isVisible().catch(() => false)) {
+    const detail = await page.locator('body').innerText()
+    throw new Error(`App returned 500 after login:\n${detail.slice(0, 500)}`)
+  }
+
   await expect(page.getByRole('button', { name: 'CMS' })).toBeVisible({
     timeout: 15_000,
   })

@@ -68,9 +68,17 @@ export default defineNuxtModule<ModuleOptions>({
     }
 
     const resolveFieldModule = resolvePath('../app/fields/resolveField')
+    const fieldValuesModule = resolvePath('../app/fields/fieldValues')
+    const cmsFieldModule = resolvePath('../app/composables/useCmsField')
+    const globalModule = resolvePath('../app/composables/useGlobal')
+
     addImports([
       { name: 'resolveField', from: resolveFieldModule },
       { name: 'resolveArrayItems', from: resolveFieldModule },
+      { name: 'emptyFieldRow', from: fieldValuesModule },
+      { name: 'cmsColumnValue', from: cmsFieldModule },
+      { name: 'useCmsField', from: cmsFieldModule },
+      { name: 'resolveGlobalField', from: globalModule },
     ])
 
     await installModule(resolvePath('./localize-cms-images'))

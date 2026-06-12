@@ -4,9 +4,11 @@ import { parseImageValue } from '~/types/fieldValues'
 
 const props = defineProps<{
   field: FieldRow | undefined
+  name?: string
 }>()
 
-const image = computed(() => parseImageValue(props.field?.value ?? null))
+const image = computed(() => parseImageValue(props.field?.image ?? null))
+const fieldName = computed(() => props.name ?? props.field?.name ?? '')
 </script>
 
 <template>
@@ -14,15 +16,15 @@ const image = computed(() => parseImageValue(props.field?.value ?? null))
     v-if="image.url"
     :src="image.url"
     :alt="image.alt"
-    :data-name="field?.name"
-    :data-type="field?.type ?? 'image'"
+    :data-name="fieldName"
+    data-type="image"
     :data-id="field?.id ?? ''"
     class="cms-image"
   />
   <span
     v-else
-    :data-name="field?.name"
-    :data-type="field?.type ?? 'image'"
+    :data-name="fieldName"
+    data-type="image"
     :data-id="field?.id ?? ''"
     class="cms-image-empty"
   >

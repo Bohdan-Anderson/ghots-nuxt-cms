@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test'
 import { getE2eEnv } from './helpers/env'
 import { DEMO_BASELINE } from './helpers/db-reset'
 
-test('guest on static deploy loads demo page with slices and global nav', async ({
+test('guest on static deploy loads demo page with sections and global nav', async ({
   page,
 }) => {
   const supabaseHost = new URL(getE2eEnv().supabaseUrl).hostname
@@ -18,15 +18,15 @@ test('guest on static deploy loads demo page with slices and global nav', async 
   await page.goto('/demo')
   await expect(page.locator('nav strong')).toHaveText(DEMO_BASELINE.navLabel)
   await expect(page.locator('h1')).toHaveText(DEMO_BASELINE.pageTitle)
-  await expect(page.locator('.hero-slice h2')).toHaveCount(2)
-  await expect(page.locator('.hero-slice h2').first()).toHaveText(
+  await expect(page.locator('.hero-section h2')).toHaveCount(2)
+  await expect(page.locator('.hero-section h2').first()).toHaveText(
     DEMO_BASELINE.firstHeroHeadline,
   )
-  await expect(page.locator('.hero-slice h2').nth(1)).toHaveText(
+  await expect(page.locator('.hero-section h2').nth(1)).toHaveText(
     DEMO_BASELINE.secondHeroHeadline,
   )
-  await expect(page.locator('.team-slice')).toBeVisible()
-  await expect(page.locator('.team-slice__name')).toContainText(
+  await expect(page.locator('.team-section')).toBeVisible()
+  await expect(page.locator('.team-section__name')).toContainText(
     DEMO_BASELINE.teamMemberName,
   )
 

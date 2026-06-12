@@ -1,11 +1,16 @@
 import { test, expect } from '@playwright/test'
 import { editPlainTextField, loginAsEditor } from './helpers/auth'
-import { getHomePageRootField } from './helpers/db-reset'
+import {
+  deleteHomePageRootField,
+  getHomePageRootField,
+} from './helpers/db-reset'
 
 test('editor on-demand sync creates missing field from markup and it is editable', async ({
   page,
 }) => {
   const editedSubtitle = `E2E on-demand subtitle ${Date.now()}`
+
+  await deleteHomePageRootField('subtitle')
 
   const beforeSync = await getHomePageRootField('subtitle')
   expect(beforeSync).toBeNull()
@@ -27,7 +32,7 @@ test('editor on-demand sync creates missing field from markup and it is editable
   const afterSync = await getHomePageRootField('subtitle')
   expect(afterSync).not.toBeNull()
   expect(afterSync?.id).toBe(fieldId)
-  expect(afterSync?.type).toBe('plain_text')
+  expect(afterSync?.plain_text ?? '').toBe('')
 
   await editPlainTextField(page, 'subtitle', editedSubtitle)
   await expect(subtitle).toHaveText(editedSubtitle)
@@ -36,5 +41,5 @@ test('editor on-demand sync creates missing field from markup and it is editable
   await expect(subtitle).toHaveText(editedSubtitle)
 
   const afterEdit = await getHomePageRootField('subtitle')
-  expect(afterEdit?.value).toBe(editedSubtitle)
+  expect(afterEdit?.plain_text).toBe(editedSubtitle)
 })

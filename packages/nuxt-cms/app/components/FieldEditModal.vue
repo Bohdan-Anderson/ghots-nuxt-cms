@@ -3,6 +3,7 @@ import { getFieldTypeConfig } from '~/fields/registry'
 
 const {
   activeField,
+  activeColumn,
   draftValue,
   isOpen,
   close,
@@ -13,9 +14,9 @@ const saving = ref(false)
 const errorMessage = ref('')
 
 const editComponent = computed(() => {
-  const field = activeField.value
-  if (!field) return null
-  return getFieldTypeConfig(field.type)?.editComponent ?? null
+  const column = activeColumn.value
+  if (!column) return null
+  return getFieldTypeConfig(column)?.editComponent ?? null
 })
 
 /**
@@ -42,7 +43,7 @@ async function handleSave() {
     @close="close"
   >
     <form
-      v-if="activeField && editComponent"
+      v-if="activeField && activeColumn && editComponent"
       class="field-edit-modal__form"
       @submit.prevent="handleSave"
     >
@@ -53,7 +54,7 @@ async function handleSave() {
         :is="editComponent"
         v-model:draft="draftValue"
         v-bind="
-          activeField.type === 'image' ? { fieldId: activeField.id } : {}
+          activeColumn === 'image' ? { fieldId: activeField.id } : {}
         "
       />
       <p

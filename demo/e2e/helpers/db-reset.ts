@@ -1,9 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import {
-  resolveField,
-  seedFieldsFromSchema,
-  type FieldSchemaNode,
-} from '../../../packages/nuxt-cms/test-utils/e2e'
+import { resolveField, type FieldRow } from '../../../packages/nuxt-cms/test-utils/e2e'
 import { createE2eSupabase, createE2eServiceSupabase } from './supabase'
 import {
   assertSupabaseReachable,
@@ -17,7 +13,7 @@ export const BASELINE = {
   body: 'E2E baseline body text.',
 } as const
 
-/** Known baseline values for /demo page (migration 002 seed). */
+/** Known baseline values for /demo page. */
 export const DEMO_BASELINE = {
   pageTitle: 'Slice demo page',
   firstHeroHeadline: 'First hero headline',
@@ -29,16 +25,6 @@ export const DEMO_BASELINE = {
   teamHeading: 'Our team',
   teamMemberName: 'Alex Example',
 } as const
-
-interface FieldRow {
-  id: string
-  page_id: string
-  slice_id: string | null
-  parent_id: string | null
-  name: string
-  type: string
-  value: string | null
-}
 
 /**
  * Waits between transient network retries.
@@ -67,7 +53,6 @@ async function resolveE2eSiteId(supabase: SupabaseClient): Promise<string> {
 
 /**
  * Ensures the signed-in editor is a member of the configured site.
- * Skipped when SUPABASE_SERVICE_ROLE_KEY is unset (manual site_members provisioning).
  */
 async function ensureEditorSiteMembership(
   supabase: SupabaseClient,
@@ -138,17 +123,8 @@ export async function signInAsEditor(
   )
 }
 
-const HOME_PAGE_SCHEMA: FieldSchemaNode[] = [
-  { name: 'title', type: 'plain_text', default: '' },
-  {
-    name: 'main',
-    type: 'section',
-    children: [{ name: 'body', type: 'plain_text', default: '' }],
-  },
-]
-
 /**
- * Seeds home page fields from the default template schema when none exist.
+ * Seeds home page fields when none exist (wide-row model).
  */
 async function seedHomePageFieldsIfEmpty(
   supabase: SupabaseClient,
@@ -162,7 +138,38 @@ async function seedHomePageFieldsIfEmpty(
   if (existingError) throw existingError
   if (existing && existing.length > 0) return existing as FieldRow[]
 
-  await seedFieldsFromSchema(supabase, HOME_PAGE_SCHEMA, { pageId })
+  const { data: mainSection, error: mainError } = await supabase
+    .from('fields')
+    .insert({
+      page_id: pageId,
+      parent_id: null,
+      name: 'main',
+      kind: 'section',
+      sort_order: 1,
+    })
+    .select('*')
+    .single()
+
+  if (mainError) throw mainError
+
+  const { error: fieldsError } = await supabase.from('fields').insert([
+    {
+      page_id: pageId,
+      parent_id: null,
+      name: 'title',
+      plain_text: '',
+      sort_order: 0,
+    },
+    {
+      page_id: pageId,
+      parent_id: mainSection.id,
+      name: 'body',
+      plain_text: '',
+      sort_order: 0,
+    },
+  ])
+
+  if (fieldsError) throw fieldsError
 
   const { data: refetch, error: refetchError } = await supabase
     .from('fields')
@@ -191,8 +198,13 @@ export async function resetHomePageFields(): Promise<void> {
   if (!page) throw new Error('Home page (slug /) not found in Supabase')
 
   const fields = await seedHomePageFieldsIfEmpty(supabase, page.id)
+  const mainSection = fields.find(
+    (field) => field.name === 'main' && field.kind === 'section',
+  )
   const titleField = resolveField(fields, 'title')
-  const bodyField = resolveField(fields, 'body', 'main')
+  const bodyField = mainSection
+    ? resolveField(fields, 'body', mainSection.id)
+    : undefined
   const subtitleField = resolveField(fields, 'subtitle')
 
   if (!titleField || !bodyField) {
@@ -209,16 +221,52 @@ export async function resetHomePageFields(): Promise<void> {
   }
 
   const updates = [
-  { id: titleField.id, value: BASELINE.title },
-  { id: bodyField.id, value: BASELINE.body },
+    { id: titleField.id, plain_text: BASELINE.title },
+    { id: bodyField.id, plain_text: BASELINE.body },
   ]
 
-  for (const { id, value } of updates) {
+  for (const { id, plain_text } of updates) {
     const { error } = await supabase
       .from('fields')
-      .update({ value })
+      .update({ plain_text })
       .eq('id', id)
 
+    if (error) throw error
+  }
+
+  await supabase.auth.signOut()
+}
+
+/**
+ * Deletes a root-level home page field row by name if it exists.
+ */
+export async function deleteHomePageRootField(name: string): Promise<void> {
+  const supabase = await signInAsEditor()
+  const siteId = await resolveE2eSiteId(supabase)
+
+  const { data: page, error: pageError } = await supabase
+    .from('pages')
+    .select('id')
+    .eq('site_id', siteId)
+    .eq('slug', '/')
+    .maybeSingle()
+
+  if (pageError) throw pageError
+  if (!page) {
+    await supabase.auth.signOut()
+    return
+  }
+
+  const { data: fields, error: fieldsError } = await supabase
+    .from('fields')
+    .select('*')
+    .eq('page_id', page.id)
+
+  if (fieldsError) throw fieldsError
+
+  const field = resolveField((fields ?? []) as FieldRow[], name)
+  if (field) {
+    const { error } = await supabase.from('fields').delete().eq('id', field.id)
     if (error) throw error
   }
 
@@ -260,7 +308,20 @@ export async function getHomePageRootField(
 }
 
 /**
- * Resets /demo page title and hero slice headlines to migration seed values.
+ * Finds a section field by name at page root.
+ */
+function findSection(
+  fields: FieldRow[],
+  name: string,
+): FieldRow | undefined {
+  return fields.find(
+    (field) =>
+      field.name === name && field.kind === 'section' && field.parent_id === null,
+  )
+}
+
+/**
+ * Resets /demo page fields to migration seed values.
  */
 export async function resetDemoPageFields(): Promise<void> {
   const supabase = await signInAsEditor()
@@ -279,118 +340,89 @@ export async function resetDemoPageFields(): Promise<void> {
     return
   }
 
-  const { data: slices, error: slicesError } = await supabase
-    .from('page_slices')
-    .select('id, sort_order')
-    .eq('page_id', page.id)
-    .order('sort_order', { ascending: true })
-
-  if (slicesError) throw slicesError
-
   const { data: fields, error: fieldsError } = await supabase
     .from('fields')
-    .select('id, name, slice_id, parent_id')
+    .select('*')
     .eq('page_id', page.id)
 
   if (fieldsError) throw fieldsError
 
   const fieldList = (fields ?? []) as FieldRow[]
-  const titleField = fieldList.find(
-    (field) => field.name === 'title' && field.slice_id === null,
-  )
+  const titleField = resolveField(fieldList, 'title')
 
   if (!titleField) {
     throw new Error('Demo page title field not found')
   }
 
-  const headlineBaselines = [
+  const updates: { id: string; patch: Record<string, string> }[] = [
+    { id: titleField.id, patch: { plain_text: DEMO_BASELINE.pageTitle } },
+  ]
+
+  const heroSections = ['hero1', 'hero2'] as const
+  const headlines = [
     DEMO_BASELINE.firstHeroHeadline,
     DEMO_BASELINE.secondHeroHeadline,
   ] as const
 
-  const updates: { id: string; value: string }[] = [
-    { id: titleField.id, value: DEMO_BASELINE.pageTitle },
-  ]
+  for (let index = 0; index < heroSections.length; index++) {
+    const section = findSection(fieldList, heroSections[index]!)
+    const headline = headlines[index]
+    if (!section || !headline) continue
 
-  for (let index = 0; index < (slices?.length ?? 0); index++) {
-    const slice = slices![index]
-    const headline = headlineBaselines[index]
-    if (!slice || !headline) continue
-
-    const headlineField = fieldList.find(
-      (field) => field.slice_id === slice.id && field.name === 'headline',
-    )
+    const headlineField = resolveField(fieldList, 'headline', section.id)
     if (!headlineField) {
-      throw new Error(`Demo hero headline field not found for slice ${slice.id}`)
+      throw new Error(`Demo hero headline not found for ${heroSections[index]}`)
     }
-    updates.push({ id: headlineField.id, value: headline })
+    updates.push({ id: headlineField.id, patch: { plain_text: headline } })
   }
 
-  const ctaSlice = slices?.find((slice) => {
-    const sliceFields = fieldList.filter((field) => field.slice_id === slice.id)
-    return sliceFields.some((field) => field.name === 'cta_link')
-  })
-
-  if (ctaSlice) {
-    const linkField = fieldList.find(
-      (field) => field.slice_id === ctaSlice.id && field.name === 'cta_link',
-    )
-    const copyField = fieldList.find(
-      (field) => field.slice_id === ctaSlice.id && field.name === 'copy',
-    )
+  const ctaSection = findSection(fieldList, 'cta')
+  if (ctaSection) {
+    const linkField = resolveField(fieldList, 'cta_link', ctaSection.id)
+    const copyField = resolveField(fieldList, 'copy', ctaSection.id)
 
     if (linkField) {
       updates.push({
         id: linkField.id,
-        value: JSON.stringify({
-          url: 'https://example.com',
-          label: DEMO_BASELINE.ctaLinkLabel,
-          target: '_blank',
-        }),
+        patch: {
+          link: JSON.stringify({
+            url: 'https://example.com',
+            label: DEMO_BASELINE.ctaLinkLabel,
+            target: '_blank',
+          }),
+        },
       })
     }
 
     if (copyField) {
       updates.push({
         id: copyField.id,
-        value: JSON.stringify({
-          source: 'Welcome to our **demo**.',
-          html: '<p>Welcome to our <strong>demo</strong>.</p>',
-        }),
+        patch: {
+          richtext: JSON.stringify({
+            source: 'Welcome to our **demo**.',
+            html: '<p>Welcome to our <strong>demo</strong>.</p>',
+          }),
+        },
       })
     }
   }
 
-  const teamSlice = slices?.find((slice) => {
-    const sliceFields = fieldList.filter((field) => field.slice_id === slice.id)
-    return sliceFields.some((field) => field.name === 'members')
-  })
-
-  if (teamSlice) {
-    const { data: teamFields, error: teamFieldsError } = await supabase
-      .from('fields')
-      .select('id, name, type, parent_id, value')
-      .eq('slice_id', teamSlice.id)
-
-    if (teamFieldsError) throw teamFieldsError
-
-    const teamFieldList = (teamFields ?? []) as FieldRow[]
-    const headingField = teamFieldList.find(
-      (field) => field.name === 'heading' && field.type === 'plain_text',
-    )
+  const teamSection = findSection(fieldList, 'team')
+  if (teamSection) {
+    const headingField = resolveField(fieldList, 'heading', teamSection.id)
     if (headingField) {
       updates.push({
         id: headingField.id,
-        value: DEMO_BASELINE.teamHeading,
+        patch: { plain_text: DEMO_BASELINE.teamHeading },
       })
     }
 
-    const membersArray = teamFieldList.find((field) => field.name === 'members')
+    const membersArray = resolveField(fieldList, 'members', teamSection.id)
     if (membersArray) {
-      const extraItems = teamFieldList.filter(
+      const extraItems = fieldList.filter(
         (field) =>
           field.parent_id === membersArray.id &&
-          field.type === 'section' &&
+          field.kind === 'section' &&
           field.name !== 'item_0',
       )
       for (const item of extraItems) {
@@ -401,42 +433,36 @@ export async function resetDemoPageFields(): Promise<void> {
         if (deleteError) throw deleteError
       }
 
-      const itemZero = teamFieldList.find(
+      const itemZero = fieldList.find(
         (field) =>
           field.parent_id === membersArray.id && field.name === 'item_0',
       )
       if (itemZero) {
-        const nameField = teamFieldList.find(
-          (field) => field.parent_id === itemZero.id && field.name === 'name',
-        )
-        const photoField = teamFieldList.find(
-          (field) => field.parent_id === itemZero.id && field.name === 'photo',
-        )
+        const nameField = resolveField(fieldList, 'name', itemZero.id)
+        const photoField = resolveField(fieldList, 'photo', itemZero.id)
         if (nameField) {
           updates.push({
             id: nameField.id,
-            value: DEMO_BASELINE.teamMemberName,
+            patch: { plain_text: DEMO_BASELINE.teamMemberName },
           })
         }
         if (photoField) {
           updates.push({
             id: photoField.id,
-            value: JSON.stringify({
-              url: '',
-              alt: DEMO_BASELINE.teamMemberName,
-            }),
+            patch: {
+              image: JSON.stringify({
+                url: 'https://placehold.co/96x96',
+                alt: DEMO_BASELINE.teamMemberName,
+              }),
+            },
           })
         }
       }
     }
   }
 
-  for (const { id, value } of updates) {
-    const { error } = await supabase
-      .from('fields')
-      .update({ value })
-      .eq('id', id)
-
+  for (const { id, patch } of updates) {
+    const { error } = await supabase.from('fields').update(patch).eq('id', id)
     if (error) throw error
   }
 

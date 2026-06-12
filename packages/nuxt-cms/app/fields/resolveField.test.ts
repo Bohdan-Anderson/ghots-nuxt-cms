@@ -1,100 +1,66 @@
 import { describe, expect, it } from 'vitest'
 import type { FieldRow } from '../types/cms'
-import { resolveArrayItems, resolveField, scopeFields } from './resolveField'
+import { resolveArrayItems, resolveField } from './resolveField'
 
 function field(
-  partial: Partial<FieldRow> & Pick<FieldRow, 'id' | 'name' | 'type'>,
+  partial: Partial<FieldRow> & Pick<FieldRow, 'id' | 'name'>,
 ): FieldRow {
   return {
     page_id: 'page-1',
-    slice_id: null,
     global_id: null,
     parent_id: null,
-    value: '',
+    kind: null,
+    plain_text: null,
+    richtext: null,
+    link: null,
+    image: null,
     sort_order: 0,
-    created_at: '',
-    updated_at: '',
     ...partial,
   }
 }
 
-describe('scopeFields', () => {
-  const fields: FieldRow[] = [
-    field({ id: '1', name: 'title', type: 'plain_text' }),
-    field({ id: '2', name: 'headline', type: 'plain_text', slice_id: 'slice-a' }),
-  ]
-
-  it('returns page-level rows when slice id is omitted', () => {
-    expect(scopeFields(fields)).toHaveLength(1)
-    expect(scopeFields(fields)[0]?.id).toBe('1')
-  })
-
-  it('returns rows for one slice instance', () => {
-    expect(scopeFields(fields, 'slice-a')).toHaveLength(1)
-    expect(scopeFields(fields, 'slice-a')[0]?.id).toBe('2')
-  })
-})
-
 describe('resolveField', () => {
   const pageFields: FieldRow[] = [
-    field({ id: '1', name: 'title', type: 'plain_text', value: 'Home' }),
-    field({ id: '2', name: 'main', type: 'section' }),
+    field({ id: '1', name: 'title', plain_text: 'Home' }),
+    field({ id: '2', name: 'main', kind: 'section' }),
     field({
       id: '3',
       name: 'body',
-      type: 'plain_text',
       parent_id: '2',
-      value: 'Body text',
-    }),
-    field({
-      id: '4',
-      name: 'headline',
-      type: 'plain_text',
-      slice_id: 'slice-a',
-      value: 'Hero',
+      plain_text: 'Body text',
     }),
   ]
 
   it('resolves a root page field', () => {
-    expect(resolveField(pageFields, 'title')?.value).toBe('Home')
+    expect(resolveField(pageFields, 'title')?.plain_text).toBe('Home')
   })
 
-  it('resolves a field inside a section', () => {
-    expect(resolveField(pageFields, 'body', 'main')?.value).toBe('Body text')
-  })
-
-  it('scopes slice fields by slice id', () => {
-    expect(resolveField(pageFields, 'headline', undefined, 'slice-a')?.value).toBe(
-      'Hero',
-    )
-    expect(resolveField(pageFields, 'headline', undefined, 'slice-b')).toBeUndefined()
+  it('resolves a field inside a section by parent id', () => {
+    expect(resolveField(pageFields, 'body', '2')?.plain_text).toBe('Body text')
   })
 })
 
 describe('resolveArrayItems', () => {
   const fields: FieldRow[] = [
-    field({ id: 'arr', name: 'members', type: 'array', slice_id: 'slice-1' }),
+    field({ id: 'arr', name: 'members', kind: 'array' }),
     field({
       id: 'item-0',
       name: 'item_0',
-      type: 'section',
+      kind: 'section',
       parent_id: 'arr',
-      slice_id: 'slice-1',
       sort_order: 0,
     }),
     field({
       id: 'name-0',
       name: 'name',
-      type: 'plain_text',
       parent_id: 'item-0',
-      slice_id: 'slice-1',
-      value: 'Alex',
+      plain_text: 'Alex',
     }),
   ]
 
   it('returns ordered item field groups', () => {
-    const items = resolveArrayItems(fields, 'members', 'slice-1')
+    const items = resolveArrayItems(fields, 'arr')
     expect(items).toHaveLength(1)
-    expect(items[0]?.find((row) => row.name === 'name')?.value).toBe('Alex')
+    expect(items[0]?.find((row) => row.name === 'name')?.plain_text).toBe('Alex')
   })
 })

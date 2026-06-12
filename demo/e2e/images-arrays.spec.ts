@@ -6,6 +6,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { loginAsEditor } from './helpers/auth'
 import { DEMO_BASELINE } from './helpers/db-reset'
+import { waitForPageFieldSync } from './helpers/sidebar'
 import { projectRoot } from './helpers/loadEnv'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -22,31 +23,34 @@ test('editor can upload image and add/remove team array items', async ({
   await loginAsEditor(page, 'http://localhost:3001')
   await page.goto('/demo')
 
-  const teamSlice = page.locator('.team-slice')
+  const teamSlice = page.locator('.team-section')
   await expect(teamSlice).toBeVisible()
-  await expect(teamSlice.locator('.team-slice__member')).toHaveCount(1)
-  await expect(teamSlice.locator('.team-slice__name')).toHaveText('Alex Example')
+  await expect(teamSlice.locator('.team-section__member')).toHaveCount(1)
+  await expect(teamSlice.locator('.team-section__name')).toHaveText('Alex Example')
+
+  await waitForPageFieldSync(page, 'members')
 
   await page.getByRole('button', { name: 'CMS' }).click()
   const sidebar = page.locator('.cms-sidebar--open')
+  await expect(page.getByText('Page content')).toBeVisible({ timeout: 15_000 })
 
+  await expect(sidebar.getByRole('button', { name: 'Add item' })).toBeVisible({
+    timeout: 15_000,
+  })
   await sidebar.getByRole('button', { name: 'Add item' }).click()
-  await expect(teamSlice.locator('.team-slice__member')).toHaveCount(2)
+  await expect(teamSlice.locator('.team-section__member')).toHaveCount(2)
 
-  const secondMember = teamSlice.locator('.team-slice__member').nth(1)
+  const secondMember = teamSlice.locator('.team-section__member').nth(1)
   await expect(secondMember.locator('.cms-image-empty')).toBeVisible()
+  await waitForPageFieldSync(page, 'name', 1)
 
-  await sidebar
-    .locator('.cms-sidebar-field-btn')
-    .filter({ hasText: 'name:' })
-    .last()
-    .click()
+  await secondMember.locator('[data-name="name"]').click()
   const dialog = page.locator('dialog.field-edit-modal')
   await expect(dialog).toBeVisible()
   await dialog.locator('textarea').fill(newMemberName)
   await dialog.getByRole('button', { name: 'Save' }).click()
   await expect(dialog).not.toBeVisible()
-  await expect(secondMember.locator('.team-slice__name')).toHaveText(
+  await expect(secondMember.locator('.team-section__name')).toHaveText(
     newMemberName,
   )
 
@@ -68,12 +72,12 @@ test('editor can upload image and add/remove team array items', async ({
   await expect(uploadedImage).toHaveAttribute('src', /^https?:\/\//)
 
   await page.reload()
-  await expect(teamSlice.locator('.team-slice__member')).toHaveCount(2)
+  await expect(teamSlice.locator('.team-section__member')).toHaveCount(2)
   await expect(
-    teamSlice.locator('.team-slice__member').nth(1).locator('.team-slice__name'),
+    teamSlice.locator('.team-section__member').nth(1).locator('.team-section__name'),
   ).toHaveText(newMemberName)
   await expect(
-    teamSlice.locator('.team-slice__member').nth(1).locator('.cms-image'),
+    teamSlice.locator('.team-section__member').nth(1).locator('.cms-image'),
   ).toHaveAttribute('src', /^https?:\/\//)
 
   await page.getByRole('button', { name: 'CMS' }).click()
@@ -83,8 +87,8 @@ test('editor can upload image and add/remove team array items', async ({
     .filter({ hasText: 'Item 2' })
     .getByRole('button', { title: 'Remove item' })
     .click()
-  await expect(teamSlice.locator('.team-slice__member')).toHaveCount(1)
-  await expect(teamSlice.locator('.team-slice__name')).toHaveText('Alex Example')
+  await expect(teamSlice.locator('.team-section__member')).toHaveCount(1)
+  await expect(teamSlice.locator('.team-section__name')).toHaveText('Alex Example')
 })
 
 test('generate localizes cms-media images for static guests', async ({
@@ -94,13 +98,16 @@ test('generate localizes cms-media images for static guests', async ({
   await loginAsEditor(page, 'http://localhost:3001')
   await page.goto('/demo')
 
+  await waitForPageFieldSync(page, 'photo')
   await page.getByRole('button', { name: 'CMS' }).click()
   const sidebar = page.locator('.cms-sidebar--open')
+  await expect(page.getByText('Page content')).toBeVisible({ timeout: 15_000 })
   const photoFieldRow = sidebar
     .locator('.cms-sidebar-field-btn')
     .filter({ hasText: 'photo:' })
     .first()
 
+  await expect(photoFieldRow).toBeVisible({ timeout: 15_000 })
   await photoFieldRow.click()
   const dialog = page.locator('dialog.field-edit-modal')
   await expect(dialog).toBeVisible()
@@ -120,11 +127,11 @@ test('generate localizes cms-media images for static guests', async ({
   const guestContext = await browser.newContext()
   const guestPage = await guestContext.newPage()
   await guestPage.goto(`${STATIC_URL}/demo`)
-  await expect(guestPage.locator('.team-slice .cms-image')).toHaveAttribute(
+  await expect(guestPage.locator('.team-section .cms-image')).toHaveAttribute(
     'src',
     /^\/cms-media\//,
   )
-  await expect(guestPage.locator('.team-slice__name')).toHaveText(
+  await expect(guestPage.locator('.team-section__name')).toHaveText(
     DEMO_BASELINE.teamMemberName,
   )
 

@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { editPlainTextField, loginAsEditor } from './helpers/auth'
+import { waitForPageFieldSync, openSidebarField } from './helpers/sidebar'
 
 test('editor can edit plain_text via modal and value persists after refresh', async ({
   page,
@@ -20,8 +21,12 @@ test('editor can edit plain_text via sidebar and page updates without navigation
   const editedTitle = `Sidebar E2E ${Date.now()}`
 
   await loginAsEditor(page)
-  await page.getByRole('button', { name: 'CMS' }).click()
-  await page.getByRole('button', { name: /^title:/i }).click()
+  await waitForPageFieldSync(page, 'title')
+  await openSidebarField(page, /^title:/i)
+  await page
+    .locator('.cms-sidebar-field-btn')
+    .filter({ hasText: /^title:/i })
+    .click()
 
   const dialog = page.locator('dialog.field-edit-modal')
   await expect(dialog).toBeVisible()

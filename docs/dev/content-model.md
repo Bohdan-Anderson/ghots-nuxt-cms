@@ -1,109 +1,62 @@
 # Content model
 
-See [ADR 002 — Content model v2](./adr-002-content-model-v2.md) for design decisions.
+See [ADR 003 — DOM-first content model](./adr-003-dom-first-content-model.md) for design decisions.
 
-## Concepts (v2)
+## Concepts (v3)
 
 ```text
-Template (type)       Page (instance)           Content
+Template (Vue SFC)     Page (instance)           Content
 ─────────────────     ─────────────────         ─────────────────────────────
-key: "slice-demo"     slug: "/demo"             Page fields: title
-field_schema: [...]   meta_title, …             Slices: hero × 2 → headline each
-                      template_id → …           Globals (site): nav_label
+key: "sections-demo"  slug: "/demo"             Page fields + sections in DOM
+                      meta_title, …             Globals (site): nav_label
 ```
 
-- **Template** — Vue SFC + page-level `field_schema` (fields outside slices).
-- **Page** — URL + template + **meta** columns (`meta_title`, `meta_description`, `og_image`, `noindex`).
-- **Slice type** — Code registry (`demo/app/slices/registry.ts`): component + field schema.
-- **Slice instance** — Ordered row in `page_slices`; fields keyed by `slice_id`.
-- **Global region** — Code registry (`demo/app/globals/registry.ts`); values in `globals` + `fields.global_id`.
-- **Field** — Named node (`section`, `plain_text`, `link`, `richtext`) with optional `value`.
+- **Template** — Vue SFC; structure declared in markup (`data-name`, `data-type`, sections).
+- **Page** — URL + template + **meta** columns.
+- **Section** — Developer-placed Vue section component with `data-type="section"`.
+- **Global region** — `data-global="key"` wrapper; values in `globals` + `fields.global_id`.
+- **Field row** — Named slot under a parent with typed value columns (`plain_text`, `richtext`, `link`, `image`).
 
-## Field schema (`field_schema`)
+## Field rows (wide model)
 
-JSON array on `templates.field_schema` for **page-level** fields only. Slice schemas live in the code registry.
+| Column | Purpose |
+| ------ | ------- |
+| `plain_text` | Plain string |
+| `richtext` | JSON (`source`, `html`) |
+| `link` | JSON (`url`, `label`, `target`) |
+| `image` | JSON (`url`, `alt`) |
+| `kind` | `section` or `array` for structural rows; null for content slots |
 
-```ts
-{
-  name: string
-  type: 'section' | 'plain_text' | 'link' | 'richtext'
-  default?: string
-  children?: FieldSchemaNode[]
-}
-```
+Hierarchy: `parent_id` links children to section/array containers.
 
-## Field rows
+## DOM contract
 
-Runtime content in `fields`:
+| Attribute | Purpose |
+| --------- | ------- |
+| `data-type="page"` | Page root; `data-id` = page UUID |
+| `data-type="section"` | Section container |
+| `data-type="array"` | Repeatable hook (sidebar-managed) |
+| `data-global="key"` | Global region scope |
+| `data-name` | Row key within parent |
+| `data-type` (leaf) | Editor UI column |
+| `data-id` | Stable UUID after ensure |
 
-| Owner | FK columns | Notes |
-| ----- | ---------- | ----- |
-| Page-level | `page_id`, `slice_id` null | From template `field_schema` |
-| Slice instance | `page_id` + `slice_id` | Seeded when slice added |
-| Global | `global_id`, `page_id` null | Seeded from global registry |
+## Lazy ensure
 
-| `type` | `value` | Editable in UI |
-| ------ | ------- | -------------- |
-| `section` | `null` | No (container) |
-| `plain_text` | string | Yes (modal) |
-| `link` | JSON (`url`, `label`, `target`) | Yes (modal) |
-| `richtext` | JSON (`source`, `html`) | Yes (modal) |
+Logged-in editors: `ensureField(parentId, name)` creates empty rows from rendered DOM on page load and click. No `field_schema` seeding.
 
-See [field-types.md](./field-types.md) for value shapes and sanitization.
+Templates use `useCmsField(fieldsByParentAndName, parentId, name)` and `cmsColumnValue(field, column)`.
 
-Hierarchy within an owner: `parent_id` → section field `id`.
+## Sidebar tree
+
+Built from DOM via `scanContentTree` → `useContentTree()` store after render.
 
 ## `usePageContent(slug)`
 
-`packages/nuxt-cms/app/composables/usePageContent.ts`:
-
-1. Query `pages` with `templates(*)` by `slug`.
-2. Load `page_slices` ordered by `sort_order`.
-3. Load `fields` for `page_id`.
-4. **If `loggedIn` and zero page-level fields** → seed from template schema → refetch.
-5. Build `pageFields`, `fieldsBySliceId`, `fieldsById`, `fieldsByName`.
-6. Return JSON-serializable `PageContent` for `useAsyncData` / `_payload.json`.
-
-## `useGlobalData(key)`
-
-`packages/nuxt-cms/app/composables/useGlobal.ts` — same caching pattern as page content. Loads `globals` row + fields; seeds from code registry when logged in and empty.
-
-## Seeding
-
-`seedFieldsFromSchema` (`packages/nuxt-cms/app/composables/seedFields.ts`) walks a schema tree for page-level, slice, or global context.
-
-- **Page:** first logged-in visit with zero page-level fields.
-- **Global:** first logged-in visit with zero fields for that global.
-- **Slice:** `insertPageSlice()` in `usePageSlices.ts` on add (Phase 3 UI).
-
-## Field lookup in templates
-
-`resolveField(fields, name, parentSectionName?, sliceId?)`:
-
-- No `sliceId` — page-level fields only.
-- With `sliceId` — fields for that slice instance.
-
-`demo/app/templates/DefaultPage.vue` — legacy flat page (home `/`).
-
-`demo/app/templates/SliceDemoPage.vue` — page-level title + ordered slice stack (`/demo`).
+1. Query `pages` with `templates(*)`.
+2. Load `fields` for `page_id`.
+3. Build `fieldsById`, `fieldsByName`, `fieldsByParentAndName`.
 
 ## Updates
 
-`updateFieldValue(fieldId, value)` — Supabase UPDATE; used by modal save + `patchField`.
-
-## `PageContent` shape
-
-```ts
-{
-  page: { id, slug, template_id, title, meta_title, meta_description, og_image, noindex, … }
-  template: { id, key, label, field_schema }
-  slices: PageSliceRow[]
-  fields: FieldRow[]           // all page-owned rows
-  pageFields: FieldRow[]        // slice_id null
-  fieldsBySliceId: Record<string, FieldRow[]>
-  fieldsById: Record<string, FieldRow>
-  fieldsByName: Record<string, FieldRow>  // root page-level only
-}
-```
-
-Stored under `useAsyncData` key `page:${slug}`. Globals under `global:${key}`.
+`updateFieldColumn(fieldId, column, value)` — Supabase UPDATE on the typed column.

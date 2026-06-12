@@ -4,37 +4,38 @@ import { collectFieldSubtreeIds } from '../fields/maps'
 import { rebuildPageContent } from '../fields/pageContent'
 
 function field(
-  partial: Partial<FieldRow> & Pick<FieldRow, 'id' | 'name' | 'type'>,
+  partial: Partial<FieldRow> & Pick<FieldRow, 'id' | 'name'>,
 ): FieldRow {
   return {
     page_id: 'page-1',
-    slice_id: null,
     global_id: null,
     parent_id: null,
-    value: null,
+    kind: null,
+    plain_text: null,
+    richtext: null,
+    link: null,
+    image: null,
     sort_order: 0,
-    created_at: '',
-    updated_at: '',
     ...partial,
   }
 }
 
 describe('array item panel patch', () => {
   const baseFields: FieldRow[] = [
-    field({ id: 'arr', name: 'posts', type: 'array' }),
-    field({ id: 'item-0', name: 'item_0', type: 'section', parent_id: 'arr' }),
+    field({ id: 'arr', name: 'posts', kind: 'array' }),
+    field({ id: 'item-0', name: 'item_0', kind: 'section', parent_id: 'arr' }),
     field({
       id: 'title-0',
       name: 'title',
-      type: 'plain_text',
       parent_id: 'item-0',
-      value: 'First',
+      plain_text: 'First',
     }),
   ]
 
   const base: PageContent = {
     page: {
       id: 'page-1',
+      site_id: 'site-1',
       slug: '/',
       template_id: 'tpl-1',
       title: 'Home',
@@ -47,27 +48,34 @@ describe('array item panel patch', () => {
     },
     template: {
       id: 'tpl-1',
+      site_id: 'site-1',
       key: 'default',
       label: 'Default',
       field_schema: [],
     },
-    slices: [],
     fields: baseFields,
     pageFields: baseFields,
-    fieldsBySliceId: {},
     fieldsById: Object.fromEntries(baseFields.map((row) => [row.id, row])),
     fieldsByName: { posts: baseFields[0]! },
+    fieldsByParentAndName: Object.fromEntries(
+      baseFields.map((row) => [`${row.parent_id ?? ''}:${row.name}`, row]),
+    ),
   }
 
   it('merges seeded subtree rows without refetching the page', () => {
     const newSubtree = [
-      field({ id: 'item-1', name: 'item_1', type: 'section', parent_id: 'arr', sort_order: 1 }),
+      field({
+        id: 'item-1',
+        name: 'item_1',
+        kind: 'section',
+        parent_id: 'arr',
+        sort_order: 1,
+      }),
       field({
         id: 'title-1',
         name: 'title',
-        type: 'plain_text',
         parent_id: 'item-1',
-        value: 'Second',
+        plain_text: 'Second',
         sort_order: 0,
       }),
     ]
@@ -77,7 +85,7 @@ describe('array item panel patch', () => {
     })
 
     expect(patched.fields).toHaveLength(5)
-    expect(patched.fieldsById['title-1']?.value).toBe('Second')
+    expect(patched.fieldsById['title-1']?.plain_text).toBe('Second')
   })
 
   it('removes an item subtree from panel state after cascade delete', () => {

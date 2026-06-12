@@ -11,22 +11,13 @@ export default defineConfig({
       '~/types/fieldValues': resolve(appDir, 'types/fieldValues.ts'),
       '~/utils/markdownToHtml': resolve(appDir, 'utils/markdownToHtml.ts'),
       '~/utils/sanitizeHtml': resolve(appDir, 'utils/sanitizeHtml.ts'),
-      '~/fields/defaultValues': resolve(appDir, 'fields/defaultValues.ts'),
       '~/fields/resolveField': resolve(appDir, 'fields/resolveField.ts'),
-      '~/fields/resolveManifestFieldType': resolve(
-        appDir,
-        'fields/resolveManifestFieldType.ts',
-      ),
-      '~/fields/collectFieldManifest': resolve(
-        appDir,
-        'fields/collectFieldManifest.ts',
-      ),
-      '~/fields/migrateFieldValue': resolve(appDir, 'fields/migrateFieldValue.ts'),
+      '~/fields/maps': resolve(appDir, 'fields/maps.ts'),
+      '~/fields/domContext': resolve(appDir, 'fields/domContext.ts'),
+      '~/fields/fieldValues': resolve(appDir, 'fields/fieldValues.ts'),
       '~/fields/ensureField': resolve(appDir, 'fields/ensureField.ts'),
-      '~/fields/syncFieldsFromManifest': resolve(
-        appDir,
-        'fields/syncFieldsFromManifest.ts',
-      ),
+      '~/fields/syncFieldsFromDom': resolve(appDir, 'fields/syncFieldsFromDom.ts'),
+      '~/fields/scanContentTree': resolve(appDir, 'fields/scanContentTree.ts'),
     },
   },
   test: {

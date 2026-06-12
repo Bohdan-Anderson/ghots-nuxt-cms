@@ -19,14 +19,14 @@ const {
   <PageEditorProvider
     v-else-if="templateComponent"
     :enabled="loggedIn"
-    :fields="content.fields"
     :fields-by-id="content.fieldsById"
-    :fields-by-name="content.fieldsByName"
+    :fields-by-parent-and-name="content.fieldsByParentAndName"
     @field-updated="patchField"
   >
     <component
       :is="templateComponent"
-      :fields="content.fields"
+      :page-id="content.page.id"
+      :fields-by-parent-and-name="content.fieldsByParentAndName"
     />
   </PageEditorProvider>
 

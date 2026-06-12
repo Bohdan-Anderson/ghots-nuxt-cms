@@ -5,17 +5,15 @@ import type {
 } from '~/types/cms'
 import { getGlobalDefinition } from '#cms/registries'
 import { buildFieldMaps } from '~/fields/maps'
-import { loadFieldsForOwner } from '~/composables/seedFields'
 
 /**
- * Loads a global region and its fields; seeds from code registry when logged in and empty.
+ * Loads a global region and its fields.
  */
 export async function fetchGlobalContent(
   key: string,
-  options?: { loggedIn?: boolean },
+  _options?: { loggedIn?: boolean },
 ): Promise<GlobalContent | null> {
   const supabase = useSupabase()
-  const loggedIn = options?.loggedIn ?? false
   const definition = getGlobalDefinition(key)
   const siteId = await resolveSiteId()
 
@@ -32,7 +30,7 @@ export async function fetchGlobalContent(
 
   let global = globalData as GlobalRow | null
 
-  if (!global && loggedIn) {
+  if (!global) {
     const { data: inserted, error: insertError } = await supabase
       .from('globals')
       .insert({
@@ -47,20 +45,24 @@ export async function fetchGlobalContent(
     global = inserted as GlobalRow
   }
 
-  if (!global) return null
+  const { data: fields, error: fieldsError } = await supabase
+    .from('fields')
+    .select('*')
+    .eq('global_id', global.id)
+    .order('sort_order', { ascending: true })
 
-  const fieldList = await loadFieldsForOwner(supabase, 'global_id', global.id, {
-    seedWhenLoggedInAndEmpty: loggedIn,
-    schema: definition.fieldSchema,
-    seedContext: { globalId: global.id },
-  })
-  const { fieldsById, fieldsByName } = buildFieldMaps(fieldList)
+  if (fieldsError) throw fieldsError
+
+  const fieldList = (fields ?? []) as FieldRow[]
+  const { fieldsById, fieldsByName, fieldsByParentAndName } =
+    buildFieldMaps(fieldList)
 
   return {
     global,
     fields: fieldList,
     fieldsById,
     fieldsByName,
+    fieldsByParentAndName,
   }
 }
 
@@ -84,4 +86,3 @@ export function resolveGlobalField(
 ): FieldRow | undefined {
   return fields.find((field) => field.name === name && field.parent_id === null)
 }
-

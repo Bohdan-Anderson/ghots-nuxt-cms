@@ -1,5 +1,4 @@
 import type { FieldRow, PageContent } from '~/types/cms'
-import { getArrayItemSchema } from '~/fields/schemaLookup'
 import { seedArrayItem } from '~/composables/seedFields'
 
 /**
@@ -10,12 +9,12 @@ export function countArrayItems(
   arrayFieldId: string,
 ): number {
   return fields.filter(
-    (field) => field.parent_id === arrayFieldId && field.type === 'section',
+    (field) => field.parent_id === arrayFieldId && field.kind === 'section',
   ).length
 }
 
 /**
- * Adds a new item to a repeatable array field; returns the new field subtree rows.
+ * Adds a new item to a repeatable array field; returns the new item section row.
  */
 export async function insertArrayItem(
   content: PageContent,
@@ -23,14 +22,12 @@ export async function insertArrayItem(
 ): Promise<FieldRow[]> {
   const supabase = useSupabase()
   const arrayField = content.fieldsById[arrayFieldId]
-  if (!arrayField || arrayField.type !== 'array') {
+  if (!arrayField || arrayField.kind !== 'array') {
     throw new Error('Field is not a repeatable array')
   }
 
-  const itemSchema = getArrayItemSchema(content, arrayField)
   const nextIndex = countArrayItems(content.fields, arrayFieldId)
-
-  return seedArrayItem(supabase, arrayField, nextIndex, itemSchema)
+  return seedArrayItem(supabase, arrayField, nextIndex)
 }
 
 /**

@@ -1,23 +1,14 @@
-import type {
-  FieldRow,
-  PageContent,
-  PageRow,
-  TemplateRow,
-} from '~/types/cms'
+import type { FieldRow, PageContent, PageRow, TemplateRow } from '~/types/cms'
 import { buildPageContentPayload } from '~/fields/pageContent'
-import { loadFieldsForOwner } from '~/composables/seedFields'
-import { fetchPageSlices } from '~/composables/usePageSlices'
-import { normalizeSlug } from '~/utils/slug'
 
 /**
- * Fetches page + template + slices + fields; seeds empty page-level fields for logged-in editors.
+ * Fetches page + template + fields for a slug.
  */
 export async function usePageContent(
   slugInput: string,
-  options?: { loggedIn?: boolean },
+  _options?: { loggedIn?: boolean },
 ): Promise<PageContent | null> {
   const supabase = useSupabase()
-  const loggedIn = options?.loggedIn ?? false
   const slug = normalizeSlug(slugInput)
   const siteId = await resolveSiteId()
 
@@ -34,29 +25,33 @@ export async function usePageContent(
   const page = pageData as PageRow & { templates: TemplateRow }
   const template = page.templates
 
-  const slices = await fetchPageSlices(supabase, page.id)
+  const { data: fields, error: fieldsError } = await supabase
+    .from('fields')
+    .select('*')
+    .eq('page_id', page.id)
+    .order('sort_order', { ascending: true })
 
-  const fieldList = await loadFieldsForOwner(supabase, 'page_id', page.id, {
-    seedWhenLoggedInAndEmpty: loggedIn,
-    schema: template.field_schema,
-    seedContext: { pageId: page.id },
-    isEmpty: (rows) => rows.filter((f) => f.slice_id === null).length === 0,
-  })
+  if (fieldsError) throw fieldsError
 
-  return buildPageContentPayload(page, template, slices, fieldList)
+  return buildPageContentPayload(
+    page,
+    template,
+    (fields ?? []) as FieldRow[],
+  )
 }
 
 /**
- * Updates a field value in Supabase.
+ * Updates a typed value column on a field row in Supabase.
  */
-export async function updateFieldValue(
+export async function updateFieldColumn(
   fieldId: string,
+  column: keyof Pick<FieldRow, 'plain_text' | 'richtext' | 'link' | 'image'>,
   value: string,
 ): Promise<FieldRow> {
   const supabase = useSupabase()
   const { data, error } = await supabase
     .from('fields')
-    .update({ value })
+    .update({ [column]: value })
     .eq('id', fieldId)
     .select('*')
     .single()

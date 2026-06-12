@@ -1,10 +1,12 @@
 import type { Component } from 'vue'
 import DefaultPage from '~/templates/DefaultPage.vue'
-import SliceDemoPage from '~/templates/SliceDemoPage.vue'
+import SectionsDemoPage from '~/templates/SectionsDemoPage.vue'
 
 const TEMPLATE_MAP: Record<string, Component> = {
   default: DefaultPage,
-  'slice-demo': SliceDemoPage,
+  'sections-demo': SectionsDemoPage,
+  /** @deprecated Use sections-demo */
+  'slice-demo': SectionsDemoPage,
 }
 
 /**

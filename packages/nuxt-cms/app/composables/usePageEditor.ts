@@ -1,10 +1,17 @@
-import type { FieldRow } from '~/types/cms'
+import type { EditableFieldType, FieldRow } from '~/types/cms'
 import { getFieldTypeConfig } from '~/fields/registry'
-import { updateFieldValue } from '~/composables/usePageContent'
+import { getFieldColumnValue } from '~/fields/fieldValues'
+import { updateFieldColumn } from '~/composables/usePageContent'
+import {
+  isEditableDomType,
+  parseDomType,
+  resolveFieldParentContext,
+} from '~/fields/domContext'
+import { parentNameKey } from '~/fields/maps'
 
 interface PageEditorRegistry {
   fieldsById: Record<string, FieldRow>
-  fieldsByName: Record<string, FieldRow>
+  fieldsByParentAndName: Record<string, FieldRow>
 }
 
 /** Client-only callback — must not live in useState (breaks prerender payload). */
@@ -15,6 +22,10 @@ let fieldUpdatedHandler: ((field: FieldRow) => void) | null = null
  */
 export function usePageEditor() {
   const activeField = useState<FieldRow | null>('page-editor-active', () => null)
+  const activeColumn = useState<EditableFieldType | null>(
+    'page-editor-column',
+    () => null,
+  )
   const draftValue = useState<string>('page-editor-draft', () => '')
   const isOpen = useState<boolean>('page-editor-open', () => false)
   const registry = useState<PageEditorRegistry | null>(
@@ -36,20 +47,21 @@ export function usePageEditor() {
    */
   function registerFields(
     fieldsById: Record<string, FieldRow>,
-    fieldsByName: Record<string, FieldRow>,
+    fieldsByParentAndName: Record<string, FieldRow>,
   ) {
-    registry.value = { fieldsById, fieldsByName }
+    registry.value = { fieldsById, fieldsByParentAndName }
   }
 
   /**
-   * Opens the edit modal for a field.
+   * Opens the edit modal for a field and value column.
    */
-  function open(field: FieldRow) {
-    const config = getFieldTypeConfig(field.type)
+  function open(field: FieldRow, column: EditableFieldType) {
+    const config = getFieldTypeConfig(column)
     if (!config) return
 
     activeField.value = field
-    draftValue.value = config.valueToDraft(field.value)
+    activeColumn.value = column
+    draftValue.value = config.valueToDraft(getFieldColumnValue(field, column))
     isOpen.value = true
   }
 
@@ -59,27 +71,29 @@ export function usePageEditor() {
   function close() {
     isOpen.value = false
     activeField.value = null
+    activeColumn.value = null
     draftValue.value = ''
   }
 
   /**
-   * Persists draft value and notifies the editor store via the registered handler.
+   * Persists draft value to the active column and notifies the editor handler.
    */
   async function save(): Promise<void> {
     const field = activeField.value
-    if (!field) return
+    const column = activeColumn.value
+    if (!field || !column) return
 
-    const config = getFieldTypeConfig(field.type)
+    const config = getFieldTypeConfig(column)
     if (!config) return
 
     const value = config.draftToValue(draftValue.value)
-    const updated = await updateFieldValue(field.id, value)
+    const updated = await updateFieldColumn(field.id, column, value)
     fieldUpdatedHandler?.(updated)
     close()
   }
 
   /**
-   * Resolves a field from a clicked element's data attributes.
+   * Resolves a field from a clicked element's data attributes and parent context.
    */
   function resolveFieldFromElement(el: HTMLElement): FieldRow | null {
     if (!registry.value) return null
@@ -92,15 +106,30 @@ export function usePageEditor() {
     const name = el.dataset.name
     if (!name) return null
 
-    if (registry.value.fieldsByName[name]) {
-      return registry.value.fieldsByName[name]
+    const context = resolveFieldParentContext(el)
+    const key = parentNameKey(context.parentId, name)
+    if (registry.value.fieldsByParentAndName[key]) {
+      return registry.value.fieldsByParentAndName[key]
     }
 
-    const matches = Object.values(registry.value.fieldsById).filter(
-      (f) => f.name === name,
-    )
-    const [field] = matches
-    return matches.length === 1 && field ? field : null
+    if (!context.parentId) {
+      const rootMatches = Object.values(registry.value.fieldsById).filter(
+        (f) => f.name === name && f.parent_id === null,
+      )
+      if (rootMatches.length === 1) return rootMatches[0]!
+    }
+
+    return null
+  }
+
+  /**
+   * Returns the editable column type from a clicked element's data-type.
+   */
+  function editableColumnFromElement(
+    el: HTMLElement,
+  ): EditableFieldType | null {
+    const domType = parseDomType(el.dataset.type)
+    return isEditableDomType(domType) ? domType : null
   }
 
   function setDraft(value: string) {
@@ -108,7 +137,7 @@ export function usePageEditor() {
   }
 
   /**
-   * Scrolls to a field or slice on the page and briefly highlights it.
+   * Scrolls to a field on the page and briefly highlights it.
    */
   function focusOnPage(field: FieldRow): void {
     if (!import.meta.client) return
@@ -124,24 +153,9 @@ export function usePageEditor() {
     window.setTimeout(() => el.classList.remove('cms-field-highlight'), 1500)
   }
 
-  /**
-   * Scrolls to a slice wrapper element by instance id.
-   */
-  function focusSliceOnPage(sliceId: string): void {
-    if (!import.meta.client) return
-
-    const el = document.querySelector(
-      `[data-slice-id="${sliceId}"]`,
-    ) as HTMLElement | null
-    if (!el) return
-
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    el.classList.add('cms-field-highlight')
-    window.setTimeout(() => el.classList.remove('cms-field-highlight'), 1500)
-  }
-
   return {
     activeField,
+    activeColumn,
     draftValue,
     isOpen,
     registerFields,
@@ -151,8 +165,8 @@ export function usePageEditor() {
     save,
     setDraft,
     resolveFieldFromElement,
+    editableColumnFromElement,
     focusOnPage,
-    focusSliceOnPage,
     registry,
   }
 }

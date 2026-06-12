@@ -2,47 +2,51 @@
 import type { FieldRow } from '~/types/cms'
 
 const props = defineProps<{
-  fields: FieldRow[]
+  pageId: string
+  fieldsByParentAndName: Record<string, FieldRow>
 }>()
 
 /**
- * Resolves a field by name, optionally under a parent section.
+ * Resolves a page-level field by name and optional parent section id.
  */
-function field(name: string, parentSectionName?: string): FieldRow | undefined {
-  return resolveField(props.fields, name, parentSectionName)
+function field(name: string, parentId: string | null = null): FieldRow {
+  return useCmsField(props.fieldsByParentAndName, parentId, name)
 }
 </script>
 
 <template>
-  <article>
+  <article
+    data-type="page"
+    :data-id="pageId"
+  >
     <h1
       data-name="title"
       data-type="plain_text"
-      :data-id="field('title')?.id ?? ''"
+      :data-id="field('title').id"
     >
-      {{ field('title')?.value }}
+      {{ cmsColumnValue(field('title'), 'plain_text') }}
     </h1>
 
     <p
       class="page-subtitle"
       data-name="subtitle"
       data-type="plain_text"
-      :data-id="field('subtitle')?.id ?? ''"
+      :data-id="field('subtitle').id"
     >
-      {{ field('subtitle')?.value }}
+      {{ cmsColumnValue(field('subtitle'), 'plain_text') }}
     </p>
 
     <section
       data-name="main"
       data-type="section"
-      :data-id="field('main')?.id ?? ''"
+      :data-id="field('main').id"
     >
       <p
         data-name="body"
         data-type="plain_text"
-        :data-id="field('body', 'main')?.id ?? ''"
+        :data-id="field('body', field('main').id || null).id"
       >
-        {{ field('body', 'main')?.value }}
+        {{ cmsColumnValue(field('body', field('main').id || null), 'plain_text') }}
       </p>
     </section>
   </article>

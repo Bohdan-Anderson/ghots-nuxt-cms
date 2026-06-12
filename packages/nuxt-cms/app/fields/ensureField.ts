@@ -1,14 +1,17 @@
-import type { FieldRow, PageContent } from '~/types/cms'
-import type { ResolvedFieldManifestEntry } from '~/fields/resolveManifestFieldType'
-import { defaultValueForFieldType } from '~/fields/defaultValues'
-import { resolveField } from '~/fields/resolveField'
-import {
-  canMigrateFieldType,
-  isValueMalformedForType,
-  migrateFieldValue,
-} from '~/fields/migrateFieldValue'
+import type { FieldParentContext, FieldRow, PageContent } from '~/types/cms'
+import { domTypeToKind, parseDomType } from '~/fields/domContext'
+import { parentNameKey } from '~/fields/maps'
+import { resolveFieldByParent } from '~/fields/resolveField'
 
 type SupabaseClient = ReturnType<typeof useSupabase>
+
+export interface EnsureFieldInput {
+  name: string
+  parentId: string | null
+  context: FieldParentContext
+  domType?: string | null
+  sortOrder?: number
+}
 
 /**
  * Returns true when a field row has child rows in the flat list.
@@ -21,102 +24,65 @@ export function fieldHasChildren(
 }
 
 /**
- * Resolves the parent section row id for a manifest entry, ensuring the section exists.
- */
-async function ensureParentSectionId(
-  supabase: SupabaseClient,
-  content: PageContent,
-  entry: ResolvedFieldManifestEntry,
-  fields: FieldRow[],
-): Promise<string | null> {
-  if (!entry.parentName) return null
-
-  const parentEntry: ResolvedFieldManifestEntry = {
-    name: entry.parentName,
-    type: 'section',
-    sliceId: entry.sliceId,
-    sliceTypeKey: entry.sliceTypeKey,
-    parentName: null,
-    sortOrder: entry.sortOrder,
-  }
-
-  const parent = await ensureField(supabase, content, parentEntry, fields)
-  return parent?.id ?? null
-}
-
-/**
- * Inserts or updates a single field row to match a manifest entry.
+ * Inserts or returns an existing field row for the given parent + name.
  */
 export async function ensureField(
   supabase: SupabaseClient,
   content: PageContent,
-  entry: ResolvedFieldManifestEntry,
+  input: EnsureFieldInput,
   fields: FieldRow[],
 ): Promise<FieldRow | null> {
-  const sliceId = entry.sliceId ?? null
-  const existing = resolveField(
-    fields,
-    entry.name,
-    entry.parentName ?? undefined,
-    sliceId,
+  const existing = resolveFieldByParent(
+    Object.fromEntries(
+      fields.map((f) => [parentNameKey(f.parent_id, f.name), f]),
+    ),
+    input.parentId,
+    input.name,
   )
 
-  if (!existing) {
-    const parentId = await ensureParentSectionId(
-      supabase,
-      content,
-      entry,
-      fields,
-    )
+  if (existing) return existing
 
-    const { data: inserted, error } = await supabase
-      .from('fields')
-      .insert({
-        page_id: content.page.id,
-        slice_id: sliceId,
-        global_id: null,
-        parent_id: parentId,
-        name: entry.name,
-        type: entry.type,
-        value: defaultValueForFieldType(entry.type),
-        sort_order: entry.sortOrder,
-      })
-      .select('*')
-      .single()
+  const kind = domTypeToKind(parseDomType(input.domType ?? undefined))
+  const pageId = input.context.globalId ? null : (input.context.pageId ?? content.page.id)
+  const globalId = input.context.globalId ?? null
 
-    if (error) throw error
-    return inserted as FieldRow
-  }
-
-  const hasChildren = fieldHasChildren(existing.id, fields)
-  let nextType = existing.type
-  let nextValue = existing.value
-
-  if (existing.type !== entry.type) {
-    if (!canMigrateFieldType(existing.type, entry.type, hasChildren)) {
-      if (import.meta.dev) {
-        console.warn(
-          `[cms] Skipping type migration for "${entry.name}" (${existing.type} → ${entry.type}): structural conflict`,
-        )
-      }
-      return existing
-    }
-
-    nextType = entry.type
-    nextValue = migrateFieldValue(existing.type, entry.type, existing.value)
-  } else if (isValueMalformedForType(existing.type, existing.value)) {
-    nextValue = migrateFieldValue(existing.type, existing.type, existing.value)
-  } else {
-    return existing
-  }
-
-  const { data: updated, error } = await supabase
+  const { data: inserted, error } = await supabase
     .from('fields')
-    .update({ type: nextType, value: nextValue })
-    .eq('id', existing.id)
+    .insert({
+      page_id: pageId,
+      global_id: globalId,
+      parent_id: input.parentId,
+      name: input.name,
+      kind,
+      plain_text: null,
+      richtext: null,
+      link: null,
+      image: null,
+      sort_order: input.sortOrder ?? 0,
+    })
     .select('*')
     .single()
 
   if (error) throw error
-  return updated as FieldRow
+  return inserted as FieldRow
+}
+
+/**
+ * Builds ensure input from a named DOM element.
+ */
+export function ensureInputFromElement(
+  element: HTMLElement,
+  context: FieldParentContext,
+  sortOrder = 0,
+): EnsureFieldInput | null {
+  const name = element.dataset.name?.trim()
+  if (!name) return null
+
+  return {
+    name,
+    parentId: context.parentId,
+    context,
+    domType: element.dataset.type ?? null,
+    sortOrder,
+  }
 }

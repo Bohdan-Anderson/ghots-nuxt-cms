@@ -1,5 +1,4 @@
 import type { PageRow } from '~/types/cms'
-import { seedFieldsFromSchema } from '~/composables/seedFields'
 import { normalizeSlug } from '~/utils/slug'
 
 export interface CreatePageInput {
@@ -27,7 +26,7 @@ export async function slugExists(slug: string): Promise<boolean> {
 }
 
 /**
- * Creates a page and seeds template-level fields from the template schema.
+ * Creates a page. Fields are ensured lazily from DOM when editors visit.
  */
 export async function createPage(input: CreatePageInput): Promise<PageRow> {
   const supabase = useSupabase()
@@ -37,15 +36,6 @@ export async function createPage(input: CreatePageInput): Promise<PageRow> {
   if (await slugExists(slug)) {
     throw new Error(`A page with slug "${slug}" already exists.`)
   }
-
-  const { data: template, error: templateError } = await supabase
-    .from('templates')
-    .select('field_schema')
-    .eq('site_id', siteId)
-    .eq('id', input.templateId)
-    .single()
-
-  if (templateError) throw templateError
 
   const { data: inserted, error } = await supabase
     .from('pages')
@@ -59,20 +49,11 @@ export async function createPage(input: CreatePageInput): Promise<PageRow> {
     .single()
 
   if (error) throw error
-
-  const page = inserted as PageRow
-
-  await seedFieldsFromSchema(
-    supabase,
-    template.field_schema as import('~/types/cms').FieldSchemaNode[],
-    { pageId: page.id },
-  )
-
-  return page
+  return inserted as PageRow
 }
 
 /**
- * Deletes a page; slice and field rows cascade via FK.
+ * Deletes a page; field rows cascade via FK.
  */
 export async function deletePage(pageId: string): Promise<void> {
   const supabase = useSupabase()

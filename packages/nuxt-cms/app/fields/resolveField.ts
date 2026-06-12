@@ -1,41 +1,28 @@
 import type { FieldRow } from '../types/cms'
+import { parentNameKey } from './maps'
 
 /**
- * Limits fields to one slice instance or page-level rows.
+ * Resolves a field by parent id and name from a flat list or lookup map.
  */
-export function scopeFields(
-  fields: FieldRow[],
-  sliceId?: string | null,
-): FieldRow[] {
-  return fields.filter((field) =>
-    sliceId ? field.slice_id === sliceId : field.slice_id === null,
-  )
+export function resolveFieldByParent(
+  fieldsByParentAndName: Record<string, FieldRow>,
+  parentId: string | null,
+  name: string,
+): FieldRow | undefined {
+  return fieldsByParentAndName[parentNameKey(parentId, name)]
 }
 
 /**
- * Resolves a field by name, optionally scoped to a parent section and/or slice instance.
+ * Resolves a field by parent id and name from a flat field list.
  */
 export function resolveField(
   fields: FieldRow[],
   name: string,
-  parentSectionName?: string,
-  sliceId?: string | null,
+  parentId?: string | null,
 ): FieldRow | undefined {
-  const scoped = scopeFields(fields, sliceId)
-
-  if (!parentSectionName) {
-    return scoped.find((field) => field.name === name && field.parent_id === null)
-  }
-
-  const parent = scoped.find(
-    (field) =>
-      field.name === parentSectionName &&
-      field.type === 'section' &&
-      field.parent_id === null,
-  )
-  if (!parent) return undefined
-  return scoped.find(
-    (field) => field.name === name && field.parent_id === parent.id,
+  const pid = parentId ?? null
+  return fields.find(
+    (field) => field.name === name && field.parent_id === pid,
   )
 }
 
@@ -44,25 +31,22 @@ export function resolveField(
  */
 export function resolveArrayItems(
   fields: FieldRow[],
-  arrayName: string,
-  sliceId?: string | null,
+  arrayFieldId: string,
 ): FieldRow[][] {
-  const scoped = scopeFields(fields, sliceId)
-
-  const arrayField = scoped.find(
-    (field) => field.name === arrayName && field.type === 'array',
+  const arrayField = fields.find(
+    (field) => field.id === arrayFieldId && field.kind === 'array',
   )
   if (!arrayField) return []
 
-  const itemSections = scoped
+  const itemSections = fields
     .filter(
       (field) =>
-        field.parent_id === arrayField.id && field.type === 'section',
+        field.parent_id === arrayField.id && field.kind === 'section',
     )
     .sort((a, b) => a.sort_order - b.sort_order)
 
   return itemSections.map((item) =>
-    scoped
+    fields
       .filter((field) => field.parent_id === item.id)
       .sort((a, b) => a.sort_order - b.sort_order),
   )

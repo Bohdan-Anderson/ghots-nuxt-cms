@@ -4,16 +4,18 @@ import { parseRichTextValue } from '~/types/fieldValues'
 
 const props = defineProps<{
   field: FieldRow | undefined
+  name?: string
 }>()
 
-const html = computed(() => parseRichTextValue(props.field?.value ?? null).html)
+const html = computed(() => parseRichTextValue(props.field?.richtext ?? null).html)
+const fieldName = computed(() => props.name ?? props.field?.name ?? '')
 </script>
 
 <template>
   <div
     class="cms-richtext"
-    :data-name="field?.name"
-    :data-type="field?.type ?? 'richtext'"
+    :data-name="fieldName"
+    data-type="richtext"
     :data-id="field?.id ?? ''"
     v-html="html"
   />

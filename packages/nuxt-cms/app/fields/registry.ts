@@ -1,5 +1,5 @@
 import type { Component } from 'vue'
-import type { FieldType } from '~/types/cms'
+import type { EditableFieldType, FieldRow, ValueColumn } from '~/types/cms'
 import {
   parseLinkValue,
   parseRichTextValue,
@@ -10,6 +10,7 @@ import {
   type LinkValue,
   type ImageValue,
 } from '~/types/fieldValues'
+import { getFieldColumnValue } from '~/fields/fieldValues'
 import { markdownToHtml } from '~/utils/markdownToHtml'
 import { sanitizeHtml } from '~/utils/sanitizeHtml'
 import FieldEditPlainText from '~/components/field-edit/FieldEditPlainText.vue'
@@ -18,23 +19,22 @@ import FieldEditRichText from '~/components/field-edit/FieldEditRichText.vue'
 import FieldEditImage from '~/components/field-edit/FieldEditImage.vue'
 
 export interface FieldTypeConfig {
-  type: FieldType
+  column: ValueColumn
   /** Modal body component for this field type. */
   editComponent: Component
   /** Opens from on-page click delegation when true. */
   supportsOnPageClick: boolean
-  /** Converts DB value to modal draft string. */
+  /** Converts DB column value to modal draft string. */
   valueToDraft: (value: string | null) => string
-  /** Converts modal draft to DB value string. */
+  /** Converts modal draft to DB column value string. */
   draftToValue: (draft: string) => string
   /** Short label for sidebar field preview. */
   preview: (value: string | null) => string
 }
 
-const FIELD_TYPE_REGISTRY: Record<FieldType, FieldTypeConfig | null> = {
-  section: null,
+const FIELD_TYPE_REGISTRY: Record<EditableFieldType, FieldTypeConfig> = {
   plain_text: {
-    type: 'plain_text',
+    column: 'plain_text',
     editComponent: FieldEditPlainText,
     supportsOnPageClick: true,
     valueToDraft: (value) => value ?? '',
@@ -45,7 +45,7 @@ const FIELD_TYPE_REGISTRY: Record<FieldType, FieldTypeConfig | null> = {
     },
   },
   link: {
-    type: 'link',
+    column: 'link',
     editComponent: FieldEditLink,
     supportsOnPageClick: true,
     valueToDraft: (value) => JSON.stringify(parseLinkValue(value)),
@@ -65,7 +65,7 @@ const FIELD_TYPE_REGISTRY: Record<FieldType, FieldTypeConfig | null> = {
     },
   },
   richtext: {
-    type: 'richtext',
+    column: 'richtext',
     editComponent: FieldEditRichText,
     supportsOnPageClick: true,
     valueToDraft: (value) => parseRichTextValue(value).source,
@@ -82,7 +82,7 @@ const FIELD_TYPE_REGISTRY: Record<FieldType, FieldTypeConfig | null> = {
     },
   },
   image: {
-    type: 'image',
+    column: 'image',
     editComponent: FieldEditImage,
     supportsOnPageClick: true,
     valueToDraft: (value) => JSON.stringify(parseImageValue(value)),
@@ -101,42 +101,51 @@ const FIELD_TYPE_REGISTRY: Record<FieldType, FieldTypeConfig | null> = {
       return label.length > 40 ? `${label.slice(0, 40)}…` : label
     },
   },
-  array: null,
 }
 
 /**
- * Returns config for an editable field type, or null for structural types.
+ * Returns config for an editable value column type.
  */
 export function getFieldTypeConfig(
-  type: FieldType,
+  column: EditableFieldType,
 ): FieldTypeConfig | null {
-  return FIELD_TYPE_REGISTRY[type] ?? null
+  return FIELD_TYPE_REGISTRY[column] ?? null
 }
 
 /**
- * Whether the field type can be edited in the modal (not `section`).
+ * Whether the column type can be edited in the modal.
  */
-export function isEditableFieldType(type: FieldType): boolean {
-  return getFieldTypeConfig(type) !== null
+export function isEditableFieldType(column: EditableFieldType): boolean {
+  return getFieldTypeConfig(column) !== null
 }
 
 /**
  * Whether clicks on `[data-name]` elements should open the modal.
  */
-export function fieldTypeSupportsOnPageClick(type: FieldType): boolean {
-  return getFieldTypeConfig(type)?.supportsOnPageClick ?? false
+export function fieldTypeSupportsOnPageClick(
+  column: EditableFieldType,
+): boolean {
+  return getFieldTypeConfig(column)?.supportsOnPageClick ?? false
 }
 
-export { defaultValueForFieldType } from './defaultValues'
-
 /**
- * Sidebar preview text for a field value.
+ * Sidebar preview text for a field value column.
  */
 export function previewFieldValue(
-  type: FieldType,
+  column: EditableFieldType,
   value: string | null,
 ): string {
-  const config = getFieldTypeConfig(type)
+  const config = getFieldTypeConfig(column)
   if (!config) return ''
   return config.preview(value)
+}
+
+/**
+ * Sidebar preview for a field row using its preview column or first populated column.
+ */
+export function previewFieldRow(
+  field: FieldRow,
+  column: EditableFieldType,
+): string {
+  return previewFieldValue(column, getFieldColumnValue(field, column))
 }

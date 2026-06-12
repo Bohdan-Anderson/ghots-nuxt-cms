@@ -4,9 +4,11 @@ import { parseLinkValue } from '~/types/fieldValues'
 
 const props = defineProps<{
   field: FieldRow | undefined
+  name?: string
 }>()
 
-const link = computed(() => parseLinkValue(props.field?.value ?? null))
+const link = computed(() => parseLinkValue(props.field?.link ?? null))
+const fieldName = computed(() => props.name ?? props.field?.name ?? '')
 </script>
 
 <template>
@@ -15,16 +17,16 @@ const link = computed(() => parseLinkValue(props.field?.value ?? null))
     :href="link.url"
     :target="link.target === '_blank' ? '_blank' : undefined"
     :rel="link.target === '_blank' ? 'noopener noreferrer' : undefined"
-    :data-name="field?.name"
-    :data-type="field?.type ?? 'link'"
+    :data-name="fieldName"
+    data-type="link"
     :data-id="field?.id ?? ''"
   >
     {{ link.label || link.url }}
   </a>
   <span
     v-else
-    :data-name="field?.name"
-    :data-type="field?.type ?? 'link'"
+    :data-name="fieldName"
+    data-type="link"
     :data-id="field?.id ?? ''"
     class="cms-link-empty"
   >

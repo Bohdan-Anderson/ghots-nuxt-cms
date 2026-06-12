@@ -1,17 +1,12 @@
 import type { GlobalDefinition } from '~/types/cms'
 
-const GLOBALS: GlobalDefinition[] = []
-
 /**
- * Returns a global region definition from the code registry.
+ * Minimal example — no global regions registered.
  */
-export function getGlobalDefinition(key: string): GlobalDefinition | undefined {
-  return GLOBALS.find((def) => def.key === key)
+export function getGlobalDefinition(_key: string): GlobalDefinition | null {
+  return null
 }
 
-/**
- * Lists all registered global regions (empty in minimal example).
- */
 export function listGlobalDefinitions(): GlobalDefinition[] {
-  return GLOBALS
+  return []
 }

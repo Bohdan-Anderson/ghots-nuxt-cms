@@ -1,55 +1,15 @@
-import type { FieldRow, FieldSchemaNode, PageContent } from '~/types/cms'
-import { getSliceDefinition } from '#cms/registries'
+import type { FieldRow } from '~/types/cms'
 
 /**
- * Returns the root field schema for a field (template page-level or slice registry).
- */
-function schemaRootForField(
-  content: PageContent,
-  field: FieldRow,
-): FieldSchemaNode[] {
-  if (field.slice_id) {
-    const slice = content.slices.find((row) => row.id === field.slice_id)
-    if (!slice) return []
-    return getSliceDefinition(slice.slice_type_key)?.fieldSchema ?? []
-  }
-  return content.template.field_schema
-}
-
-/**
- * Finds a schema node by name at the current tree level.
- */
-function findSchemaNode(
-  schema: FieldSchemaNode[],
-  name: string,
-): FieldSchemaNode | null {
-  return schema.find((node) => node.name === name) ?? null
-}
-
-/**
- * Returns the item field schema for an `array` field instance.
- */
-export function getArrayItemSchema(
-  content: PageContent,
-  arrayField: FieldRow,
-): FieldSchemaNode[] {
-  if (arrayField.type !== 'array') return []
-
-  const root = schemaRootForField(content, arrayField)
-  const node = findSchemaNode(root, arrayField.name)
-  return node?.children ?? []
-}
-
-/**
- * Returns true when a section row is an array item (parent is type `array`).
+ * Returns true when a section row is an array item (parent kind is `array`).
  */
 export function isArrayItemSection(
   field: FieldRow,
   fieldsById: Record<string, FieldRow>,
 ): boolean {
-  if (field.type !== 'section' || !field.parent_id) return false
+  if (field.kind !== 'section' || !field.parent_id) return false
   const parent = fieldsById[field.parent_id]
-  return parent?.type === 'array'
+  return parent?.kind === 'array'
 }
 
 /**
@@ -63,7 +23,7 @@ export function arrayItemLabel(
   const siblings = fields
     .filter(
       (field) =>
-        field.parent_id === arrayField.id && field.type === 'section',
+        field.parent_id === arrayField.id && field.kind === 'section',
     )
     .sort((a, b) => a.sort_order - b.sort_order)
 

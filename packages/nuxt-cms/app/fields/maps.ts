@@ -1,40 +1,40 @@
 import type { FieldRow } from '../types/cms'
 
 /**
+ * Builds a lookup key for parent + name.
+ */
+export function parentNameKey(
+  parentId: string | null,
+  name: string,
+): string {
+  return `${parentId ?? ''}:${name}`
+}
+
+/**
  * Builds lookup maps from a flat field list.
  */
 export function buildFieldMaps(fields: FieldRow[]) {
   const fieldsById: Record<string, FieldRow> = {}
   const fieldsByName: Record<string, FieldRow> = {}
-  const fieldsBySliceId: Record<string, FieldRow[]> = {}
+  const fieldsByParentAndName: Record<string, FieldRow> = {}
 
   for (const field of fields) {
     fieldsById[field.id] = field
+    fieldsByParentAndName[parentNameKey(field.parent_id, field.name)] = field
 
-    if (field.slice_id) {
-      if (!fieldsBySliceId[field.slice_id]) {
-        fieldsBySliceId[field.slice_id] = []
-      }
-      fieldsBySliceId[field.slice_id]!.push(field)
-    }
-
-    if (field.parent_id === null && field.slice_id === null) {
+    if (field.parent_id === null) {
       fieldsByName[field.name] = field
     }
   }
 
-  for (const sliceId of Object.keys(fieldsBySliceId)) {
-    fieldsBySliceId[sliceId]!.sort((a, b) => a.sort_order - b.sort_order)
-  }
-
-  return { fieldsById, fieldsByName, fieldsBySliceId }
+  return { fieldsById, fieldsByName, fieldsByParentAndName }
 }
 
 /**
- * Returns page-level fields (`slice_id` is null).
+ * Returns page-level fields (global_id null, all page-owned).
  */
 export function pageLevelFields(fields: FieldRow[]): FieldRow[] {
-  return fields.filter((field) => field.slice_id === null)
+  return fields.filter((field) => field.global_id === null)
 }
 
 /**

@@ -1,21 +1,15 @@
 /**
- * CMS domain types for pages, templates, slices, globals, and fields.
+ * CMS domain types for pages, templates, globals, and fields.
  */
 
-export type FieldType =
-  | 'section'
-  | 'plain_text'
-  | 'link'
-  | 'richtext'
-  | 'image'
-  | 'array'
+/** Value column names — which typed column to read/write. */
+export type ValueColumn = 'plain_text' | 'richtext' | 'link' | 'image'
 
-export interface FieldSchemaNode {
-  name: string
-  type: FieldType
-  default?: string
-  children?: FieldSchemaNode[]
-}
+/** DOM-declared editor types (editable leaves). */
+export type EditableFieldType = ValueColumn
+
+/** Structural row kinds stored in DB (not value types). */
+export type FieldKind = 'section' | 'array'
 
 export interface SiteRow {
   id: string
@@ -29,7 +23,8 @@ export interface TemplateRow {
   site_id: string
   key: string
   label: string
-  field_schema: FieldSchemaNode[]
+  /** @deprecated DOM is schema; kept for DB compat, always `[]`. */
+  field_schema: unknown[]
 }
 
 export interface PageRow {
@@ -47,13 +42,6 @@ export interface PageRow {
   templates?: TemplateRow
 }
 
-export interface PageSliceRow {
-  id: string
-  page_id: string
-  slice_type_key: string
-  sort_order: number
-}
-
 export interface GlobalRow {
   id: string
   site_id: string
@@ -65,27 +53,27 @@ export interface GlobalRow {
 export interface FieldRow {
   id: string
   page_id: string | null
-  slice_id: string | null
   global_id: string | null
   parent_id: string | null
   name: string
-  type: FieldType
-  value: string | null
+  kind: FieldKind | null
+  plain_text: string | null
+  richtext: string | null
+  link: string | null
+  image: string | null
   sort_order: number
 }
 
 export interface PageContent {
   page: PageRow
   template: TemplateRow
-  slices: PageSliceRow[]
-  /** All field rows for this page (page-level + slice-owned). */
   fields: FieldRow[]
-  /** Page-level fields only (`slice_id` is null). */
   pageFields: FieldRow[]
-  fieldsBySliceId: Record<string, FieldRow[]>
   fieldsById: Record<string, FieldRow>
-  /** Root-level page fields only (not inside slices). */
+  /** Root-level page fields keyed by name (parent_id null). */
   fieldsByName: Record<string, FieldRow>
+  /** All fields keyed by (parentId|null):(name). */
+  fieldsByParentAndName: Record<string, FieldRow>
 }
 
 export interface GlobalContent {
@@ -93,16 +81,29 @@ export interface GlobalContent {
   fields: FieldRow[]
   fieldsById: Record<string, FieldRow>
   fieldsByName: Record<string, FieldRow>
-}
-
-export interface SliceTypeDefinition {
-  key: string
-  label: string
-  fieldSchema: FieldSchemaNode[]
+  fieldsByParentAndName: Record<string, FieldRow>
 }
 
 export interface GlobalDefinition {
   key: string
   label: string
-  fieldSchema: FieldSchemaNode[]
+}
+
+/** DOM-scanned node for sidebar tree. */
+export interface ContentTreeNode {
+  id: string | null
+  name: string
+  domType: string | null
+  kind: FieldKind | null
+  depth: number
+  children: ContentTreeNode[]
+  /** Set on editable leaves — which column has content for preview. */
+  previewColumn?: ValueColumn | null
+}
+
+/** Resolved parent context from DOM walk. */
+export interface FieldParentContext {
+  pageId: string | null
+  globalId: string | null
+  parentId: string | null
 }

@@ -2,35 +2,32 @@ import type {
   FieldRow,
   PageContent,
   PageRow,
-  PageSliceRow,
   TemplateRow,
 } from '../types/cms'
 import { buildFieldMaps, pageLevelFields } from './maps'
 
 /**
- * Rebuilds derived maps after slices or fields change (sidebar structural edits).
+ * Rebuilds derived maps after fields change.
  */
 export function rebuildPageContent(
   current: PageContent,
   updates: {
     fields?: FieldRow[]
-    slices?: PageSliceRow[]
     page?: PageContent['page']
   },
 ): PageContent {
   const fields = updates.fields ?? current.fields
-  const slices = updates.slices ?? current.slices
-  const { fieldsById, fieldsByName, fieldsBySliceId } = buildFieldMaps(fields)
+  const { fieldsById, fieldsByName, fieldsByParentAndName } =
+    buildFieldMaps(fields)
 
   return {
     ...current,
     page: updates.page ?? current.page,
     fields,
-    slices,
     pageFields: pageLevelFields(fields),
-    fieldsBySliceId,
     fieldsById,
     fieldsByName,
+    fieldsByParentAndName,
   }
 }
 
@@ -40,10 +37,10 @@ export function rebuildPageContent(
 export function buildPageContentPayload(
   page: PageRow,
   template: TemplateRow,
-  slices: PageContent['slices'],
   fields: FieldRow[],
 ): PageContent {
-  const { fieldsById, fieldsByName, fieldsBySliceId } = buildFieldMaps(fields)
+  const { fieldsById, fieldsByName, fieldsByParentAndName } =
+    buildFieldMaps(fields)
 
   return {
     page: {
@@ -64,12 +61,11 @@ export function buildPageContentPayload(
       label: template.label,
       field_schema: template.field_schema,
     },
-    slices,
     fields,
     pageFields: pageLevelFields(fields),
-    fieldsBySliceId,
     fieldsById,
     fieldsByName,
+    fieldsByParentAndName,
   }
 }
 

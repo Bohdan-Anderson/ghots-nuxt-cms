@@ -1,55 +1,49 @@
 <script setup lang="ts">
 import type { FieldRow } from '~/types/cms'
 import { fieldTypeSupportsOnPageClick } from '~/fields/registry'
-import { collectFieldManifest, manifestEntryFromElement } from '~/fields/collectFieldManifest'
 import { rebuildPageContent } from '~/fields/pageContent'
-import { syncFieldsFromManifest } from '~/fields/syncFieldsFromManifest'
-import { resolveManifestFieldType } from '~/fields/resolveManifestFieldType'
-import { ensureField } from '~/fields/ensureField'
+import { syncFieldsFromDom } from '~/fields/syncFieldsFromDom'
+import {
+  ensureField,
+  ensureInputFromElement,
+} from '~/fields/ensureField'
+import {
+  resolveFieldParentContext,
+} from '~/fields/domContext'
 
 /**
  * Wraps a page template for inline CMS editing.
- * Registers field lookups with usePageEditor, delegates clicks on [data-name]
- * elements to open the modal, syncs missing fields from DOM markup when enabled,
- * and bubbles saves to the parent via fieldUpdated.
+ * Registers field lookups, delegates clicks on [data-name] to the modal,
+ * syncs missing fields from DOM markup, and builds the sidebar content tree.
  */
 const props = defineProps<{
   /** When true, click delegation and FieldEditModal are active (typically loggedIn). */
   enabled: boolean
-  /** Full field list for the page (passed through for potential future use). */
-  fields: FieldRow[]
-  /** Lookup by field id — matches data-id on template elements. */
   fieldsById: Record<string, FieldRow>
-  /** Lookup by field name — matches data-name on template elements. */
-  fieldsByName: Record<string, FieldRow>
+  fieldsByParentAndName: Record<string, FieldRow>
 }>()
 
 const emit = defineEmits<{
-  /** Fired after a successful save so the parent can patch local page content. */
   fieldUpdated: [field: FieldRow]
 }>()
 
-/** Root element for a single delegated click listener (avoids per-field listeners). */
 const rootRef = ref<HTMLElement | null>(null)
-
-/** Shared editor state (modal, registry, save) — one instance per app. */
 const editor = usePageEditor()
 const { pageContent, applyPageContent } = useCmsPanel()
-
-/** Prevents re-entrant sync while applying merged field rows. */
+const { rebuildFromDom, clearTree } = useContentTree()
 const syncing = ref(false)
 
-/**
- * Keeps usePageEditor's registry in sync with the current page's field maps
- * so resolveFieldFromElement can map clicks to FieldRow instances.
- */
 function syncRegistry() {
-  editor.registerFields(props.fieldsById, props.fieldsByName)
+  editor.registerFields(props.fieldsById, props.fieldsByParentAndName)
 }
 
-/**
- * Merges changed field rows into the panel page content.
- */
+function refreshContentTree(
+  fieldsById: Record<string, FieldRow> = props.fieldsById,
+) {
+  if (!props.enabled || !rootRef.value) return
+  rebuildFromDom(rootRef.value, fieldsById)
+}
+
 function applySyncedFields(changed: FieldRow[]) {
   const current = pageContent.value
   if (!current || changed.length === 0) return
@@ -59,54 +53,53 @@ function applySyncedFields(changed: FieldRow[]) {
     byId.set(row.id, row)
   }
 
-  applyPageContent(
-    rebuildPageContent(current, {
-      fields: Array.from(byId.values()).sort(
-        (a, b) => a.sort_order - b.sort_order,
-      ),
-    }),
-  )
+  const rebuilt = rebuildPageContent(current, {
+    fields: Array.from(byId.values()).sort(
+      (a, b) => a.sort_order - b.sort_order,
+    ),
+  })
+
+  applyPageContent(rebuilt)
+  syncRegistry()
+  refreshContentTree(rebuilt.fieldsById)
 }
 
-/**
- * Scans rendered markup and ensures missing DB field rows exist for editors.
- */
 async function runFieldSync() {
   if (!props.enabled || !rootRef.value || !pageContent.value || syncing.value) {
     return
   }
 
-  const manifest = collectFieldManifest(rootRef.value)
-  if (manifest.length === 0) return
-
   syncing.value = true
   try {
     const supabase = useSupabase()
-    const changed = await syncFieldsFromManifest(
-      supabase,
-      pageContent.value,
-      manifest,
-    )
-    applySyncedFields(changed)
+    let current = pageContent.value
+
+    for (let pass = 0; pass < 5; pass++) {
+      const changed = await syncFieldsFromDom(
+        supabase,
+        current,
+        rootRef.value,
+      )
+      if (changed.length === 0) break
+
+      applySyncedFields(changed)
+      current = pageContent.value ?? current
+      await nextTick()
+    }
   } finally {
     syncing.value = false
+    await nextTick()
+    refreshContentTree(pageContent.value?.fieldsById ?? props.fieldsById)
   }
 }
 
-/**
- * Ensures a single field from a clicked element when no DB row exists yet.
- */
 async function ensureFieldForElement(el: HTMLElement): Promise<FieldRow | null> {
   const current = pageContent.value
   if (!current) return null
 
-  const entry = manifestEntryFromElement(el)
-  if (!entry) return null
-
-  const resolved = {
-    ...entry,
-    type: resolveManifestFieldType(entry, current),
-  }
+  const context = resolveFieldParentContext(el)
+  const input = ensureInputFromElement(el, context)
+  if (!input) return null
 
   syncing.value = true
   try {
@@ -114,7 +107,7 @@ async function ensureFieldForElement(el: HTMLElement): Promise<FieldRow | null> 
     const result = await ensureField(
       supabase,
       current,
-      resolved,
+      input,
       current.fields,
     )
     if (result) {
@@ -126,27 +119,44 @@ async function ensureFieldForElement(el: HTMLElement): Promise<FieldRow | null> 
   }
 }
 
-// Re-register when field maps change (e.g. after patchField from parent).
 watch(
-  () => [props.fieldsById, props.fieldsByName] as const,
+  () => [props.fieldsById, props.fieldsByParentAndName] as const,
   syncRegistry,
   { deep: true },
 )
 
 watch(
-  () => [props.enabled, props.fields.length] as const,
-  async () => {
-    if (!props.enabled) return
+  () => props.enabled,
+  async (enabled) => {
+    if (!enabled) {
+      clearTree()
+      return
+    }
     await nextTick()
     await runFieldSync()
   },
   { flush: 'post' },
 )
 
-/**
- * Click delegation: finds the nearest [data-name] ancestor and opens the modal
- * for field types that support on-page editing (see field type registry).
- */
+watch(
+  () => props.fieldsById,
+  async () => {
+    if (!props.enabled || !rootRef.value) return
+    await nextTick()
+    refreshContentTree()
+  },
+  { deep: true },
+)
+
+watch(
+  () => pageContent.value?.fields.length,
+  async () => {
+    if (!props.enabled) return
+    await nextTick()
+    await runFieldSync()
+  },
+)
+
 async function onClick(event: MouseEvent) {
   if (!props.enabled) return
 
@@ -154,16 +164,19 @@ async function onClick(event: MouseEvent) {
   const el = target.closest('[data-name]') as HTMLElement | null
   if (!el) return
 
+  const column = editor.editableColumnFromElement(el)
+  if (!column || !fieldTypeSupportsOnPageClick(column)) return
+
   let field = editor.resolveFieldFromElement(el)
 
   if (!field) {
     field = (await ensureFieldForElement(el)) ?? null
   }
 
-  if (!field || !fieldTypeSupportsOnPageClick(field.type)) return
+  if (!field) return
 
   event.preventDefault()
-  editor.open(field)
+  editor.open(field, column)
 }
 
 onMounted(() => {
@@ -176,11 +189,11 @@ onMounted(() => {
 onUnmounted(() => {
   editor.setFieldUpdatedHandler(null)
   rootRef.value?.removeEventListener('click', onClick)
+  clearTree()
 })
 </script>
 
 <template>
-  <!-- Slot renders the dynamic page template; modal is sibling so it overlays the page. -->
   <div
     ref="rootRef"
     :class="{ 'page--editing': enabled }"
@@ -191,7 +204,6 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-/* Visual hint that inline editable regions are clickable when edit mode is on. */
 .page--editing :deep([data-name]) {
   cursor: pointer;
 }

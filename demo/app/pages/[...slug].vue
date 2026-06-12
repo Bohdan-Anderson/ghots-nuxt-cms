@@ -10,12 +10,15 @@ const {
   loggedIn,
 } = useCmsPage()
 
-const { data: siteGlobal } = useGlobalData('site')
+const { data: siteGlobal, refresh: refreshGlobal } = useGlobalData('site')
 
 const siteNavLabel = computed(
   () =>
-    resolveGlobalField(siteGlobal.value?.fields ?? [], 'nav_label')?.value ??
-    'Site',
+    cmsColumnValue(
+      resolveGlobalField(siteGlobal.value?.fields ?? [], 'nav_label') ??
+        emptyFieldRow('nav_label'),
+      'plain_text',
+    ) || 'Site',
 )
 
 useHead(() => {
@@ -37,21 +40,38 @@ useHead(() => {
 
   return { title, meta }
 })
+
+function onGlobalFieldUpdated() {
+  refreshGlobal()
+}
 </script>
 
 <template>
-  <nav>
-    <strong>{{ siteNavLabel }}</strong>
-    <NuxtLink
-      v-for="page in pageList"
-      :key="page.slug"
-      :to="page.slug"
-      :class="{ 'router-link-active': route.path === page.slug }"
+  <GlobalEditorRegion
+    :enabled="loggedIn"
+    :global-content="siteGlobal"
+    @field-updated="onGlobalFieldUpdated"
+  >
+    <nav
+      data-global="site"
+      :data-id="siteGlobal?.global.id ?? ''"
     >
-      {{ page.title ?? page.slug }}
-    </NuxtLink>
-    <NuxtLink to="/login">Login</NuxtLink>
-  </nav>
+      <strong
+        data-name="nav_label"
+        data-type="plain_text"
+        :data-id="resolveGlobalField(siteGlobal?.fields ?? [], 'nav_label')?.id ?? ''"
+      >{{ siteNavLabel }}</strong>
+      <NuxtLink
+        v-for="page in pageList"
+        :key="page.slug"
+        :to="page.slug"
+        :class="{ 'router-link-active': route.path === page.slug }"
+      >
+        {{ page.title ?? page.slug }}
+      </NuxtLink>
+      <NuxtLink to="/login">Login</NuxtLink>
+    </nav>
+  </GlobalEditorRegion>
 
   <div v-if="status === 'pending'">Loading...</div>
 
@@ -63,17 +83,15 @@ useHead(() => {
   <PageEditorProvider
     v-else-if="templateComponent"
     :enabled="loggedIn"
-    :fields="content.fields"
     :fields-by-id="content.fieldsById"
-    :fields-by-name="content.fieldsByName"
+    :fields-by-parent-and-name="content.fieldsByParentAndName"
     @field-updated="patchField"
   >
     <component
       :is="templateComponent"
+      :page-id="content.page.id"
       :fields="content.fields"
-      :page-fields="content.pageFields"
-      :slices="content.slices"
-      :fields-by-slice-id="content.fieldsBySliceId"
+      :fields-by-parent-and-name="content.fieldsByParentAndName"
     />
   </PageEditorProvider>
 
