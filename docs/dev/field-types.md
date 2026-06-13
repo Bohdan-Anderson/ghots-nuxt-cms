@@ -38,7 +38,8 @@ Helpers: `parseLinkValue`, `serializeLinkValue` in `packages/nuxt-cms/app/types/
 { "source": "markdown…", "html": "<p>…</p>" }
 ```
 
-- **Modal:** markdown textarea (subset: paragraphs, `**bold**`, `*italic*`, `[text](url)`)
+- **Modal:** markdown textarea with toolbar buttons for bullet and numbered lists
+- **Markdown subset:** paragraphs (blank line), `**bold**`, `*italic*`, `[text](url)`, unordered lists (`- item` or `* item`), ordered lists (`1. item`)
 - **On save:** `markdownToHtml` → `sanitizeHtml` → persist both `source` and `html`
 - **Template:** `<CmsRichText :field="field('copy')" />` (`v-html` uses sanitized `html` from save time)
 
@@ -50,7 +51,23 @@ Editors are trusted; guests only see HTML from the last **generate** (static `di
 
 ### Editor choice
 
-v1 uses **markdown in a textarea**, not TipTap. Richer WYSIWYG can plug into the same registry later by changing `FieldEditRichText` and `draftToValue`.
+v1 uses **markdown in a textarea**, not TipTap. `FieldEditRichText` includes toolbar buttons that insert list markers on the current line(s); conversion logic lives in `packages/nuxt-cms/app/utils/markdownListPrefix.ts`. Richer WYSIWYG can plug into the same registry later by changing `FieldEditRichText` and `draftToValue`.
+
+### Markdown examples
+
+```markdown
+Intro paragraph with **bold** and *italic*.
+
+- First bullet
+- Second bullet
+
+1. Step one
+2. Step two
+
+[Read more](https://example.com)
+```
+
+On save this becomes `<p>`, `<ul>`, `<ol>`, and `<a>` tags (plus inline `<strong>` / `<em>`). Separate list blocks from paragraphs with a blank line. A block is treated as a list only when every non-empty line uses the same list style.
 
 ## `image`
 

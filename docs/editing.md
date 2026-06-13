@@ -19,6 +19,8 @@ Three tabs:
 | ----------- | --------------------------------------------------- |
 | **Content** | Tree of page fields, slices, and nested array items |
 | **Pages**   | List pages, create new ones (slug, title, template) |
+
+The **slug** field slugifies as you type: spaces become hyphens, non URL-safe characters are removed, and the path is lowercased (e.g. `About Us` → `/about-us`). Nested paths work too (`/blog/My Post` → `/blog/my-post`).
 | **Meta**    | SEO: meta title, description, OG image, noindex     |
 
 ### Content tree
@@ -39,6 +41,10 @@ Open the modal by:
 - Clicking an element on the page with **`data-name`** and an editable **`data-type`** (for supported leaf types)
 
 Array items are edited from the sidebar, not by clicking the page.
+
+### Rich text fields
+
+The richtext modal accepts a small markdown subset: paragraphs, **bold**, *italic*, links, bullet lists, and numbered lists. Toolbar buttons insert list markers on the selected lines. Saved content is converted to sanitized HTML (`<p>`, `<ul>`, `<ol>`, etc.) — see [Field types](./field-types.md#richtext).
 
 ## On-page preview
 

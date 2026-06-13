@@ -69,6 +69,18 @@ describe('draft round-trip', () => {
       target: '_self',
     })
   })
+
+  it('serializes richtext drafts with list markdown to stored html', () => {
+    const config = getFieldTypeConfig('richtext')!
+    const draft = '- Alpha\n- Beta\n\n1. One\n2. Two'
+    const stored = config.draftToValue(draft)
+    const parsed = JSON.parse(stored) as { source: string; html: string }
+
+    expect(parsed.source).toBe(draft)
+    expect(parsed.html).toBe(
+      '<ul><li>Alpha</li><li>Beta</li></ul><ol><li>One</li><li>Two</li></ol>',
+    )
+  })
 })
 
 function parseLinkFromStored(value: string) {

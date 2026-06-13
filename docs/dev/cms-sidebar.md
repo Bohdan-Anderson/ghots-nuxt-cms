@@ -36,7 +36,7 @@ Guests never see the sidebar (`v-if="loggedIn"` in `demo/app/app.vue`).
 ### Pages
 
 - Lists all rows from **`usePageListData()`** (`slug`, `title`), same source as the top nav.
-- **Create page** — slug, title, template picker (`useTemplatesData`); unique slug enforced; navigates to new page on success.
+- **Create page** — slug (auto-slugified as you type via `slugify`), title, template picker (`useTemplatesData`); unique slug enforced; navigates to new page on success.
 
 ### Meta
 

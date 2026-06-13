@@ -63,6 +63,19 @@ Markdown source + sanitized HTML. Stored as JSON `{ source, html }`.
 
 Editors write markdown in the modal; templates render sanitized `html`.
 
+**Supported markdown:**
+
+| Syntax | Result |
+| ------ | ------ |
+| Blank line between blocks | New paragraph |
+| `**bold**` | **bold** |
+| `*italic*` | *italic* |
+| `[label](https://url)` | Link (http/https only) |
+| `- item` or `* item` | Bullet list |
+| `1. item` | Numbered list |
+
+The modal includes **• List** and **1. List** toolbar buttons to prefix the current line(s). You can also type list markers directly. Separate lists from paragraphs with a blank line.
+
 ---
 
 ### image

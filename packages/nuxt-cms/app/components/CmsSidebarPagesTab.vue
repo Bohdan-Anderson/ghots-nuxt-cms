@@ -2,6 +2,7 @@
 import { createPage } from '~/composables/usePageCreate'
 import { usePageListData } from '~/composables/usePageList'
 import { useTemplatesData } from '~/composables/useTemplates'
+import { slugify } from '~/utils/slug'
 
 const route = useRoute()
 const router = useRouter()
@@ -25,6 +26,13 @@ watch(
   },
   { immediate: true },
 )
+
+watch(newPageSlug, (value) => {
+  const slugified = slugify(value)
+  if (slugified !== value) {
+    newPageSlug.value = slugified
+  }
+})
 
 /**
  * Creates a new page and navigates to it.

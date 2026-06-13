@@ -10,6 +10,10 @@ export default defineConfig({
       '~/types/cms': resolve(appDir, 'types/cms.ts'),
       '~/types/fieldValues': resolve(appDir, 'types/fieldValues.ts'),
       '~/utils/markdownToHtml': resolve(appDir, 'utils/markdownToHtml.ts'),
+      '~/utils/markdownListPrefix': resolve(
+        appDir,
+        'utils/markdownListPrefix.ts',
+      ),
       '~/utils/sanitizeHtml': resolve(appDir, 'utils/sanitizeHtml.ts'),
       '~/fields/resolveField': resolve(appDir, 'fields/resolveField.ts'),
       '~/fields/maps': resolve(appDir, 'fields/maps.ts'),

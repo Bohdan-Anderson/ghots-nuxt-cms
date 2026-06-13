@@ -1,6 +1,6 @@
 {
   "name": "ghots-nuxt-cms",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Static-first Supabase page builder for Nuxt 4",
   "type": "module",
   "license": "MIT",

@@ -27,7 +27,7 @@ See also [vision.md](./vision.md) § Portability and [todo.md](../../todo.md) Ph
 | `packages/nuxt-cms/app/composables/*`                                           | All except consumer `useTemplate.ts`                        |
 | `packages/nuxt-cms/app/fields/registry.ts`, `schemaLookup.ts`                   | Field-type registry; schema lookup uses injected registries |
 | `packages/nuxt-cms/app/types/cms.ts`, `fieldValues.ts`                          | Shared types                                                |
-| `packages/nuxt-cms/app/utils/slug.ts`, `markdownToHtml.ts`, `sanitizeHtml.ts`   | Utilities                                                   |
+| `packages/nuxt-cms/app/utils/slug.ts`, `markdownToHtml.ts`, `markdownListPrefix.ts`, `sanitizeHtml.ts` | Slug normalize/slugify, markdown, HTML sanitize |
 | `packages/nuxt-cms/app/assets/cms-panel.css`                                    | Editor chrome styles                                        |
 | `packages/nuxt-cms/app/plugins/supabase.client.ts`                              | Session restore                                             |
 | `packages/nuxt-cms/app/pages/login.vue`                                         | Auth page (optional override in consumer)                   |

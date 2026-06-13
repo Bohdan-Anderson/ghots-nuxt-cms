@@ -1,5 +1,5 @@
 import type { PageRow } from '~/types/cms'
-import { normalizeSlug } from '~/utils/slug'
+import { slugify } from '~/utils/slug'
 
 export interface CreatePageInput {
   slug: string
@@ -12,7 +12,7 @@ export interface CreatePageInput {
  */
 export async function slugExists(slug: string): Promise<boolean> {
   const supabase = useSupabase()
-  const normalized = normalizeSlug(slug)
+  const normalized = slugify(slug)
   const siteId = await resolveSiteId()
   const { data, error } = await supabase
     .from('pages')
@@ -30,7 +30,10 @@ export async function slugExists(slug: string): Promise<boolean> {
  */
 export async function createPage(input: CreatePageInput): Promise<PageRow> {
   const supabase = useSupabase()
-  const slug = normalizeSlug(input.slug)
+  const slug = slugify(input.slug)
+  if (!slug) {
+    throw new Error('Enter a valid slug (letters, numbers, and hyphens).')
+  }
   const siteId = await resolveSiteId()
 
   if (await slugExists(slug)) {
