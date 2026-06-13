@@ -1,8 +1,5 @@
 import type { ContentTreeNode, FieldRow } from '~/types/cms'
-import {
-  enrichTreeWithFields,
-  scanContentTree,
-} from '~/fields/scanContentTree'
+import { enrichTreeWithFields, scanContentTree } from '~/fields/scanContentTree'
 
 /**
  * Shared store for the DOM-scanned content tree (sidebar navigation).

@@ -1,5 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { resolveField, type FieldRow } from '../../../packages/nuxt-cms/test-utils/e2e'
+import {
+  resolveField,
+  type FieldRow,
+} from '../../../packages/nuxt-cms/test-utils/e2e'
 import { createE2eSupabase, createE2eServiceSupabase } from './supabase'
 import {
   assertSupabaseReachable,
@@ -64,10 +67,12 @@ async function ensureEditorSiteMembership(
   const siteId = await resolveE2eSiteId(supabase)
   const serviceSupabase = createE2eServiceSupabase()
 
-  const { error } = await serviceSupabase.from('site_members').upsert(
-    { site_id: siteId, user_id: userId },
-    { onConflict: 'site_id,user_id' },
-  )
+  const { error } = await serviceSupabase
+    .from('site_members')
+    .upsert(
+      { site_id: siteId, user_id: userId },
+      { onConflict: 'site_id,user_id' },
+    )
 
   if (error) throw error
 }
@@ -310,13 +315,12 @@ export async function getHomePageRootField(
 /**
  * Finds a section field by name at page root.
  */
-function findSection(
-  fields: FieldRow[],
-  name: string,
-): FieldRow | undefined {
+function findSection(fields: FieldRow[], name: string): FieldRow | undefined {
   return fields.find(
     (field) =>
-      field.name === name && field.kind === 'section' && field.parent_id === null,
+      field.name === name &&
+      field.kind === 'section' &&
+      field.parent_id === null,
   )
 }
 
@@ -494,7 +498,8 @@ export async function resetGlobalSiteFields(): Promise<void> {
     .maybeSingle()
 
   if (globalError) throw globalError
-  if (!globalRow) throw new Error('Site global (key site) not found in Supabase')
+  if (!globalRow)
+    throw new Error('Site global (key site) not found in Supabase')
 
   const { data: fields, error: fieldsError } = await supabase
     .from('fields')

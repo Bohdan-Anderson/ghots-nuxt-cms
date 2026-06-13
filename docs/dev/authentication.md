@@ -15,12 +15,12 @@ Mapped in `demo/nuxt.config.ts` → `runtimeConfig.public`.
 
 ## Code map
 
-| File | Role |
-| ---- | ---- |
-| `packages/nuxt-cms/app/composables/useSupabase.ts` | `createClient()` singleton |
-| `packages/nuxt-cms/app/composables/useAuth.ts` | `user`, `loggedIn`, `signIn`, `signOut` |
+| File                                               | Role                                        |
+| -------------------------------------------------- | ------------------------------------------- |
+| `packages/nuxt-cms/app/composables/useSupabase.ts` | `createClient()` singleton                  |
+| `packages/nuxt-cms/app/composables/useAuth.ts`     | `user`, `loggedIn`, `signIn`, `signOut`     |
 | `packages/nuxt-cms/app/plugins/supabase.client.ts` | `getSession()` on load; `onAuthStateChange` |
-| `packages/nuxt-cms/app/pages/login.vue` | Login form; logout when session exists |
+| `packages/nuxt-cms/app/pages/login.vue`            | Login form; logout when session exists      |
 
 ## Session state
 
@@ -50,11 +50,11 @@ getCachedData(key, nuxtApp) {
 }
 ```
 
-| State | Behavior |
-| ----- | -------- |
-| Logged out + payload exists | Use prerender cache; **no** `usePageContent` Supabase call |
-| Logged out + no payload (e.g. dev) | Fetch from Supabase |
-| Logged in | Always fetch Supabase; can **seed** empty fields |
+| State                              | Behavior                                                   |
+| ---------------------------------- | ---------------------------------------------------------- |
+| Logged out + payload exists        | Use prerender cache; **no** `usePageContent` Supabase call |
+| Logged out + no payload (e.g. dev) | Fetch from Supabase                                        |
+| Logged in                          | Always fetch Supabase; can **seed** empty fields           |
 
 `watch(loggedIn, () => refresh())` in `useCmsPage()` refetches page content when the session changes.
 

@@ -27,7 +27,10 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <section class="cms-publish-panel" aria-label="Publish">
+  <section
+    class="cms-publish-panel"
+    aria-label="Publish"
+  >
     <h2 class="cms-publish-panel-title">Publish</h2>
     <p class="cms-publish-panel-lead">
       Guests see the last published build. Edits you save are live for editors
@@ -38,7 +41,10 @@ onUnmounted(() => {
     </p>
     <div class="cms-publish-panel-command">
       <code>{{ publishCommand }}</code>
-      <button type="button" @click="copyCommand">
+      <button
+        type="button"
+        @click="copyCommand"
+      >
         {{ copied ? 'Copied' : 'Copy' }}
       </button>
     </div>
@@ -46,7 +52,10 @@ onUnmounted(() => {
       Build needs Supabase reachable with <code>VITE_SUPABASE_*</code> in
       <code>.env</code>.
     </p>
-    <p v-if="hasWebhookStub" class="cms-publish-panel-future">
+    <p
+      v-if="hasWebhookStub"
+      class="cms-publish-panel-future"
+    >
       Webhook URL is configured for a future CI trigger (not wired yet).
     </p>
   </section>

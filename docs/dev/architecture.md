@@ -48,11 +48,11 @@ flowchart TB
 
 ## Data loading matrix
 
-| Key | Composable | Guest (static `dist/`) | Guest (`npm run dev`) | Logged in |
-| --- | ---------- | ---------------------- | --------------------- | --------- |
-| `page:${slug}` | `usePageContent` | Payload / prerender cache via `getCachedData` | Supabase | Supabase |
-| `page-list` | `usePageListData` | Payload / prerender cache via `getCachedData` | Supabase | Supabase |
-| `global:${key}` | `useGlobalData` | Payload / prerender cache via `getCachedData` | Supabase | Supabase |
+| Key             | Composable        | Guest (static `dist/`)                        | Guest (`npm run dev`) | Logged in |
+| --------------- | ----------------- | --------------------------------------------- | --------------------- | --------- |
+| `page:${slug}`  | `usePageContent`  | Payload / prerender cache via `getCachedData` | Supabase              | Supabase  |
+| `page-list`     | `usePageListData` | Payload / prerender cache via `getCachedData` | Supabase              | Supabase  |
+| `global:${key}` | `useGlobalData`   | Payload / prerender cache via `getCachedData` | Supabase              | Supabase  |
 
 Page content, nav, and globals are designed to be static for guests on a successful `nuxt generate` deploy. See [Static generation](./static-generation.md).
 
@@ -82,14 +82,14 @@ Page content, nav, and globals are designed to be static for guests on a success
 
 ## Technology choices
 
-| Layer | Choice | Rationale |
-| ----- | ------ | --------- |
-| Framework | Nuxt 4 | File-based routing, `useAsyncData`, static generation |
-| CMS package | Nuxt layer (`packages/nuxt-cms`) | Portable editor + composables; consumer owns templates/slices |
-| Hosting shape | Static `dist/` | Simple deploy; `npm run static` for local preview |
-| Data + auth | Supabase | Postgres, RLS, email/password auth without a custom API |
-| Templates | Vue SFCs in `demo/app/templates/` | Full control over markup; mapped by `templates.key` |
-| Editor UX | Sidebar + click delegation + modal | No per-field wrapper components; editing gated by `loggedIn` |
+| Layer         | Choice                             | Rationale                                                     |
+| ------------- | ---------------------------------- | ------------------------------------------------------------- |
+| Framework     | Nuxt 4                             | File-based routing, `useAsyncData`, static generation         |
+| CMS package   | Nuxt layer (`packages/nuxt-cms`)   | Portable editor + composables; consumer owns templates/slices |
+| Hosting shape | Static `dist/`                     | Simple deploy; `npm run static` for local preview             |
+| Data + auth   | Supabase                           | Postgres, RLS, email/password auth without a custom API       |
+| Templates     | Vue SFCs in `demo/app/templates/`  | Full control over markup; mapped by `templates.key`           |
+| Editor UX     | Sidebar + click delegation + modal | No per-field wrapper components; editing gated by `loggedIn`  |
 
 ## Security notes
 

@@ -42,11 +42,11 @@ Unscoped packages publish to your personal npm account — no org setup required
 
 ### Troubleshooting 404 on publish
 
-| Cause | Fix |
-| ----- | --- |
+| Cause                         | Fix                                                                                                |
+| ----------------------------- | -------------------------------------------------------------------------------------------------- |
 | **Version already published** | Bump version first: `npm version patch` in `packages/nuxt-cms/` (currently `0.0.1` is live on npm) |
-| **Expired npm login / token** | Run `npm login`, then retry with `--otp` |
-| **2FA enabled** | Always pass `--otp=<6-digit code>` from your authenticator |
+| **Expired npm login / token** | Run `npm login`, then retry with `--otp`                                                           |
+| **2FA enabled**               | Always pass `--otp=<6-digit code>` from your authenticator                                         |
 
 Check what's live: `npm view ghots-nuxt-cms versions`
 

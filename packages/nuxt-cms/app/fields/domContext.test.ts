@@ -71,7 +71,12 @@ const sharedFields: FieldRow[] = [
     plain_text: 'Two',
   }),
   field({ id: 'team-id', name: 'team', kind: 'section' }),
-  field({ id: 'members-id', name: 'members', parent_id: 'team-id', kind: 'array' }),
+  field({
+    id: 'members-id',
+    name: 'members',
+    parent_id: 'team-id',
+    kind: 'array',
+  }),
   field({
     id: 'item-0-id',
     name: 'item_0',
@@ -118,23 +123,33 @@ describe('resolveFieldBinding', () => {
       'data-name': 'headline',
       'data-type': 'plain_text',
     })
-    const section = el('section', {
-      'data-name': 'hero1',
-      'data-type': 'section',
-      'data-id': 'hero1-id',
-    }, [headline])
-    const page = el('article', {
-      'data-type': 'page',
-      'data-id': 'page-1',
-    }, [section])
+    const section = el(
+      'section',
+      {
+        'data-name': 'hero1',
+        'data-type': 'section',
+        'data-id': 'hero1-id',
+      },
+      [headline],
+    )
+    const page = el(
+      'article',
+      {
+        'data-type': 'page',
+        'data-id': 'page-1',
+      },
+      [section],
+    )
     document.body.appendChild(page)
 
-    expect(resolveFieldBinding(headline, registry(sharedFields))).toMatchObject({
-      name: 'headline',
-      parentId: 'hero1-id',
-      context: { pageId: 'page-1', globalId: null, parentId: 'hero1-id' },
-      field: sharedFields[1],
-    })
+    expect(resolveFieldBinding(headline, registry(sharedFields))).toMatchObject(
+      {
+        name: 'headline',
+        parentId: 'hero1-id',
+        context: { pageId: 'page-1', globalId: null, parentId: 'hero1-id' },
+        field: sharedFields[1],
+      },
+    )
 
     page.remove()
   })
@@ -144,19 +159,27 @@ describe('resolveFieldBinding', () => {
       'data-name': 'headline',
       'data-type': 'plain_text',
     })
-    const section = el('section', {
-      'data-name': 'hero1',
-      'data-type': 'section',
-    }, [headline])
-    const page = el('article', {
-      'data-type': 'page',
-      'data-id': 'page-1',
-    }, [section])
+    const section = el(
+      'section',
+      {
+        'data-name': 'hero1',
+        'data-type': 'section',
+      },
+      [headline],
+    )
+    const page = el(
+      'article',
+      {
+        'data-type': 'page',
+        'data-id': 'page-1',
+      },
+      [section],
+    )
     document.body.appendChild(page)
 
-    expect(resolveFieldBinding(headline, registry(sharedFields))?.parentId).toBe(
-      'hero1-id',
-    )
+    expect(
+      resolveFieldBinding(headline, registry(sharedFields))?.parentId,
+    ).toBe('hero1-id')
 
     page.remove()
   })
@@ -166,10 +189,14 @@ describe('resolveFieldBinding', () => {
       'data-name': 'nav_label',
       'data-type': 'plain_text',
     })
-    const nav = el('nav', {
-      'data-global': 'site',
-      'data-id': 'global-1',
-    }, [label])
+    const nav = el(
+      'nav',
+      {
+        'data-global': 'site',
+        'data-id': 'global-1',
+      },
+      [label],
+    )
     document.body.appendChild(nav)
 
     expect(resolveFieldScope(label)).toEqual({
@@ -188,21 +215,29 @@ describe('resolveFieldBinding', () => {
 
   it('uses section parent when nested under array hook', () => {
     const name = el('p', { 'data-name': 'name', 'data-type': 'plain_text' })
-    const item = el('li', {
-      'data-name': 'item_0',
-      'data-type': 'section',
-      'data-id': 'item-0-id',
-    }, [name])
+    const item = el(
+      'li',
+      {
+        'data-name': 'item_0',
+        'data-type': 'section',
+        'data-id': 'item-0-id',
+      },
+      [name],
+    )
     const members = el('div', {
       'data-name': 'members',
       'data-type': 'array',
       'data-id': 'members-id',
     })
-    const team = el('section', {
-      'data-name': 'team',
-      'data-type': 'section',
-      'data-id': 'team-id',
-    }, [members, item])
+    const team = el(
+      'section',
+      {
+        'data-name': 'team',
+        'data-type': 'section',
+        'data-id': 'team-id',
+      },
+      [members, item],
+    )
     document.body.appendChild(team)
 
     expect(resolveFieldBinding(name, registry(sharedFields))?.parentId).toBe(
@@ -221,10 +256,14 @@ describe('resolveParentFieldId', () => {
       'data-name': 'headline',
       'data-type': 'plain_text',
     })
-    const section = el('section', {
-      'data-name': 'hero1',
-      'data-type': 'section',
-    }, [headline])
+    const section = el(
+      'section',
+      {
+        'data-name': 'hero1',
+        'data-type': 'section',
+      },
+      [headline],
+    )
     document.body.appendChild(section)
 
     expect(resolveParentFieldId(headline, reg)).toBe('hero1-id')
@@ -237,21 +276,29 @@ describe('resolveParentFieldId', () => {
       'data-name': 'headline',
       'data-type': 'plain_text',
     })
-    const hero1 = el('section', {
-      'data-name': 'hero1',
-      'data-type': 'section',
-      'data-id': 'hero1-id',
-    }, [headline1])
+    const hero1 = el(
+      'section',
+      {
+        'data-name': 'hero1',
+        'data-type': 'section',
+        'data-id': 'hero1-id',
+      },
+      [headline1],
+    )
 
     const headline2 = el('h2', {
       'data-name': 'headline',
       'data-type': 'plain_text',
     })
-    const hero2 = el('section', {
-      'data-name': 'hero2',
-      'data-type': 'section',
-      'data-id': 'hero2-id',
-    }, [headline2])
+    const hero2 = el(
+      'section',
+      {
+        'data-name': 'hero2',
+        'data-type': 'section',
+        'data-id': 'hero2-id',
+      },
+      [headline2],
+    )
 
     document.body.append(hero1, hero2)
 
@@ -268,11 +315,15 @@ describe('resolveParentFieldId', () => {
       'data-type': 'section',
     })
     const list = el('ul', {}, [item])
-    const team = el('section', {
-      'data-name': 'team',
-      'data-type': 'section',
-      'data-id': 'team-id',
-    }, [list])
+    const team = el(
+      'section',
+      {
+        'data-name': 'team',
+        'data-type': 'section',
+        'data-id': 'team-id',
+      },
+      [list],
+    )
     document.body.appendChild(team)
 
     expect(resolveParentFieldId(item, reg)).toBe('members-id')
@@ -285,11 +336,15 @@ describe('resolveParentFieldId', () => {
       'data-name': 'name',
       'data-type': 'plain_text',
     })
-    const item = el('li', {
-      'data-name': 'item_0',
-      'data-type': 'section',
-      'data-id': 'item-0-id',
-    }, [name])
+    const item = el(
+      'li',
+      {
+        'data-name': 'item_0',
+        'data-type': 'section',
+        'data-id': 'item-0-id',
+      },
+      [name],
+    )
     document.body.appendChild(item)
 
     expect(resolveParentFieldId(name, reg)).toBe('item-0-id')
@@ -304,14 +359,22 @@ describe('computeDomDepth', () => {
       'data-name': 'headline',
       'data-type': 'plain_text',
     })
-    const section = el('section', {
-      'data-name': 'hero1',
-      'data-type': 'section',
-    }, [headline])
-    const page = el('article', {
-      'data-type': 'page',
-      'data-id': 'page-1',
-    }, [section])
+    const section = el(
+      'section',
+      {
+        'data-name': 'hero1',
+        'data-type': 'section',
+      },
+      [headline],
+    )
+    const page = el(
+      'article',
+      {
+        'data-type': 'page',
+        'data-id': 'page-1',
+      },
+      [section],
+    )
     document.body.appendChild(page)
 
     expect(computeDomDepth(section)).toBeLessThan(computeDomDepth(headline))

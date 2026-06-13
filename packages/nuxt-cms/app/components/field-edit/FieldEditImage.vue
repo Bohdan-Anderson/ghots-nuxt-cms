@@ -43,8 +43,7 @@ async function onFileSelected(event: Event) {
     }
     draft.value = serializeImageValue(next)
   } catch (error) {
-    uploadError.value =
-      error instanceof Error ? error.message : 'Upload failed'
+    uploadError.value = error instanceof Error ? error.message : 'Upload failed'
   } finally {
     uploading.value = false
     input.value = ''
@@ -61,13 +60,26 @@ function clearImage() {
 
 <template>
   <div class="field-edit-image">
-    <div v-if="image.url" class="field-edit-image__preview">
-      <img :src="image.url" :alt="image.alt || 'Preview'" />
-      <button type="button" @click="clearImage">Remove image</button>
+    <div
+      v-if="image.url"
+      class="field-edit-image__preview"
+    >
+      <img
+        :src="image.url"
+        :alt="image.alt || 'Preview'"
+      />
+      <button
+        type="button"
+        @click="clearImage"
+      >
+        Remove image
+      </button>
     </div>
 
     <label class="field-edit-image__file">
-      {{ uploading ? 'Uploading…' : image.url ? 'Replace image' : 'Choose image' }}
+      {{
+        uploading ? 'Uploading…' : image.url ? 'Replace image' : 'Choose image'
+      }}
       <input
         ref="fileInput"
         type="file"
@@ -87,7 +99,10 @@ function clearImage() {
       />
     </label>
 
-    <p v-if="uploadError" class="field-edit-image__error">
+    <p
+      v-if="uploadError"
+      class="field-edit-image__error"
+    >
       {{ uploadError }}
     </p>
   </div>

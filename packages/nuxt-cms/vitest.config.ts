@@ -17,14 +17,29 @@ export default defineConfig({
       '~/fields/fieldValues': resolve(appDir, 'fields/fieldValues.ts'),
       '~/fields/pageContent': resolve(appDir, 'fields/pageContent.ts'),
       '~/fields/ensureField': resolve(appDir, 'fields/ensureField.ts'),
-      '~/fields/syncFieldsFromDom': resolve(appDir, 'fields/syncFieldsFromDom.ts'),
+      '~/fields/syncFieldsFromDom': resolve(
+        appDir,
+        'fields/syncFieldsFromDom.ts',
+      ),
       '~/fields/scanContentTree': resolve(appDir, 'fields/scanContentTree.ts'),
       '~/fields/registry': resolve(appDir, 'fields/registry.ts'),
-      '~/composables/useCmsField': resolve(appDir, 'composables/useCmsField.ts'),
-      '~/composables/usePageEditor': resolve(appDir, 'composables/usePageEditor.ts'),
-      '~/composables/useCmsFieldSync': resolve(appDir, 'composables/useCmsFieldSync.ts'),
+      '~/composables/useCmsField': resolve(
+        appDir,
+        'composables/useCmsField.ts',
+      ),
+      '~/composables/usePageEditor': resolve(
+        appDir,
+        'composables/usePageEditor.ts',
+      ),
+      '~/composables/useCmsFieldSync': resolve(
+        appDir,
+        'composables/useCmsFieldSync.ts',
+      ),
       '~/composables/seedFields': resolve(appDir, 'composables/seedFields.ts'),
-      '~/composables/usePageContent': resolve(appDir, 'composables/usePageContent.ts'),
+      '~/composables/usePageContent': resolve(
+        appDir,
+        'composables/usePageContent.ts',
+      ),
       '~/components/field-edit/FieldEditPlainText.vue': resolve(
         __dirname,
         'test-utils/vue-component-stub.ts',

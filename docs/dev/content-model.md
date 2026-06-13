@@ -19,27 +19,27 @@ key: "sections-demo"  slug: "/demo"             Page fields + sections in DOM
 
 ## Field rows (wide model)
 
-| Column | Purpose |
-| ------ | ------- |
-| `plain_text` | Plain string |
-| `richtext` | JSON (`source`, `html`) |
-| `link` | JSON (`url`, `label`, `target`) |
-| `image` | JSON (`url`, `alt`) |
-| `kind` | `section` or `array` for structural rows; null for content slots |
+| Column       | Purpose                                                          |
+| ------------ | ---------------------------------------------------------------- |
+| `plain_text` | Plain string                                                     |
+| `richtext`   | JSON (`source`, `html`)                                          |
+| `link`       | JSON (`url`, `label`, `target`)                                  |
+| `image`      | JSON (`url`, `alt`)                                              |
+| `kind`       | `section` or `array` for structural rows; null for content slots |
 
 Hierarchy: `parent_id` links children to section/array containers.
 
 ## DOM contract
 
-| Attribute | Purpose |
-| --------- | ------- |
-| `data-type="page"` | Page root; `data-id` = page UUID |
-| `data-type="section"` | Section container |
-| `data-type="array"` | Repeatable hook (sidebar-managed) |
-| `data-global="key"` | Global region scope |
-| `data-name` | Row key within parent |
-| `data-type` (leaf) | Editor UI column |
-| `data-id` | Stable UUID after ensure |
+| Attribute             | Purpose                           |
+| --------------------- | --------------------------------- |
+| `data-type="page"`    | Page root; `data-id` = page UUID  |
+| `data-type="section"` | Section container                 |
+| `data-type="array"`   | Repeatable hook (sidebar-managed) |
+| `data-global="key"`   | Global region scope               |
+| `data-name`           | Row key within parent             |
+| `data-type` (leaf)    | Editor UI column                  |
+| `data-id`             | Stable UUID after ensure          |
 
 ## Lazy ensure
 

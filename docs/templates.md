@@ -63,12 +63,12 @@ Register the resolver in `app/cms/registries.ts` (see [Getting started](./gettin
 
 Templates receive props from `[...slug].vue`:
 
-| Prop | Contents |
-| ---- | -------- |
-| `pageFields` | Fields scoped to the page (no slice) |
-| `fields` | All fields on the page |
-| `slices` | Ordered slice instances |
-| `fieldsBySliceId` | Fields grouped by slice instance |
+| Prop              | Contents                             |
+| ----------------- | ------------------------------------ |
+| `pageFields`      | Fields scoped to the page (no slice) |
+| `fields`          | All fields on the page               |
+| `slices`          | Ordered slice instances              |
+| `fieldsBySliceId` | Fields grouped by slice instance     |
 
 Minimal page-only template:
 

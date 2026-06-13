@@ -24,15 +24,15 @@ Editors and developers want **Vue templates to be the schema**: structure comes 
 
 **Choice:** Templates declare structure via attributes:
 
-| Attribute | Purpose |
-| --------- | ------- |
-| `data-type="page"` | Page root; `data-id` = page UUID |
-| `data-type="section"` | Section container; `data-name` + `data-id` |
-| `data-type="array"` | Repeatable hook (sidebar-managed) |
-| `data-global="key"` | Global region scope |
-| `data-name` | Row key within parent |
-| `data-type` (leaf) | Editor UI: `plain_text`, `link`, `richtext`, `image` |
-| `data-id` | Stable UUID after ensure |
+| Attribute             | Purpose                                              |
+| --------------------- | ---------------------------------------------------- |
+| `data-type="page"`    | Page root; `data-id` = page UUID                     |
+| `data-type="section"` | Section container; `data-name` + `data-id`           |
+| `data-type="array"`   | Repeatable hook (sidebar-managed)                    |
+| `data-global="key"`   | Global region scope                                  |
+| `data-name`           | Row key within parent                                |
+| `data-type` (leaf)    | Editor UI: `plain_text`, `link`, `richtext`, `image` |
+| `data-id`             | Stable UUID after ensure                             |
 
 Parent resolution walks DOM ancestors for the nearest structural parent (`section` or `array`) by `data-name`, then resolves its field row id from the registry (or `data-id` when present). `data-global` ancestors scope fields to the global namespace.
 

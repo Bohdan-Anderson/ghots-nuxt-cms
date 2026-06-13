@@ -44,9 +44,7 @@ const base: PageContent = {
     label: 'Default',
     field_schema: [],
   },
-  fields: [
-    field({ id: '1', name: 'title', plain_text: 'A' }),
-  ],
+  fields: [field({ id: '1', name: 'title', plain_text: 'A' })],
   pageFields: [],
   fieldsById: {},
   fieldsByName: {},
@@ -127,8 +125,8 @@ describe('buildPageContentPayload', () => {
     )
 
     expect(payload.fieldsByName.title?.plain_text).toBe('Home')
-    expect(payload.fieldsByParentAndName['section-1:headline']?.plain_text).toBe(
-      'Hero',
-    )
+    expect(
+      payload.fieldsByParentAndName['section-1:headline']?.plain_text,
+    ).toBe('Hero')
   })
 })

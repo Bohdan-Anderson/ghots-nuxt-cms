@@ -15,11 +15,11 @@ After login:
 
 Three tabs:
 
-| Tab | Purpose |
-| --- | ------- |
+| Tab         | Purpose                                             |
+| ----------- | --------------------------------------------------- |
 | **Content** | Tree of page fields, slices, and nested array items |
-| **Pages** | List pages, create new ones (slug, title, template) |
-| **Meta** | SEO: meta title, description, OG image, noindex |
+| **Pages**   | List pages, create new ones (slug, title, template) |
+| **Meta**    | SEO: meta title, description, OG image, noindex     |
 
 ### Content tree
 

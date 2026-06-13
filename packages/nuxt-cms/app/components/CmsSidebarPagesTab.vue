@@ -73,7 +73,10 @@ async function onCreatePage() {
       </li>
     </ul>
 
-    <form class="cms-sidebar-form" @submit.prevent="onCreatePage">
+    <form
+      class="cms-sidebar-form"
+      @submit.prevent="onCreatePage"
+    >
       <p class="cms-sidebar-hint">New page</p>
       <label>
         Slug
@@ -86,11 +89,18 @@ async function onCreatePage() {
       </label>
       <label>
         Title
-        <input v-model="newPageTitle" type="text" placeholder="About us" />
+        <input
+          v-model="newPageTitle"
+          type="text"
+          placeholder="About us"
+        />
       </label>
       <label>
         Template
-        <select v-model="newPageTemplateId" required>
+        <select
+          v-model="newPageTemplateId"
+          required
+        >
           <option
             v-for="tpl in templates"
             :key="tpl.id"
@@ -100,10 +110,16 @@ async function onCreatePage() {
           </option>
         </select>
       </label>
-      <p v-if="createError" class="cms-sidebar-form-error">
+      <p
+        v-if="createError"
+        class="cms-sidebar-form-error"
+      >
         {{ createError }}
       </p>
-      <button type="submit" :disabled="createBusy">
+      <button
+        type="submit"
+        :disabled="createBusy"
+      >
         Create page
       </button>
     </form>

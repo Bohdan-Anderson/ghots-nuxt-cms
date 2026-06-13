@@ -2,12 +2,12 @@
 
 ## Commands
 
-| Script | What it does |
-| ------ | ------------- |
-| `npm run generate` | Build + prerender to `dist/` |
-| `npm run static` | `generate` then serve `dist/` on port 8000 |
-| `npm run dev` | Dev server with hot reload (**not** static; always uses Supabase) |
-| `npm run build` | Production build (Node server preset, not only static) |
+| Script             | What it does                                                      |
+| ------------------ | ----------------------------------------------------------------- |
+| `npm run generate` | Build + prerender to `dist/`                                      |
+| `npm run static`   | `generate` then serve `dist/` on port 8000                        |
+| `npm run dev`      | Dev server with hot reload (**not** static; always uses Supabase) |
+| `npm run build`    | Production build (Node server preset, not only static)            |
 
 For local static preview, use **`npm run static`** or `npx serve dist`.
 
@@ -36,9 +36,9 @@ routeRules: {
 
 For each prerendered route (e.g. `/about`):
 
-| Output | Purpose |
-| ------ | ------- |
-| `dist/about/index.html` | Full HTML with field text in the body |
+| Output                     | Purpose                                       |
+| -------------------------- | --------------------------------------------- |
+| `dist/about/index.html`    | Full HTML with field text in the body         |
 | `dist/about/_payload.json` | Serialized `useAsyncData` cache for hydration |
 
 Root uses `dist/index.html` and `dist/_payload.json`. SPA fallbacks `200.html` / `404.html` may also be emitted.
@@ -103,10 +103,10 @@ To verify guest caching: use browser DevTools → Network and filter for your Su
 
 ## Dev vs static
 
-| Mode | Guest page content | Guest nav |
-| ---- | ------------------ | --------- |
-| `npm run dev` | Supabase (no `_payload.json`) | Supabase |
-| `npm run static` | HTML + `_payload.json` | `_payload.json` (no runtime fetch) |
+| Mode             | Guest page content            | Guest nav                          |
+| ---------------- | ----------------------------- | ---------------------------------- |
+| `npm run dev`    | Supabase (no `_payload.json`) | Supabase                           |
+| `npm run static` | HTML + `_payload.json`        | `_payload.json` (no runtime fetch) |
 
 Do not use `npm run dev` to validate static guest behavior — use **`npm run static`**.
 
@@ -126,10 +126,10 @@ Nuxt serializes `useState` into `_payload.json`. Do **not** store callbacks in `
 
 ## Caching vs freshness
 
-| Audience | First paint | Page data after JS | Nav data after JS |
-| -------- | ----------- | ------------------- | ----------------- |
-| Guest (static) | Prerendered HTML | `_payload.json` | `_payload.json` |
-| Editor | May flash public HTML | Supabase | Supabase |
+| Audience       | First paint           | Page data after JS | Nav data after JS |
+| -------------- | --------------------- | ------------------ | ----------------- |
+| Guest (static) | Prerendered HTML      | `_payload.json`    | `_payload.json`   |
+| Editor         | May flash public HTML | Supabase           | Supabase          |
 
 Regenerate **`npm run generate`** after bulk content changes so guests see updated HTML and payloads.
 

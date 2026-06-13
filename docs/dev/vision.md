@@ -81,14 +81,14 @@ Content shared across all pages (nav links, footer copy, logo URL).
 
 ### Field types
 
-| Type | v1 | Editor UX | Notes |
-| ---- | -- | --------- | ----- |
-| `plain_text` | ✅ exists | Modal | Click on page or sidebar |
-| `link` | 🎯 v1 | Modal | URL, label, optional target |
-| `richtext` | 🎯 v1 | Modal | Store structured source + rendered HTML on save; implementation TBD |
-| `section` | ✅ exists | — | Structural container |
-| `image` | post-v1 | Modal | Supabase Storage; defer until link + richtext ship |
-| `array` / repeatable | post-v1 | Sidebar add/remove → modal per item | Avoid cluttering the live page UI |
+| Type                 | v1        | Editor UX                           | Notes                                                               |
+| -------------------- | --------- | ----------------------------------- | ------------------------------------------------------------------- |
+| `plain_text`         | ✅ exists | Modal                               | Click on page or sidebar                                            |
+| `link`               | 🎯 v1     | Modal                               | URL, label, optional target                                         |
+| `richtext`           | 🎯 v1     | Modal                               | Store structured source + rendered HTML on save; implementation TBD |
+| `section`            | ✅ exists | —                                   | Structural container                                                |
+| `image`              | post-v1   | Modal                               | Supabase Storage; defer until link + richtext ship                  |
+| `array` / repeatable | post-v1   | Sidebar add/remove → modal per item | Avoid cluttering the live page UI                                   |
 
 All editable types use the **same modal**. Sidebar lists structure and opens the modal.
 
@@ -96,14 +96,14 @@ All editable types use the **same modal**. Sidebar lists structure and opens the
 
 Minimum set to capture early:
 
-| Field | Purpose |
-| ----- | ------- |
-| `slug` | URL path (unique, normalized) |
-| `title` | Internal / nav label |
-| `meta_title` | `<title>` / OG title (fallback to `title`) |
-| `meta_description` | `<meta name="description">` |
-| `og_image` | Social preview (URL; Storage later) |
-| `noindex` | Optional; hide from search |
+| Field              | Purpose                                    |
+| ------------------ | ------------------------------------------ |
+| `slug`             | URL path (unique, normalized)              |
+| `title`            | Internal / nav label                       |
+| `meta_title`       | `<title>` / OG title (fallback to `title`) |
+| `meta_description` | `<meta name="description">`                |
+| `og_image`         | Social preview (URL; Storage later)        |
+| `noindex`          | Optional; hide from search                 |
 
 Extend later: canonical URL, structured data, publish date, etc.
 
@@ -138,10 +138,10 @@ flowchart LR
 
 ### Draft vs published
 
-| Audience | Page / global content | When guest sees edits |
-| -------- | --------------------- | --------------------- |
-| Logged-in editor | Live Supabase | N/A |
-| Guest | Last `nuxt generate` output | After **Publish** rebuild |
+| Audience         | Page / global content       | When guest sees edits     |
+| ---------------- | --------------------------- | ------------------------- |
+| Logged-in editor | Live Supabase               | N/A                       |
+| Guest            | Last `nuxt generate` output | After **Publish** rebuild |
 
 This matches the existing `loggedIn` → bypass cache behavior in `useCmsPage()`.
 
@@ -203,48 +203,48 @@ Each capability should have a **manual check** and, where practical, a **Playwri
 
 ### Infrastructure
 
-| Objective | Validate by |
-| --------- | ----------- |
-| Playwright setup | `npm run test:e2e` runs locally against dev server + real Supabase |
-| DB reset between runs | Teardown script deletes test pages/fields or restores seed state |
-| Test auth user | Documented env vars for editor login in E2E |
+| Objective             | Validate by                                                        |
+| --------------------- | ------------------------------------------------------------------ |
+| Playwright setup      | `npm run test:e2e` runs locally against dev server + real Supabase |
+| DB reset between runs | Teardown script deletes test pages/fields or restores seed state   |
+| Test auth user        | Documented env vars for editor login in E2E                        |
 
 ### Guest experience (static)
 
-| Objective | Validate by |
-| --------- | ----------- |
-| Zero Supabase for guests | Network tab: no requests to Supabase host when logged out on `npm run static` |
-| Guest sees published content only | Edit field as admin → guest unchanged until Publish + regenerate |
-| Nav from static payload | Page list baked into prerender or payload — no runtime fetch |
+| Objective                         | Validate by                                                                   |
+| --------------------------------- | ----------------------------------------------------------------------------- |
+| Zero Supabase for guests          | Network tab: no requests to Supabase host when logged out on `npm run static` |
+| Guest sees published content only | Edit field as admin → guest unchanged until Publish + regenerate              |
+| Nav from static payload           | Page list baked into prerender or payload — no runtime fetch                  |
 
 ### Editor experience
 
-| Objective | Validate by |
-| --------- | ----------- |
-| Login → live data | Edit saves; refresh shows new value without regenerate |
-| Modal-only editing | All field types open same modal from sidebar and page click |
-| Sidebar tree | Nested fields/slices visible; click opens modal |
-| Patch local state | Save updates page without full refetch (store or `patchField` pattern) |
+| Objective          | Validate by                                                            |
+| ------------------ | ---------------------------------------------------------------------- |
+| Login → live data  | Edit saves; refresh shows new value without regenerate                 |
+| Modal-only editing | All field types open same modal from sidebar and page click            |
+| Sidebar tree       | Nested fields/slices visible; click opens modal                        |
+| Patch local state  | Save updates page without full refetch (store or `patchField` pattern) |
 
 ### v1 feature set
 
-| Objective | Validate by |
-| --------- | ----------- |
-| Slices on page | Add/remove/reorder slice instances; each renders with correct fields |
-| Page-level fields | Fields outside slices editable and render correctly |
-| Global regions | Change global field → all pages show new value when logged in |
-| Link field | Modal edit URL + label; renders in template |
-| Rich text field | Modal edit; stored source + HTML; renders in template |
-| Page creation UI | Create page from sidebar → navigable URL with seeded fields |
-| Page meta | Meta fields editable; reflected in `<head>` on generate |
-| Publish flow | Publish triggers generate (or documents manual step); E2E: guest sees content after publish |
+| Objective         | Validate by                                                                                 |
+| ----------------- | ------------------------------------------------------------------------------------------- |
+| Slices on page    | Add/remove/reorder slice instances; each renders with correct fields                        |
+| Page-level fields | Fields outside slices editable and render correctly                                         |
+| Global regions    | Change global field → all pages show new value when logged in                               |
+| Link field        | Modal edit URL + label; renders in template                                                 |
+| Rich text field   | Modal edit; stored source + HTML; renders in template                                       |
+| Page creation UI  | Create page from sidebar → navigable URL with seeded fields                                 |
+| Page meta         | Meta fields editable; reflected in `<head>` on generate                                     |
+| Publish flow      | Publish triggers generate (or documents manual step); E2E: guest sees content after publish |
 
 ### Portability (post-v1)
 
-| Objective | Validate by |
-| --------- | ----------- |
+| Objective                 | Validate by                                                    |
+| ------------------------- | -------------------------------------------------------------- |
 | Second project smoke test | Fresh Nuxt app consumes package; one template + one page works |
-| Docs | “Getting started” covers Supabase, env, templates, deploy |
+| Docs                      | “Getting started” covers Supabase, env, templates, deploy      |
 
 ---
 

@@ -138,11 +138,11 @@ In Supabase, create a page with slug `/blog` and template `blog`. Log in, open `
 
 ## Variations
 
-| Goal | Change |
-| ---- | ------ |
+| Goal                    | Change                                                                           |
+| ----------------------- | -------------------------------------------------------------------------------- |
 | Featured image per post | Add `{ name: 'cover', type: 'image' }` to array children; render with `CmsImage` |
-| Link-only posts | Replace `body` with `{ name: 'url', type: 'link' }` |
-| Separate URL per post | Use multiple CMS pages instead of one array — better for long-running blogs |
+| Link-only posts         | Replace `body` with `{ name: 'url', type: 'link' }`                              |
+| Separate URL per post   | Use multiple CMS pages instead of one array — better for long-running blogs      |
 
 ## Related
 

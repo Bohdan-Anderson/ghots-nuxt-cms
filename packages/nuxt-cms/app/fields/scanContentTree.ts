@@ -103,8 +103,8 @@ function buildNestedTree(flat: ContentTreeNode[]): ContentTreeNode[] {
 
     const domType = node.domType
     if (
-      domType !== 'page'
-      && (isStructuralDomType(domType) || domType === 'array')
+      domType !== 'page' &&
+      (isStructuralDomType(domType) || domType === 'array')
     ) {
       stack.push(copy)
     }

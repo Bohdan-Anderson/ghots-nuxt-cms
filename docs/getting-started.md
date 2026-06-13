@@ -82,10 +82,7 @@ export {
   listSliceDefinitions,
   resolveSliceComponent,
 } from '~/slices/registry'
-export {
-  getGlobalDefinition,
-  listGlobalDefinitions,
-} from '~/globals/registry'
+export { getGlobalDefinition, listGlobalDefinitions } from '~/globals/registry'
 ```
 
 You will add those files in the next steps (start with templates only if you want the smallest possible setup).
@@ -151,7 +148,8 @@ Field rows are seeded automatically when an editor first loads the page (or on f
 ```vue
 <!-- app/pages/[...slug].vue -->
 <script setup lang="ts">
-const { content, status, templateComponent, patchField, loggedIn } = useCmsPage()
+const { content, status, templateComponent, patchField, loggedIn } =
+  useCmsPage()
 </script>
 
 <template>
@@ -209,10 +207,10 @@ Deploy the `dist/` folder to any static host. Guests see this build until you ge
 
 ## Next steps
 
-| Goal | Read |
-| ---- | ---- |
-| Add reusable sections | [Slices](./slices.md) |
-| Shared nav / footer | [Globals](./globals.md) |
-| More field types | [Field types](./field-types.md) |
-| Blog-style content | [Blog example](./examples/blog.md) |
-| Existing Nuxt site | [Adopting an existing site](./adopting-an-existing-site.md) |
+| Goal                  | Read                                                        |
+| --------------------- | ----------------------------------------------------------- |
+| Add reusable sections | [Slices](./slices.md)                                       |
+| Shared nav / footer   | [Globals](./globals.md)                                     |
+| More field types      | [Field types](./field-types.md)                             |
+| Blog-style content    | [Blog example](./examples/blog.md)                          |
+| Existing Nuxt site    | [Adopting an existing site](./adopting-an-existing-site.md) |

@@ -105,10 +105,14 @@ describe('collectUnresolvedNodes', () => {
       'data-type': 'plain_text',
       'data-id': 'title-id',
     })
-    const root = el('article', {
-      'data-type': 'page',
-      'data-id': 'page-1',
-    }, [title])
+    const root = el(
+      'article',
+      {
+        'data-type': 'page',
+        'data-id': 'page-1',
+      },
+      [title],
+    )
 
     const registry = {
       fieldsById: { 'title-id': existing },
@@ -123,14 +127,22 @@ describe('collectUnresolvedNodes', () => {
       'data-name': 'headline',
       'data-type': 'plain_text',
     })
-    const section = el('section', {
-      'data-name': 'hero1',
-      'data-type': 'section',
-    }, [headline])
-    const root = el('article', {
-      'data-type': 'page',
-      'data-id': 'page-1',
-    }, [section])
+    const section = el(
+      'section',
+      {
+        'data-name': 'hero1',
+        'data-type': 'section',
+      },
+      [headline],
+    )
+    const root = el(
+      'article',
+      {
+        'data-type': 'page',
+        'data-id': 'page-1',
+      },
+      [section],
+    )
 
     const unresolved = collectUnresolvedNodes(root, {
       fieldsById: {},
@@ -146,7 +158,11 @@ describe('collectUnresolvedNodes', () => {
 
 describe('syncFieldsFromDom', () => {
   it('creates section then nested headline in one shallowest-first pass', async () => {
-    const heroSection = field({ id: 'hero1-id', name: 'hero1', kind: 'section' })
+    const heroSection = field({
+      id: 'hero1-id',
+      name: 'hero1',
+      kind: 'section',
+    })
     const headline = field({
       id: 'headline-id',
       name: 'headline',
@@ -161,14 +177,22 @@ describe('syncFieldsFromDom', () => {
       'data-name': 'headline',
       'data-type': 'plain_text',
     })
-    const sectionEl = el('section', {
-      'data-name': 'hero1',
-      'data-type': 'section',
-    }, [headlineEl])
-    const root = el('article', {
-      'data-type': 'page',
-      'data-id': 'page-1',
-    }, [sectionEl])
+    const sectionEl = el(
+      'section',
+      {
+        'data-name': 'hero1',
+        'data-type': 'section',
+      },
+      [headlineEl],
+    )
+    const root = el(
+      'article',
+      {
+        'data-type': 'page',
+        'data-id': 'page-1',
+      },
+      [sectionEl],
+    )
 
     const changed = await syncFieldsFromDom(supabase as never, content, root)
 
@@ -178,7 +202,11 @@ describe('syncFieldsFromDom', () => {
   })
 
   it('ensures nested fields when parent section already exists in the field list', async () => {
-    const heroSection = field({ id: 'hero1-id', name: 'hero1', kind: 'section' })
+    const heroSection = field({
+      id: 'hero1-id',
+      name: 'hero1',
+      kind: 'section',
+    })
     const headline = field({
       id: 'headline-id',
       name: 'headline',
@@ -192,14 +220,22 @@ describe('syncFieldsFromDom', () => {
       'data-name': 'headline',
       'data-type': 'plain_text',
     })
-    const sectionEl = el('section', {
-      'data-name': 'hero1',
-      'data-type': 'section',
-    }, [headlineEl])
-    const root = el('article', {
-      'data-type': 'page',
-      'data-id': 'page-1',
-    }, [sectionEl])
+    const sectionEl = el(
+      'section',
+      {
+        'data-name': 'hero1',
+        'data-type': 'section',
+      },
+      [headlineEl],
+    )
+    const root = el(
+      'article',
+      {
+        'data-type': 'page',
+        'data-id': 'page-1',
+      },
+      [sectionEl],
+    )
 
     const changed = await syncFieldsFromDom(supabase as never, content, root)
 
@@ -230,16 +266,24 @@ describe('syncFieldsFromDom', () => {
         'data-name': 'headline',
         'data-type': 'plain_text',
       })
-      return el('section', {
-        'data-name': name,
-        'data-type': 'section',
-      }, [headlineEl])
+      return el(
+        'section',
+        {
+          'data-name': name,
+          'data-type': 'section',
+        },
+        [headlineEl],
+      )
     }
 
-    const root = el('article', {
-      'data-type': 'page',
-      'data-id': 'page-1',
-    }, [buildHero('hero1'), buildHero('hero2')])
+    const root = el(
+      'article',
+      {
+        'data-type': 'page',
+        'data-id': 'page-1',
+      },
+      [buildHero('hero1'), buildHero('hero2')],
+    )
 
     const changed = await syncFieldsFromDom(supabase as never, content, root)
     const headlines = changed.filter((row) => row.name === 'headline')
@@ -260,10 +304,14 @@ describe('syncFieldsFromDom', () => {
       'data-type': 'plain_text',
       'data-id': 'title-id',
     })
-    const root = el('article', {
-      'data-type': 'page',
-      'data-id': 'page-1',
-    }, [title])
+    const root = el(
+      'article',
+      {
+        'data-type': 'page',
+        'data-id': 'page-1',
+      },
+      [title],
+    )
 
     const changed = await syncFieldsFromDom(supabase as never, content, root)
 
@@ -297,7 +345,10 @@ describe('syncFieldsFromDom', () => {
     })
 
     expect(
-      collectUnresolvedNodes(root, { fieldsById: {}, fieldsByParentAndName: {} }),
+      collectUnresolvedNodes(root, {
+        fieldsById: {},
+        fieldsByParentAndName: {},
+      }),
     ).toHaveLength(1)
   })
 
@@ -307,10 +358,14 @@ describe('syncFieldsFromDom', () => {
       'data-name': 'subtitle',
       'data-type': 'plain_text',
     })
-    const root = el('article', {
-      'data-type': 'page',
-      'data-id': 'page-1',
-    }, [title, subtitle])
+    const root = el(
+      'article',
+      {
+        'data-type': 'page',
+        'data-id': 'page-1',
+      },
+      [title, subtitle],
+    )
 
     const emptyRegistry = { fieldsById: {}, fieldsByParentAndName: {} }
     const unresolved = collectUnresolvedNodes(root, emptyRegistry)

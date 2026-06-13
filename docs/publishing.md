@@ -37,13 +37,13 @@ Not called in v1 — placeholder only.
 
 ## What gets baked into the static site
 
-| Content | In static output |
-| ------- | ---------------- |
-| Page HTML + `_payload.json` | Yes |
-| Page list / nav payload | Yes (when prerendered) |
-| Global regions | Yes |
-| Image field URLs | Yes — optionally localized into `dist/cms-media/` on generate |
-| Editor sidebar / login | Prerendered routes exist; editing still needs live Supabase when logged in |
+| Content                     | In static output                                                           |
+| --------------------------- | -------------------------------------------------------------------------- |
+| Page HTML + `_payload.json` | Yes                                                                        |
+| Page list / nav payload     | Yes (when prerendered)                                                     |
+| Global regions              | Yes                                                                        |
+| Image field URLs            | Yes — optionally localized into `dist/cms-media/` on generate              |
+| Editor sidebar / login      | Prerendered routes exist; editing still needs live Supabase when logged in |
 
 ## Configure prerender routes
 

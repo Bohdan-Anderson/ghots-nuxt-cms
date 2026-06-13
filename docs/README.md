@@ -12,11 +12,11 @@ Full docs online: [github.com/Bohdan-Anderson/ghots-nuxt-cms/tree/main/docs](htt
 
 ## How it works
 
-| Who | What they see |
-| --- | ------------- |
-| **Guest** | Last published static build — no live database calls |
-| **Logged-in editor** | Live content from Supabase; sidebar + modal to edit |
-| **You (developer)** | Templates, slices, and field schemas in code |
+| Who                  | What they see                                        |
+| -------------------- | ---------------------------------------------------- |
+| **Guest**            | Last published static build — no live database calls |
+| **Logged-in editor** | Live content from Supabase; sidebar + modal to edit  |
+| **You (developer)**  | Templates, slices, and field schemas in code         |
 
 **Publish** rebuilds the static site so guests catch up with editor changes.
 
@@ -28,22 +28,22 @@ Already have a static Nuxt site → **[Adopting an existing site](./adopting-an-
 
 ## Guides
 
-| Guide | When to read |
-| ----- | ------------ |
-| [Supabase setup](./supabase.md) | Connect your project (high level) |
-| [Templates](./templates.md) | Page layouts and page-level fields |
-| [Slices](./slices.md) | Reusable page sections |
-| [Field types](./field-types.md) | Text, links, rich text, images, arrays |
-| [Globals](./globals.md) | Shared nav, footer, site settings |
-| [Publishing](./publishing.md) | Draft vs guest, generate, deploy |
-| [Editing UX](./editing.md) | What editors see (sidebar, modal, login) |
+| Guide                           | When to read                             |
+| ------------------------------- | ---------------------------------------- |
+| [Supabase setup](./supabase.md) | Connect your project (high level)        |
+| [Templates](./templates.md)     | Page layouts and page-level fields       |
+| [Slices](./slices.md)           | Reusable page sections                   |
+| [Field types](./field-types.md) | Text, links, rich text, images, arrays   |
+| [Globals](./globals.md)         | Shared nav, footer, site settings        |
+| [Publishing](./publishing.md)   | Draft vs guest, generate, deploy         |
+| [Editing UX](./editing.md)      | What editors see (sidebar, modal, login) |
 
 ## Examples
 
 Practical patterns — self-contained snippets, no repo required:
 
-| Example | Shows |
-| ------- | ----- |
+| Example                                    | Shows                                  |
+| ------------------------------------------ | -------------------------------------- |
 | [Blog with posts list](./examples/blog.md) | Arrays + text fields for a simple blog |
 
 ## Reference

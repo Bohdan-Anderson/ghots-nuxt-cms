@@ -95,12 +95,7 @@ export async function loginAsNoSiteUser(
       'E2E_NO_SITE_EMAIL is not set — add the no-site test user to demo/.env',
     )
   }
-  await loginWithCredentials(
-    page,
-    env.noSiteEmail,
-    env.editorPassword,
-    baseURL,
-  )
+  await loginWithCredentials(page, env.noSiteEmail, env.editorPassword, baseURL)
 }
 
 /**

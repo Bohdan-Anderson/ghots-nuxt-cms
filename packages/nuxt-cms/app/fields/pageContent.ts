@@ -1,9 +1,4 @@
-import type {
-  FieldRow,
-  PageContent,
-  PageRow,
-  TemplateRow,
-} from '../types/cms'
+import type { FieldRow, PageContent, PageRow, TemplateRow } from '../types/cms'
 import { buildFieldMaps, pageLevelFields } from './maps'
 
 /**

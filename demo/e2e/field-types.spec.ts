@@ -2,14 +2,18 @@ import { test, expect } from '@playwright/test'
 import { loginAsEditor } from './helpers/auth'
 import { DEMO_BASELINE } from './helpers/db-reset'
 
-test('editor can edit link and richtext on demo CTA section', async ({ page }) => {
+test('editor can edit link and richtext on demo CTA section', async ({
+  page,
+}) => {
   const editedLabel = `E2E CTA ${Date.now()}`
   const editedSource = `Updated **richtext** ${Date.now()}`
 
   await loginAsEditor(page, 'http://localhost:3001')
   await page.goto('/demo')
 
-  await expect(page.locator('.cta-section a')).toHaveText(DEMO_BASELINE.ctaLinkLabel)
+  await expect(page.locator('.cta-section a')).toHaveText(
+    DEMO_BASELINE.ctaLinkLabel,
+  )
 
   await page.locator('.cta-section a').click()
   const dialog = page.locator('dialog.field-edit-modal')

@@ -22,8 +22,7 @@ export function arrayItemLabel(
 ): string {
   const siblings = fields
     .filter(
-      (field) =>
-        field.parent_id === arrayField.id && field.kind === 'section',
+      (field) => field.parent_id === arrayField.id && field.kind === 'section',
     )
     .sort((a, b) => a.sort_order - b.sort_order)
 

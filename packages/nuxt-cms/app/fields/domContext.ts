@@ -2,12 +2,7 @@ import type { FieldKind, FieldParentContext, FieldRow } from '~/types/cms'
 import { parentNameKey } from '~/fields/maps'
 
 const STRUCTURAL_DOM_TYPES = new Set(['page', 'section', 'array'])
-const EDITABLE_DOM_TYPES = new Set([
-  'plain_text',
-  'richtext',
-  'link',
-  'image',
-])
+const EDITABLE_DOM_TYPES = new Set(['plain_text', 'richtext', 'link', 'image'])
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -199,7 +194,8 @@ export function resolveFieldBinding(
     ...resolveFieldScope(element),
     parentId,
   }
-  const field = registry.fieldsByParentAndName[parentNameKey(parentId, name)] ?? null
+  const field =
+    registry.fieldsByParentAndName[parentNameKey(parentId, name)] ?? null
 
   return { name, parentId, context, field }
 }
@@ -232,8 +228,6 @@ export function computeDomDepth(element: HTMLElement): number {
 /**
  * Finds the nearest named element (self or ancestor).
  */
-export function closestNamedElement(
-  element: HTMLElement,
-): HTMLElement | null {
+export function closestNamedElement(element: HTMLElement): HTMLElement | null {
   return element.closest('[data-name]') as HTMLElement | null
 }

@@ -121,11 +121,11 @@ Arrays are edited from the sidebar (add/remove items), not on the page canvas. S
 
 ## Design guidelines
 
-| Do | Avoid |
-| -- | ----- |
-| One slice = one visual section | Whole page in one slice |
+| Do                                          | Avoid                              |
+| ------------------------------------------- | ---------------------------------- |
+| One slice = one visual section              | Whole page in one slice            |
 | Stable `key` strings (`hero`, not `HeroV2`) | Renaming keys after content exists |
-| Sensible defaults in `fieldSchema` | Empty schemas with no defaults |
+| Sensible defaults in `fieldSchema`          | Empty schemas with no defaults     |
 
 ## Next
 

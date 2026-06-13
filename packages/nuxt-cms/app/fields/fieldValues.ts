@@ -13,9 +13,7 @@ export function getFieldColumnValue(
 /**
  * Returns the first non-empty value column on a row (for sidebar preview).
  */
-export function firstPopulatedColumn(
-  field: FieldRow,
-): ValueColumn | null {
+export function firstPopulatedColumn(field: FieldRow): ValueColumn | null {
   const columns: ValueColumn[] = ['plain_text', 'richtext', 'link', 'image']
   for (const column of columns) {
     const value = field[column]

@@ -20,7 +20,10 @@ const fieldUpdatedHandlers = new Set<(field: FieldRow) => void>()
  * Singleton editor state: active field, modal, save to Supabase.
  */
 export function usePageEditor() {
-  const activeField = useState<FieldRow | null>('page-editor-active', () => null)
+  const activeField = useState<FieldRow | null>(
+    'page-editor-active',
+    () => null,
+  )
   const activeColumn = useState<EditableFieldType | null>(
     'page-editor-column',
     () => null,
@@ -35,9 +38,7 @@ export function usePageEditor() {
   /**
    * Registers a client-side handler when a field is saved (not serialized).
    */
-  function setFieldUpdatedHandler(
-    handler: ((field: FieldRow) => void) | null,
-  ) {
+  function setFieldUpdatedHandler(handler: ((field: FieldRow) => void) | null) {
     fieldUpdatedHandlers.clear()
     if (handler) fieldUpdatedHandlers.add(handler)
   }

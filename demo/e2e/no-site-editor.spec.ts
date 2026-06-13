@@ -4,7 +4,7 @@ import { loginAsNoSiteUser, tryEditPlainTextField } from './helpers/auth'
 import { DEMO_BASELINE } from './helpers/db-reset'
 
 test.describe('user without site membership', () => {
-  test.beforeEach(({ }, testInfo) => {
+  test.beforeEach(({}, testInfo) => {
     if (!getE2eEnv().noSiteEmail) {
       testInfo.skip(true, 'Set E2E_NO_SITE_EMAIL in demo/.env')
     }

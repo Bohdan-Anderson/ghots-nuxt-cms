@@ -29,9 +29,8 @@ describe('parseLinkValue', () => {
       ).target,
     ).toBe('_blank')
     expect(
-      parseLinkValue(
-        JSON.stringify({ url: '/x', label: 'X', target: 'other' }),
-      ).target,
+      parseLinkValue(JSON.stringify({ url: '/x', label: 'X', target: 'other' }))
+        .target,
     ).toBe('_self')
   })
 })

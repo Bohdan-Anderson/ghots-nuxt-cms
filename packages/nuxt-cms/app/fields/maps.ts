@@ -3,10 +3,7 @@ import type { FieldRow } from '../types/cms'
 /**
  * Builds a lookup key for parent + name.
  */
-export function parentNameKey(
-  parentId: string | null,
-  name: string,
-): string {
+export function parentNameKey(parentId: string | null, name: string): string {
   return `${parentId ?? ''}:${name}`
 }
 

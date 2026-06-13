@@ -4,13 +4,13 @@ Editing is **client-only** and only active when **`loggedIn`** is true. Despite 
 
 ## Components
 
-| Component | Role |
-| --------- | ---- |
-| `CmsSidebar` | Logged-in left panel; **Page contents** tab opens the same modal via `usePageEditor().open()` |
-| `PageEditorProvider` | Wraps page template; one click listener (delegation); hosts modal |
-| `FieldEditModal` | `<dialog>` for `plain_text` values |
-| `usePageEditor` | Modal open/close/save; field registry for DOM lookup |
-| `useCmsPanel` | Sidebar toggle, tab, and synced `pageContent` (see [CMS sidebar](./cms-sidebar.md)) |
+| Component            | Role                                                                                          |
+| -------------------- | --------------------------------------------------------------------------------------------- |
+| `CmsSidebar`         | Logged-in left panel; **Page contents** tab opens the same modal via `usePageEditor().open()` |
+| `PageEditorProvider` | Wraps page template; one click listener (delegation); hosts modal                             |
+| `FieldEditModal`     | `<dialog>` for `plain_text` values                                                            |
+| `usePageEditor`      | Modal open/close/save; field registry for DOM lookup                                          |
+| `useCmsPanel`        | Sidebar toggle, tab, and synced `pageContent` (see [CMS sidebar](./cms-sidebar.md))           |
 
 ## Enablement
 
@@ -70,11 +70,11 @@ Registry and handler are registered in **`onMounted`** and cleared in **`onUnmou
 
 From `usePageEditor.ts`:
 
-| State | Storage | Serialized in payload? |
-| ----- | ------- | ------------------------ |
-| Modal open, draft, active field | `useState` | Yes (plain data) |
-| `fieldsById`, `fieldsByName` | `useState` registry | Yes |
-| `fieldUpdatedHandler` | Module variable | **No** — functions break `devalue` |
+| State                           | Storage             | Serialized in payload?             |
+| ------------------------------- | ------------------- | ---------------------------------- |
+| Modal open, draft, active field | `useState`          | Yes (plain data)                   |
+| `fieldsById`, `fieldsByName`    | `useState` registry | Yes                                |
+| `fieldUpdatedHandler`           | Module variable     | **No** — functions break `devalue` |
 
 Storing a save callback in `useState` caused **`Cannot stringify a function`** during `nuxt generate`. Callbacks must stay out of the payload.
 

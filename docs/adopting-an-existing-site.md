@@ -4,11 +4,11 @@ You already have a static Nuxt site (`nuxt generate`, deploy `dist/`). Add the C
 
 ## What changes
 
-| Stays yours | Comes from the CMS layer |
-| ----------- | ------------------------ |
+| Stays yours                                         | Comes from the CMS layer                  |
+| --------------------------------------------------- | ----------------------------------------- |
 | Branding, layout, nav, routing beyond the catch-all | Editor sidebar, modal, login, composables |
-| Which pages exist and how they look | Supabase schema, field save pipeline |
-| Static host and deploy flow | Prerender + payload caching for guests |
+| Which pages exist and how they look                 | Supabase schema, field save pipeline      |
+| Static host and deploy flow                         | Prerender + payload caching for guests    |
 
 ## Checklist
 

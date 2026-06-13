@@ -7,7 +7,9 @@ const props = defineProps<{
   name?: string
 }>()
 
-const html = computed(() => parseRichTextValue(props.field?.richtext ?? null).html)
+const html = computed(
+  () => parseRichTextValue(props.field?.richtext ?? null).html,
+)
 const fieldName = computed(() => props.name ?? props.field?.name ?? '')
 </script>
 

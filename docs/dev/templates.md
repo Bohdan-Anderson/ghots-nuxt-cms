@@ -50,11 +50,19 @@ Editable field types (plain_text, link, richtext, image) open the modal from pag
 Example:
 
 ```vue
-<h1 data-name="title" data-type="plain_text" :data-id="field('title')?.id ?? ''">
+<h1
+  data-name="title"
+  data-type="plain_text"
+  :data-id="field('title')?.id ?? ''"
+>
   {{ field('title')?.value }}
 </h1>
 
-<section data-name="main" data-type="section" :data-id="field('main')?.id ?? ''">
+<section
+  data-name="main"
+  data-type="section"
+  :data-id="field('main')?.id ?? ''"
+>
   <p data-name="body" data-type="plain_text" :data-id="field('body', 'main')?.id ?? ''">
     {{ field('body', 'main')?.value }}
   </p>
@@ -84,7 +92,6 @@ Guests never trigger writes. Orphan DB fields not referenced in markup are left 
 - Structural type changes (`section` ↔ leaf) are skipped when child rows exist.
 
 Implementation: [`collectFieldManifest.ts`](../../packages/nuxt-cms/app/fields/collectFieldManifest.ts), [`ensureField.ts`](../../packages/nuxt-cms/app/fields/ensureField.ts), [`PageEditorProvider.vue`](../../packages/nuxt-cms/app/components/PageEditorProvider.vue).
-
 
 ## Props contract
 

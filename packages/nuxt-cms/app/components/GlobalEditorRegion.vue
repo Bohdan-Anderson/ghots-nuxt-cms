@@ -56,7 +56,12 @@ function applySyncedField(row: FieldRow) {
 }
 
 async function runFieldSync() {
-  if (!props.enabled || !rootRef.value || !localContent.value || syncing.value) {
+  if (
+    !props.enabled ||
+    !rootRef.value ||
+    !localContent.value ||
+    syncing.value
+  ) {
     return
   }
 
@@ -90,7 +95,9 @@ async function runFieldSync() {
   }
 }
 
-async function ensureFieldForElement(el: HTMLElement): Promise<FieldRow | null> {
+async function ensureFieldForElement(
+  el: HTMLElement,
+): Promise<FieldRow | null> {
   const current = localContent.value
   if (!current) return null
 

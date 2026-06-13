@@ -1,11 +1,6 @@
 <script setup lang="ts">
-const {
-  content,
-  status,
-  templateComponent,
-  patchField,
-  loggedIn,
-} = useCmsPage()
+const { content, status, templateComponent, patchField, loggedIn } =
+  useCmsPage()
 </script>
 
 <template>

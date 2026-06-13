@@ -8,7 +8,11 @@ const props = defineProps<{
 }>()
 
 const sectionField = computed(() =>
-  useCmsField(props.fieldsByParentAndName, props.parentId ?? null, props.sectionName),
+  useCmsField(
+    props.fieldsByParentAndName,
+    props.parentId ?? null,
+    props.sectionName,
+  ),
 )
 
 function field(name: string): FieldRow {
@@ -27,9 +31,15 @@ function field(name: string): FieldRow {
     data-type="section"
     :data-id="sectionField.id"
   >
-    <CmsRichText :field="field('copy')" name="copy" />
+    <CmsRichText
+      :field="field('copy')"
+      name="copy"
+    />
     <p class="cta-section__action">
-      <CmsLink :field="field('cta_link')" name="cta_link" />
+      <CmsLink
+        :field="field('cta_link')"
+        name="cta_link"
+      />
     </p>
   </section>
 </template>

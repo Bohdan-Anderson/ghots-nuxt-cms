@@ -53,12 +53,18 @@ async function onRemoveArrayItem(itemSectionId: string) {
 
 <template>
   <div class="cms-sidebar-body">
-    <p v-if="!pageContent" class="cms-sidebar-hint">
+    <p
+      v-if="!pageContent"
+      class="cms-sidebar-hint"
+    >
       Open a page to see fields.
     </p>
 
     <template v-else>
-      <p v-if="flatNodes.length" class="cms-sidebar-hint">
+      <p
+        v-if="flatNodes.length"
+        class="cms-sidebar-hint"
+      >
         Page content
       </p>
       <CmsSidebarFieldList

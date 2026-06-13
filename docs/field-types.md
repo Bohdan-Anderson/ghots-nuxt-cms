@@ -10,12 +10,12 @@ Each field in a schema:
 { name: 'title', type: 'plain_text', default: 'Hello' }
 ```
 
-| Property | Required | Purpose |
-| -------- | -------- | ------- |
-| `name` | Yes | Stable id; used in `data-name` and `resolveField` |
-| `type` | Yes | One of the types below |
-| `default` | No | Seed value when the field row is created |
-| `children` | For `array` | Schema for each repeated item |
+| Property   | Required    | Purpose                                           |
+| ---------- | ----------- | ------------------------------------------------- |
+| `name`     | Yes         | Stable id; used in `data-name` and `resolveField` |
+| `type`     | Yes         | One of the types below                            |
+| `default`  | No          | Seed value when the field row is created          |
+| `children` | For `array` | Schema for each repeated item                     |
 
 ## Supported types
 
@@ -115,7 +115,10 @@ const items = computed(() =>
 
 <template>
   <ul>
-    <li v-for="itemFields in items" :key="itemFields[0]?.parent_id">
+    <li
+      v-for="itemFields in items"
+      :key="itemFields[0]?.parent_id"
+    >
       {{ itemFields.find((f) => f.name === 'name')?.value }}
     </li>
   </ul>
@@ -136,11 +139,11 @@ Internal row grouping parent for array items. **Do not** put `section` in your s
 resolveField(fields, fieldName, parentSectionName?, sliceId?)
 ```
 
-| Use case | Call |
-| -------- | ---- |
-| Page-level field | `resolveField(pageFields, 'title')` |
-| Slice field | `resolveField(fields, 'headline', undefined, sliceId)` |
-| Field inside section | `resolveField(fields, 'body', 'main')` |
+| Use case                | Call                                                                      |
+| ----------------------- | ------------------------------------------------------------------------- |
+| Page-level field        | `resolveField(pageFields, 'title')`                                       |
+| Slice field             | `resolveField(fields, 'headline', undefined, sliceId)`                    |
+| Field inside section    | `resolveField(fields, 'body', 'main')`                                    |
 | Field inside array item | `resolveArrayItems(...)` then `itemFields.find((f) => f.name === 'name')` |
 
 ## Sidebar preview

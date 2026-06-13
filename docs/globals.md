@@ -39,7 +39,8 @@ Export from `app/cms/registries.ts`.
 const { data: site } = useGlobalData('site')
 
 const navLabel = computed(
-  () => resolveGlobalField(site.value?.fields ?? [], 'nav_label')?.value ?? 'Site',
+  () =>
+    resolveGlobalField(site.value?.fields ?? [], 'nav_label')?.value ?? 'Site',
 )
 </script>
 
@@ -54,10 +55,10 @@ const navLabel = computed(
 
 ## 3. Guest vs editor
 
-| Audience | Behavior |
-| -------- | -------- |
-| Logged-in editor | Live Supabase — changes show immediately |
-| Guest | Values from last **`nuxt generate`** — update guests via [Publishing](./publishing.md) |
+| Audience         | Behavior                                                                               |
+| ---------------- | -------------------------------------------------------------------------------------- |
+| Logged-in editor | Live Supabase — changes show immediately                                               |
+| Guest            | Values from last **`nuxt generate`** — update guests via [Publishing](./publishing.md) |
 
 Globals are prerendered into the payload like page content.
 
@@ -67,10 +68,10 @@ The first logged-in load seeds a `globals` row and field rows from your schema i
 
 ## When to use globals vs page fields
 
-| Use global | Use page field |
-| ---------- | -------------- |
+| Use global                  | Use page field              |
+| --------------------------- | --------------------------- |
 | Nav label, logo alt, footer | Page title, hero on one URL |
-| Same on every page | Specific to one slug |
+| Same on every page          | Specific to one slug        |
 
 For repeating page sections, use [slices](./slices.md) instead.
 

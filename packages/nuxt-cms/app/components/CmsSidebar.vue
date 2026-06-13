@@ -50,7 +50,10 @@ const { isOpen, activeTab, toggle } = useCmsPanel()
     <CmsSidebarContentsTab v-show="activeTab === 'contents'" />
     <CmsSidebarPagesTab v-show="activeTab === 'pages'" />
     <CmsSidebarMetaTab v-show="activeTab === 'meta'" />
-    <div v-show="activeTab === 'publish'" class="cms-sidebar-body">
+    <div
+      v-show="activeTab === 'publish'"
+      class="cms-sidebar-body"
+    >
       <CmsPublishPanel />
     </div>
   </aside>

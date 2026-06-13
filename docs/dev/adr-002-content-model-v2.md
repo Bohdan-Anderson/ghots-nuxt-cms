@@ -23,10 +23,10 @@ Phase 3 sidebar and Phase 4 field types depend on this model.
 
 **Alternatives considered:**
 
-| Option | Pros | Cons |
-| ------ | ---- | ---- |
-| JSON document per page | Fewer joins | Hard to query/update single field; poor fit for modal save pipeline |
-| **`page_slices` + `fields.slice_id`** | Matches current field rows; cascade delete; E2E-friendly | More tables |
+| Option                                | Pros                                                     | Cons                                                                |
+| ------------------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------- |
+| JSON document per page                | Fewer joins                                              | Hard to query/update single field; poor fit for modal save pipeline |
+| **`page_slices` + `fields.slice_id`** | Matches current field rows; cascade delete; E2E-friendly | More tables                                                         |
 
 Slice **types** (Vue component + field schema) live in **code only** (`demo/app/slices/registry.ts` in this repo), not in DB. DB stores instance rows with `slice_type_key` text.
 
@@ -50,10 +50,10 @@ Existing `title` remains the internal/nav label. `meta_title` falls back to `tit
 
 **Alternatives considered:**
 
-| Option | Pros | Cons |
-| ------ | ---- | ---- |
-| Pseudo-pages (`/_global/nav`) | Reuses page loader | Confusing slug routing; pollutes page list |
-| **`globals` + `fields.global_id`** | Clear ownership; same field/save pipeline | Nullable `page_id` on fields |
+| Option                             | Pros                                      | Cons                                       |
+| ---------------------------------- | ----------------------------------------- | ------------------------------------------ |
+| Pseudo-pages (`/_global/nav`)      | Reuses page loader                        | Confusing slug routing; pollutes page list |
+| **`globals` + `fields.global_id`** | Clear ownership; same field/save pipeline | Nullable `page_id` on fields               |
 
 Global **definitions** (schema) live in code (`demo/app/globals/registry.ts` in this repo); DB holds values only.
 

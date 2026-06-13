@@ -1,17 +1,12 @@
 <script setup lang="ts">
 import { getFieldTypeConfig } from '~/fields/registry'
 
-const {
-  activeField,
-  activeColumn,
-  draftValue,
-  isOpen,
-  close,
-  save,
-} = usePageEditor()
+const { activeField, activeColumn, draftValue, isOpen, close, save } =
+  usePageEditor()
 
 const saving = ref(false)
 const errorMessage = ref('')
+const dialogRef = ref<HTMLDialogElement | null>(null)
 
 const editComponent = computed(() => {
   const column = activeColumn.value
@@ -28,8 +23,7 @@ async function handleSave() {
   try {
     await save()
   } catch (error) {
-    errorMessage.value =
-      error instanceof Error ? error.message : 'Save failed'
+    errorMessage.value = error instanceof Error ? error.message : 'Save failed'
   } finally {
     saving.value = false
   }
@@ -37,6 +31,11 @@ async function handleSave() {
 </script>
 
 <template>
+  <div
+    class="field-edit-modal-overlay"
+    v-if="isOpen"
+    @click="close"
+  ></div>
   <dialog
     :open="isOpen"
     class="field-edit-modal"
@@ -47,15 +46,11 @@ async function handleSave() {
       class="field-edit-modal__form"
       @submit.prevent="handleSave"
     >
-      <h2 class="field-edit-modal__title">
-        Edit {{ activeField.name }}
-      </h2>
+      <h2 class="field-edit-modal__title">Edit {{ activeField.name }}</h2>
       <component
         :is="editComponent"
         v-model:draft="draftValue"
-        v-bind="
-          activeColumn === 'image' ? { fieldId: activeField.id } : {}
-        "
+        v-bind="activeColumn === 'image' ? { fieldId: activeField.id } : {}"
       />
       <p
         v-if="errorMessage"
@@ -82,11 +77,22 @@ async function handleSave() {
 </template>
 
 <style scoped>
+.field-edit-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+
 .field-edit-modal {
   border: 1px solid #ccc;
   padding: 1rem;
   max-width: 32rem;
   width: 90%;
+  position: fixed;
+  top: 35%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
 }
 
 .field-edit-modal__form {

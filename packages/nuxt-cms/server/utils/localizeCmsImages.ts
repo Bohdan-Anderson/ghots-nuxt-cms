@@ -1,11 +1,5 @@
 import { createHash } from 'node:crypto'
-import {
-  mkdir,
-  readdir,
-  readFile,
-  stat,
-  writeFile,
-} from 'node:fs/promises'
+import { mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 
 export const CMS_MEDIA_BUCKET = 'cms-media'
@@ -80,7 +74,10 @@ function safeLocalFilename(objectPath: string): string {
   if (/^[\w./-]+$/.test(normalized)) {
     return normalized
   }
-  const hash = createHash('sha256').update(normalized).digest('hex').slice(0, 12)
+  const hash = createHash('sha256')
+    .update(normalized)
+    .digest('hex')
+    .slice(0, 12)
   const ext = normalized.includes('.')
     ? normalized.slice(normalized.lastIndexOf('.'))
     : ''

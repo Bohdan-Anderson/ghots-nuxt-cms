@@ -44,22 +44,30 @@ function buildDemoPageDom(): HTMLElement {
     'data-type': 'plain_text',
     'data-id': 'h1',
   })
-  const hero1 = el('section', {
-    'data-name': 'hero1',
-    'data-type': 'section',
-    'data-id': 'hero1-id',
-  }, [hero1Headline])
+  const hero1 = el(
+    'section',
+    {
+      'data-name': 'hero1',
+      'data-type': 'section',
+      'data-id': 'hero1-id',
+    },
+    [hero1Headline],
+  )
 
   const hero2Headline = el('h2', {
     'data-name': 'headline',
     'data-type': 'plain_text',
     'data-id': 'h2',
   })
-  const hero2 = el('section', {
-    'data-name': 'hero2',
-    'data-type': 'section',
-    'data-id': 'hero2-id',
-  }, [hero2Headline])
+  const hero2 = el(
+    'section',
+    {
+      'data-name': 'hero2',
+      'data-type': 'section',
+      'data-id': 'hero2-id',
+    },
+    [hero2Headline],
+  )
 
   const title = el('h1', {
     'data-name': 'title',
@@ -67,10 +75,14 @@ function buildDemoPageDom(): HTMLElement {
     'data-id': 'title-id',
   })
 
-  return el('article', {
-    'data-type': 'page',
-    'data-id': 'page-1',
-  }, [title, hero1, hero2])
+  return el(
+    'article',
+    {
+      'data-type': 'page',
+      'data-id': 'page-1',
+    },
+    [title, hero1, hero2],
+  )
 }
 
 function wrapPage(article: HTMLElement): HTMLElement {
@@ -109,15 +121,23 @@ describe('scanContentTree', () => {
       'data-type': 'array',
       'data-id': 'members-id',
     })
-    const team = el('section', {
-      'data-name': 'team',
-      'data-type': 'section',
-      'data-id': 'team-id',
-    }, [members])
-    const page = el('article', {
-      'data-type': 'page',
-      'data-id': 'page-1',
-    }, [team])
+    const team = el(
+      'section',
+      {
+        'data-name': 'team',
+        'data-type': 'section',
+        'data-id': 'team-id',
+      },
+      [members],
+    )
+    const page = el(
+      'article',
+      {
+        'data-type': 'page',
+        'data-id': 'page-1',
+      },
+      [team],
+    )
     document.body.appendChild(page)
 
     const flat = flattenContentTree(scanContentTree(page))
@@ -136,25 +156,41 @@ describe('scanContentTree', () => {
       'data-type': 'plain_text',
       'data-id': 'name-id',
     })
-    const item = el('li', {
-      'data-name': 'item_0',
-      'data-type': 'section',
-      'data-id': 'item-id',
-    }, [name])
-    const members = el('div', {
-      'data-name': 'members',
-      'data-type': 'array',
-      'data-id': 'members-id',
-    }, [item])
-    const team = el('section', {
-      'data-name': 'team',
-      'data-type': 'section',
-      'data-id': 'team-id',
-    }, [members])
-    const page = el('article', {
-      'data-type': 'page',
-      'data-id': 'page-1',
-    }, [team])
+    const item = el(
+      'li',
+      {
+        'data-name': 'item_0',
+        'data-type': 'section',
+        'data-id': 'item-id',
+      },
+      [name],
+    )
+    const members = el(
+      'div',
+      {
+        'data-name': 'members',
+        'data-type': 'array',
+        'data-id': 'members-id',
+      },
+      [item],
+    )
+    const team = el(
+      'section',
+      {
+        'data-name': 'team',
+        'data-type': 'section',
+        'data-id': 'team-id',
+      },
+      [members],
+    )
+    const page = el(
+      'article',
+      {
+        'data-type': 'page',
+        'data-id': 'page-1',
+      },
+      [team],
+    )
     document.body.appendChild(page)
 
     const flat = flattenContentTree(scanContentTree(page))
@@ -172,7 +208,9 @@ describe('scanContentTree', () => {
 
 describe('flattenContentTree', () => {
   it('preserves depth-first order for sidebar rendering', () => {
-    const flat = flattenContentTree(scanContentTree(wrapPage(buildDemoPageDom())))
+    const flat = flattenContentTree(
+      scanContentTree(wrapPage(buildDemoPageDom())),
+    )
 
     expect(flat.map((node) => `${node.depth}:${node.name}`)).toEqual([
       '0:page',
@@ -191,10 +229,14 @@ describe('enrichTreeWithFields', () => {
       'data-name': 'copy',
       'data-id': 'copy-id',
     })
-    const root = el('article', {
-      'data-type': 'page',
-      'data-id': 'page-1',
-    }, [node])
+    const root = el(
+      'article',
+      {
+        'data-type': 'page',
+        'data-id': 'page-1',
+      },
+      [node],
+    )
     document.body.appendChild(root)
 
     const scanned = scanContentTree(root)

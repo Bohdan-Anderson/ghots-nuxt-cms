@@ -59,11 +59,11 @@ If you use **image** fields, migrations configure a public `cms-media` bucket. U
 
 ## Security model (summary)
 
-| Operation | Guest | Authenticated member |
-| --------- | ----- | -------------------- |
-| Read content | Yes (all sites via anon key + RLS) | Yes |
-| Write content | No | Yes, only for sites in `site_members` |
-| Static guest site | Uses prerender at build time — no runtime DB | — |
+| Operation         | Guest                                        | Authenticated member                  |
+| ----------------- | -------------------------------------------- | ------------------------------------- |
+| Read content      | Yes (all sites via anon key + RLS)           | Yes                                   |
+| Write content     | No                                           | Yes, only for sites in `site_members` |
+| Static guest site | Uses prerender at build time — no runtime DB | —                                     |
 
 Each deployment scopes **reads in the app** to its `CMS_SITE_KEY` site. RLS still allows cross-site reads if the anon key is used directly against the API.
 

@@ -8,10 +8,10 @@ See also [vision.md](./vision.md) § Portability and [todo.md](../../todo.md) Ph
 
 ## Package vs consumer
 
-| Layer | Responsibility |
-| ----- | -------------- |
+| Layer                | Responsibility                                                                                                                                  |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
 | **`ghots-nuxt-cms`** | Editor UI, field-type system, Supabase composables, auth plugin, static-first defaults, image localization module, DB migrations (schema + RLS) |
-| **Consumer project** | Templates, slice components + schemas, global region definitions, site layout/chrome, prerender route list, demo seed data |
+| **Consumer project** | Templates, slice components + schemas, global region definitions, site layout/chrome, prerender route list, demo seed data                      |
 
 ---
 
@@ -19,36 +19,36 @@ See also [vision.md](./vision.md) § Portability and [todo.md](../../todo.md) Ph
 
 ### Package (`packages/nuxt-cms/`)
 
-| Path | Notes |
-| ---- | ----- |
-| `packages/nuxt-cms/app/components/Cms*.vue` | Sidebar, publish panel, field render helpers |
-| `packages/nuxt-cms/app/components/FieldEditModal.vue`, `PageEditorProvider.vue` | Modal + on-page click delegation |
-| `packages/nuxt-cms/app/components/field-edit/*` | Per-type modal editors |
-| `packages/nuxt-cms/app/composables/*` | All except consumer `useTemplate.ts` |
-| `packages/nuxt-cms/app/fields/registry.ts`, `schemaLookup.ts` | Field-type registry; schema lookup uses injected registries |
-| `packages/nuxt-cms/app/types/cms.ts`, `fieldValues.ts` | Shared types |
-| `packages/nuxt-cms/app/utils/slug.ts`, `markdownToHtml.ts`, `sanitizeHtml.ts` | Utilities |
-| `packages/nuxt-cms/app/assets/cms-panel.css` | Editor chrome styles |
-| `packages/nuxt-cms/app/plugins/supabase.client.ts` | Session restore |
-| `packages/nuxt-cms/app/pages/login.vue` | Auth page (optional override in consumer) |
-| `modules/nuxt-cms.ts` | Module entry: aliases, runtimeConfig, auto-imports |
-| `modules/localize-cms-images.ts` | Prerender image localization |
-| `server/utils/localizeCmsImages.ts` | Nitro hook helper |
-| `supabase/migrations/*.sql` | Schema + RLS (generic) |
+| Path                                                                            | Notes                                                       |
+| ------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `packages/nuxt-cms/app/components/Cms*.vue`                                     | Sidebar, publish panel, field render helpers                |
+| `packages/nuxt-cms/app/components/FieldEditModal.vue`, `PageEditorProvider.vue` | Modal + on-page click delegation                            |
+| `packages/nuxt-cms/app/components/field-edit/*`                                 | Per-type modal editors                                      |
+| `packages/nuxt-cms/app/composables/*`                                           | All except consumer `useTemplate.ts`                        |
+| `packages/nuxt-cms/app/fields/registry.ts`, `schemaLookup.ts`                   | Field-type registry; schema lookup uses injected registries |
+| `packages/nuxt-cms/app/types/cms.ts`, `fieldValues.ts`                          | Shared types                                                |
+| `packages/nuxt-cms/app/utils/slug.ts`, `markdownToHtml.ts`, `sanitizeHtml.ts`   | Utilities                                                   |
+| `packages/nuxt-cms/app/assets/cms-panel.css`                                    | Editor chrome styles                                        |
+| `packages/nuxt-cms/app/plugins/supabase.client.ts`                              | Session restore                                             |
+| `packages/nuxt-cms/app/pages/login.vue`                                         | Auth page (optional override in consumer)                   |
+| `modules/nuxt-cms.ts`                                                           | Module entry: aliases, runtimeConfig, auto-imports          |
+| `modules/localize-cms-images.ts`                                                | Prerender image localization                                |
+| `server/utils/localizeCmsImages.ts`                                             | Nitro hook helper                                           |
+| `supabase/migrations/*.sql`                                                     | Schema + RLS (generic)                                      |
 
 ### Consumer (`demo/` — reference app)
 
-| Path | Notes |
-| ---- | ----- |
-| `demo/app/templates/*.vue` | Page layout SFCs |
-| `demo/app/composables/useTemplate.ts` | `TEMPLATE_MAP` → DB `templates.key` |
-| `demo/app/slices/*.vue`, `demo/app/slices/registry.ts` | Slice components + field schemas |
-| `demo/app/globals/registry.ts` | Global region definitions |
-| `demo/app/cms/registries.ts` | **Required** — re-exports consumer registries for `#cms/registries` alias |
-| `demo/app/pages/[...slug].vue` | Site nav, global chrome, wires `useCmsPage()` |
-| `demo/nuxt.config.ts` | `extends: ['../packages/nuxt-cms']`, site `prerender.routes` |
-| `demo/e2e/` | Playwright specs for reference app |
-| `demo/supabase/` | Migration copy for local dev |
+| Path                                                   | Notes                                                                     |
+| ------------------------------------------------------ | ------------------------------------------------------------------------- |
+| `demo/app/templates/*.vue`                             | Page layout SFCs                                                          |
+| `demo/app/composables/useTemplate.ts`                  | `TEMPLATE_MAP` → DB `templates.key`                                       |
+| `demo/app/slices/*.vue`, `demo/app/slices/registry.ts` | Slice components + field schemas                                          |
+| `demo/app/globals/registry.ts`                         | Global region definitions                                                 |
+| `demo/app/cms/registries.ts`                           | **Required** — re-exports consumer registries for `#cms/registries` alias |
+| `demo/app/pages/[...slug].vue`                         | Site nav, global chrome, wires `useCmsPage()`                             |
+| `demo/nuxt.config.ts`                                  | `extends: ['../packages/nuxt-cms']`, site `prerender.routes`              |
+| `demo/e2e/`                                            | Playwright specs for reference app                                        |
+| `demo/supabase/`                                       | Migration copy for local dev                                              |
 
 ---
 
@@ -72,11 +72,11 @@ Generic CMS code must **not** import `~/slices/registry` or `~/globals/registry`
 
 ## SQL boundary
 
-| Migration | Package | Consumer seed |
-| --------- | ------- | ------------- |
-| `001`–`005` schema + RLS | ✅ | — |
-| Home `/` baseline in `001` | ✅ (minimal demo) | Reference app may re-seed |
-| `/demo`, slice-demo template, `site` global in `002` | — | Reference app demo content |
+| Migration                                            | Package           | Consumer seed              |
+| ---------------------------------------------------- | ----------------- | -------------------------- |
+| `001`–`005` schema + RLS                             | ✅                | —                          |
+| Home `/` baseline in `001`                           | ✅ (minimal demo) | Reference app may re-seed  |
+| `/demo`, slice-demo template, `site` global in `002` | —                 | Reference app demo content |
 
 For a fresh consumer: apply package migrations, then add own templates/pages via SQL or sidebar UI.
 
@@ -102,7 +102,7 @@ For a fresh consumer: apply package migrations, then add own templates/pages via
 
 | Reference app (legacy) | Package name |
 | ---------------------- | ------------ |
-| `useGhostPage` | `useCmsPage` |
+| `useGhostPage`         | `useCmsPage` |
 
 Other composable names (`useCmsPanel`, `usePageContent`, …) stay as-is.
 

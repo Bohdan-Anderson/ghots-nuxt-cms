@@ -21,9 +21,7 @@ export function resolveField(
   parentId?: string | null,
 ): FieldRow | undefined {
   const pid = parentId ?? null
-  return fields.find(
-    (field) => field.name === name && field.parent_id === pid,
-  )
+  return fields.find((field) => field.name === name && field.parent_id === pid)
 }
 
 /**
@@ -40,8 +38,7 @@ export function resolveArrayItems(
 
   const itemSections = fields
     .filter(
-      (field) =>
-        field.parent_id === arrayField.id && field.kind === 'section',
+      (field) => field.parent_id === arrayField.id && field.kind === 'section',
     )
     .sort((a, b) => a.sort_order - b.sort_order)
 

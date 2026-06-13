@@ -1,8 +1,4 @@
-import type {
-  FieldRow,
-  GlobalContent,
-  GlobalRow,
-} from '~/types/cms'
+import type { FieldRow, GlobalContent, GlobalRow } from '~/types/cms'
 import { getGlobalDefinition } from '#cms/registries'
 import { buildFieldMaps } from '~/fields/maps'
 

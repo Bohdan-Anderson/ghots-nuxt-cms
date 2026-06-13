@@ -61,6 +61,8 @@ describe('resolveArrayItems', () => {
   it('returns ordered item field groups', () => {
     const items = resolveArrayItems(fields, 'arr')
     expect(items).toHaveLength(1)
-    expect(items[0]?.find((row) => row.name === 'name')?.plain_text).toBe('Alex')
+    expect(items[0]?.find((row) => row.name === 'name')?.plain_text).toBe(
+      'Alex',
+    )
   })
 })

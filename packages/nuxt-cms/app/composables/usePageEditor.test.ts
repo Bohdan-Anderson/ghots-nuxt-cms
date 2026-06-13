@@ -105,11 +105,15 @@ describe('usePageEditor', () => {
       'data-name': 'headline',
       'data-type': 'plain_text',
     })
-    const section = el('section', {
-      'data-name': 'hero1',
-      'data-type': 'section',
-      'data-id': 'hero1',
-    }, [headlineEl])
+    const section = el(
+      'section',
+      {
+        'data-name': 'hero1',
+        'data-type': 'section',
+        'data-id': 'hero1',
+      },
+      [headlineEl],
+    )
 
     document.body.appendChild(section)
     expect(editor.resolveFieldFromElement(headlineEl)?.id).toBe('hl1')

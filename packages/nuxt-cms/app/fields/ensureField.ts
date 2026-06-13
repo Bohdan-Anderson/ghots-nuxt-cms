@@ -18,10 +18,7 @@ export interface EnsureFieldInput {
 /**
  * Returns true when a field row has child rows in the flat list.
  */
-export function fieldHasChildren(
-  fieldId: string,
-  fields: FieldRow[],
-): boolean {
+export function fieldHasChildren(fieldId: string, fields: FieldRow[]): boolean {
   return fields.some((row) => row.parent_id === fieldId)
 }
 
@@ -45,7 +42,9 @@ export async function ensureField(
   if (existing) return existing
 
   const kind = domTypeToKind(parseDomType(input.domType ?? undefined))
-  const pageId = input.context.globalId ? null : (input.context.pageId ?? content.page.id)
+  const pageId = input.context.globalId
+    ? null
+    : (input.context.pageId ?? content.page.id)
   const globalId = input.context.globalId ?? null
 
   const { data: inserted, error } = await supabase

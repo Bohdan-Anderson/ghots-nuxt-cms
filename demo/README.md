@@ -15,22 +15,22 @@ npm run dev
 
 Env file: **`demo/.env`**
 
-| URL | Purpose |
-| --- | ------- |
-| `/` | Default template |
-| `/demo` | Slices (hero, CTA, team) |
-| `/login` | Editor auth |
+| URL      | Purpose                  |
+| -------- | ------------------------ |
+| `/`      | Default template         |
+| `/demo`  | Slices (hero, CTA, team) |
+| `/login` | Editor auth              |
 
 ## Site-specific code (yours in a real project)
 
 Paths below are relative to **`demo/app/`** in this repo (your Nuxt project uses the same structure under `app/`):
 
-| Path | Purpose |
-| ---- | ------- |
-| `demo/app/templates/` | Page layouts |
-| `demo/app/slices/` | Slice components + registry |
-| `demo/app/globals/` | Global regions |
-| `demo/app/cms/registries.ts` | Required registry barrel |
-| `demo/app/pages/[...slug].vue` | Nav + CMS shell |
+| Path                           | Purpose                     |
+| ------------------------------ | --------------------------- |
+| `demo/app/templates/`          | Page layouts                |
+| `demo/app/slices/`             | Slice components + registry |
+| `demo/app/globals/`            | Global regions              |
+| `demo/app/cms/registries.ts`   | Required registry barrel    |
+| `demo/app/pages/[...slug].vue` | Nav + CMS shell             |
 
 Extends [`../packages/nuxt-cms`](../packages/nuxt-cms).

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 const {
   route,
   content,
@@ -59,8 +58,11 @@ function onGlobalFieldUpdated() {
       <strong
         data-name="nav_label"
         data-type="plain_text"
-        :data-id="resolveGlobalField(siteGlobal?.fields ?? [], 'nav_label')?.id ?? ''"
-      >{{ siteNavLabel }}</strong>
+        :data-id="
+          resolveGlobalField(siteGlobal?.fields ?? [], 'nav_label')?.id ?? ''
+        "
+        >{{ siteNavLabel }}</strong
+      >
       <NuxtLink
         v-for="page in pageList"
         :key="page.slug"

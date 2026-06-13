@@ -6,17 +6,17 @@ Guests never see the sidebar (`v-if="loggedIn"` in `demo/app/app.vue`).
 
 ## Components and composables
 
-| File | Role |
-| ---- | ---- |
-| `packages/nuxt-cms/app/components/CmsSidebar.vue` | Toggle, tab routing |
-| `packages/nuxt-cms/app/components/CmsSidebarContentsTab.vue` | Field tree, slices, add slice |
-| `packages/nuxt-cms/app/components/CmsSidebarPagesTab.vue` | Page links, create page form |
-| `packages/nuxt-cms/app/components/CmsSidebarMetaTab.vue` | Meta form, delete page |
-| `packages/nuxt-cms/app/components/CmsPublishPanel.vue` | Publish instructions + copy command (Publish tab) |
-| `packages/nuxt-cms/app/composables/usePublish.ts` | Publish command constant + optional webhook stub config |
-| `packages/nuxt-cms/app/composables/useCmsPanel.ts` | Shared `isOpen`, `activeTab`, `pageContent`, `toggle`, `applyPageContent` |
-| `demo/app/app.vue` | Renders `<CmsSidebar v-if="loggedIn" />` above `<NuxtPage />` |
-| `demo/app/pages/[...slug].vue` | Site nav + syncs current page data into `useCmsPanel` via `useCmsPage()` |
+| File                                                         | Role                                                                      |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| `packages/nuxt-cms/app/components/CmsSidebar.vue`            | Toggle, tab routing                                                       |
+| `packages/nuxt-cms/app/components/CmsSidebarContentsTab.vue` | Field tree, slices, add slice                                             |
+| `packages/nuxt-cms/app/components/CmsSidebarPagesTab.vue`    | Page links, create page form                                              |
+| `packages/nuxt-cms/app/components/CmsSidebarMetaTab.vue`     | Meta form, delete page                                                    |
+| `packages/nuxt-cms/app/components/CmsPublishPanel.vue`       | Publish instructions + copy command (Publish tab)                         |
+| `packages/nuxt-cms/app/composables/usePublish.ts`            | Publish command constant + optional webhook stub config                   |
+| `packages/nuxt-cms/app/composables/useCmsPanel.ts`           | Shared `isOpen`, `activeTab`, `pageContent`, `toggle`, `applyPageContent` |
+| `demo/app/app.vue`                                           | Renders `<CmsSidebar v-if="loggedIn" />` above `<NuxtPage />`             |
+| `demo/app/pages/[...slug].vue`                               | Site nav + syncs current page data into `useCmsPanel` via `useCmsPage()`  |
 
 ## Publish tab
 
@@ -72,16 +72,19 @@ Panel state is cleared when leaving CMS UI instead:
 
 ```ts
 // demo/app/app.vue — when navigating to login
-watch(() => route.path, (path) => {
-  if (path === '/login') applyPageContent(null)
-})
+watch(
+  () => route.path,
+  (path) => {
+    if (path === '/login') applyPageContent(null)
+  },
+)
 ```
 
 ### Refetch behavior
 
 - Do **not** add an extra `watch(slug) → refresh()` on mount (`prev` is `undefined` on first run and caused a redundant refetch / remount).
 - Slug changes are handled by `useAsyncData` **`watch: [slug]`** on the dynamic key `` `page:${slug}` ``.
-- While `content` is briefly `undefined` during refetch, the panel is **not** cleared (only stale *other-page* data clears via the `else if (data)` branch).
+- While `content` is briefly `undefined` during refetch, the panel is **not** cleared (only stale _other-page_ data clears via the `else if (data)` branch).
 
 After a field save, `patchField` updates the panel store; sidebar and on-page preview stay in sync without a full refresh.
 

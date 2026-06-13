@@ -14,12 +14,12 @@ Online: [github.com/Bohdan-Anderson/ghots-nuxt-cms/tree/main/docs](https://githu
 
 ## Repository layout
 
-| Path | Purpose |
-| ---- | ------- |
-| [`packages/nuxt-cms/`](./packages/nuxt-cms/) | CMS Nuxt layer |
-| [`demo/`](./demo/) | Reference demo site + E2E |
-| [`examples/minimal/`](./examples/minimal/) | Minimal install smoke-test app |
-| [`docs/`](./docs/) | Documentation |
+| Path                                         | Purpose                        |
+| -------------------------------------------- | ------------------------------ |
+| [`packages/nuxt-cms/`](./packages/nuxt-cms/) | CMS Nuxt layer                 |
+| [`demo/`](./demo/)                           | Reference demo site + E2E      |
+| [`examples/minimal/`](./examples/minimal/)   | Minimal install smoke-test app |
+| [`docs/`](./docs/)                           | Documentation                  |
 
 ## Quick start (demo)
 
@@ -43,11 +43,11 @@ npm publish
 
 ## Scripts
 
-| Command | Description |
-| ------- | ----------- |
-| `npm run dev` | Demo dev server |
+| Command               | Description                |
+| --------------------- | -------------------------- |
+| `npm run dev`         | Demo dev server            |
 | `npm run dev:minimal` | Minimal example dev server |
-| `npm run generate` | Static site → `demo/dist/` |
-| `npm run static` | Generate + serve locally |
-| `npm run test:unit` | Vitest (package) |
-| `npm run test:e2e` | Playwright (demo) |
+| `npm run generate`    | Static site → `demo/dist/` |
+| `npm run static`      | Generate + serve locally   |
+| `npm run test:unit`   | Vitest (package)           |
+| `npm run test:e2e`    | Playwright (demo)          |

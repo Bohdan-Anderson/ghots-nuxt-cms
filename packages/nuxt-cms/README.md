@@ -6,11 +6,11 @@ Developers define **templates**, **slices**, and **globals** in Vue. Editors cha
 
 ## How it works
 
-| Audience | What they see |
-| -------- | ------------- |
-| **Guest** | Last published static build (`dist/`) |
+| Audience             | What they see                              |
+| -------------------- | ------------------------------------------ |
+| **Guest**            | Last published static build (`dist/`)      |
 | **Logged-in editor** | Live Supabase data; edits save immediately |
-| **You (developer)** | Templates, slices, field schemas in code |
+| **You (developer)**  | Templates, slices, field schemas in code   |
 
 **Publish** = run `nuxt generate` and deploy `dist/` so guests catch up with editor changes.
 
@@ -77,25 +77,22 @@ Tables, RLS, and storage are documented in the [ghots-nuxt-cms repo](https://git
 
 The layer ships editor UI, composables, auth, and DB schema. Your app provides content definitions and site chrome:
 
-| File / folder | Purpose |
-| ------------- | ------- |
-| `app/cms/registries.ts` | **Required** — exports template and global resolvers |
-| `app/composables/useTemplate.ts` | Maps DB template keys → Vue SFCs |
-| `app/templates/*.vue` | Page layouts with CMS fields |
-| `app/sections/*.vue` | Reusable section components (optional) |
-| `app/globals/registry.ts` | Shared nav/footer/settings (optional) |
-| `app/pages/[...slug].vue` | Catch-all page using `useCmsPage()` |
-| `app/app.vue` | Site shell + `<CmsSidebar v-if="loggedIn" />` |
+| File / folder                    | Purpose                                              |
+| -------------------------------- | ---------------------------------------------------- |
+| `app/cms/registries.ts`          | **Required** — exports template and global resolvers |
+| `app/composables/useTemplate.ts` | Maps DB template keys → Vue SFCs                     |
+| `app/templates/*.vue`            | Page layouts with CMS fields                         |
+| `app/sections/*.vue`             | Reusable section components (optional)               |
+| `app/globals/registry.ts`        | Shared nav/footer/settings (optional)                |
+| `app/pages/[...slug].vue`        | Catch-all page using `useCmsPage()`                  |
+| `app/app.vue`                    | Site shell + `<CmsSidebar v-if="loggedIn" />`        |
 
 ### Registries barrel
 
 ```ts
 // app/cms/registries.ts
 export { resolveTemplateComponent } from '~/composables/useTemplate'
-export {
-  getGlobalDefinition,
-  listGlobalDefinitions,
-} from '~/globals/registry'
+export { getGlobalDefinition, listGlobalDefinitions } from '~/globals/registry'
 ```
 
 ### Minimal template
@@ -138,7 +135,8 @@ function field(name: string) {
 ```vue
 <!-- app/pages/[...slug].vue -->
 <script setup lang="ts">
-const { content, status, templateComponent, patchField, loggedIn } = useCmsPage()
+const { content, status, templateComponent, patchField, loggedIn } =
+  useCmsPage()
 </script>
 
 <template>
@@ -181,12 +179,12 @@ Use `<CmsLink>`, `<CmsRichText>`, `<CmsImage>` in templates. See the repo docs f
 
 ## Environment variables
 
-| Variable | Required | Description |
-| -------- | -------- | ----------- |
-| `VITE_SUPABASE_URL` | Yes | Supabase project URL |
-| `VITE_SUPABASE_ANON_KEY` | Yes | Supabase anon/public key |
-| `CMS_SITE_KEY` | Yes | Site key for this deployment (`sites.key`) |
-| `CMS_PUBLISH_WEBHOOK_URL` | No | Future CI hook placeholder (not called in v1) |
+| Variable                  | Required | Description                                   |
+| ------------------------- | -------- | --------------------------------------------- |
+| `VITE_SUPABASE_URL`       | Yes      | Supabase project URL                          |
+| `VITE_SUPABASE_ANON_KEY`  | Yes      | Supabase anon/public key                      |
+| `CMS_SITE_KEY`            | Yes      | Site key for this deployment (`sites.key`)    |
+| `CMS_PUBLISH_WEBHOOK_URL` | No       | Future CI hook placeholder (not called in v1) |
 
 ## Documentation
 

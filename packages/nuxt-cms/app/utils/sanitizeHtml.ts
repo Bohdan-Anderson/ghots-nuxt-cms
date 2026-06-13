@@ -63,7 +63,10 @@ export function sanitizeHtml(dirty: string): string {
  * Server-side fallback when DOMParser is unavailable.
  */
 function sanitizeHtmlRegex(html: string): string {
-  let out = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+  let out = html.replace(
+    /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+    '',
+  )
   out = out.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
   out = out.replace(/\son\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, '')
   out = out.replace(/\s(href|src)\s*=\s*("|')?\s*javascript:[^"'>\s]*/gi, '')

@@ -57,7 +57,10 @@ v1 uses **markdown in a textarea**, not TipTap. Richer WYSIWYG can plug into the
 - **Storage:** JSON string:
 
 ```json
-{ "url": "https://…/storage/v1/object/public/cms-media/…", "alt": "Description" }
+{
+  "url": "https://…/storage/v1/object/public/cms-media/…",
+  "alt": "Description"
+}
 ```
 
 - **Modal:** file upload to Supabase Storage (`cms-media` bucket) + alt text

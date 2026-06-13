@@ -4,10 +4,10 @@ Editors change content in **Supabase** (live for logged-in users). **Guests** re
 
 ## Draft vs published
 
-| Audience | What they see | Updates when |
-| -------- | ------------- | ------------ |
-| Logged-in editor | Live Supabase data | On save (immediate in dev) |
-| Guest (static deploy) | Prerendered HTML + payload | After rebuild + deploy |
+| Audience              | What they see              | Updates when               |
+| --------------------- | -------------------------- | -------------------------- |
+| Logged-in editor      | Live Supabase data         | On save (immediate in dev) |
+| Guest (static deploy) | Prerendered HTML + payload | After rebuild + deploy     |
 
 There is no auto-rebuild on save. Publishing is explicit.
 

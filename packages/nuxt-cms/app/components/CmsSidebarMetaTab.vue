@@ -80,35 +80,59 @@ async function onDeletePage() {
 
 <template>
   <div class="cms-sidebar-body">
-    <p v-if="!pageContent" class="cms-sidebar-hint">
+    <p
+      v-if="!pageContent"
+      class="cms-sidebar-hint"
+    >
       Open a page to edit meta.
     </p>
     <template v-else>
-      <form class="cms-sidebar-form" @submit.prevent="onSaveMeta">
+      <form
+        class="cms-sidebar-form"
+        @submit.prevent="onSaveMeta"
+      >
         <p class="cms-sidebar-hint">
           Slug: <code>{{ pageContent.page.slug }}</code>
         </p>
         <label>
           Page title
-          <input v-model="metaDraft.title" type="text" />
+          <input
+            v-model="metaDraft.title"
+            type="text"
+          />
         </label>
         <label>
           Meta title
-          <input v-model="metaDraft.meta_title" type="text" />
+          <input
+            v-model="metaDraft.meta_title"
+            type="text"
+          />
         </label>
         <label>
           Meta description
-          <textarea v-model="metaDraft.meta_description" rows="3" />
+          <textarea
+            v-model="metaDraft.meta_description"
+            rows="3"
+          />
         </label>
         <label>
           OG image URL
-          <input v-model="metaDraft.og_image" type="url" />
+          <input
+            v-model="metaDraft.og_image"
+            type="url"
+          />
         </label>
         <label>
-          <input v-model="metaDraft.noindex" type="checkbox" />
+          <input
+            v-model="metaDraft.noindex"
+            type="checkbox"
+          />
           Noindex
         </label>
-        <button type="submit" :disabled="metaBusy">
+        <button
+          type="submit"
+          :disabled="metaBusy"
+        >
           Save meta
         </button>
       </form>
@@ -123,10 +147,16 @@ async function onDeletePage() {
         >
           Delete page
         </button>
-        <p v-if="pageContent.page.slug === '/'" class="cms-sidebar-hint">
+        <p
+          v-if="pageContent.page.slug === '/'"
+          class="cms-sidebar-hint"
+        >
           The home page cannot be deleted.
         </p>
-        <p v-if="deleteError" class="cms-sidebar-form-error">
+        <p
+          v-if="deleteError"
+          class="cms-sidebar-form-error"
+        >
           {{ deleteError }}
         </p>
       </div>

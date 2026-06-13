@@ -37,8 +37,8 @@ Login page, editor components, and CMS composables live in **`packages/nuxt-cms/
 
 ## Generated / ignored
 
-| Path | Purpose |
-| ---- | ------- |
-| `demo/dist/` | Static output from `nuxt generate` |
-| `demo/.nuxt/`, `demo/.output/` | Nuxt build cache |
-| `node_modules/` | Dependencies (hoisted at repo root) |
+| Path                           | Purpose                             |
+| ------------------------------ | ----------------------------------- |
+| `demo/dist/`                   | Static output from `nuxt generate`  |
+| `demo/.nuxt/`, `demo/.output/` | Nuxt build cache                    |
+| `node_modules/`                | Dependencies (hoisted at repo root) |

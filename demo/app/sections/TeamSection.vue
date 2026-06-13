@@ -9,7 +9,11 @@ const props = defineProps<{
 }>()
 
 const sectionField = computed(() =>
-  useCmsField(props.fieldsByParentAndName, props.parentId ?? null, props.sectionName),
+  useCmsField(
+    props.fieldsByParentAndName,
+    props.parentId ?? null,
+    props.sectionName,
+  ),
 )
 
 function field(name: string): FieldRow {

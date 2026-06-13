@@ -41,7 +41,11 @@ describe('firstPopulatedColumn', () => {
   it('returns the first non-empty value column', () => {
     expect(
       firstPopulatedColumn(
-        field({ id: '1', name: 'x', richtext: '{"source":"a","html":"<p>a</p>"}' }),
+        field({
+          id: '1',
+          name: 'x',
+          richtext: '{"source":"a","html":"<p>a</p>"}',
+        }),
       ),
     ).toBe('richtext')
   })

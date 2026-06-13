@@ -46,7 +46,9 @@ function field(name: string, parentId: string | null = null): FieldRow {
         data-type="plain_text"
         :data-id="field('body', field('main').id || null).id"
       >
-        {{ cmsColumnValue(field('body', field('main').id || null), 'plain_text') }}
+        {{
+          cmsColumnValue(field('body', field('main').id || null), 'plain_text')
+        }}
       </p>
     </section>
   </article>

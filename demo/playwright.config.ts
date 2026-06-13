@@ -25,9 +25,7 @@ export default defineConfig({
   timeout: recordVideo ? 120_000 : 60_000,
   forbidOnly: isCi,
   retries: isCi ? 1 : 0,
-  reporter: recordVideo
-    ? [['html', { open: 'never' }], ['list']]
-    : 'list',
+  reporter: recordVideo ? [['html', { open: 'never' }], ['list']] : 'list',
   globalSetup: './e2e/global-setup.ts',
   globalTeardown: './e2e/global-teardown.ts',
   use: {

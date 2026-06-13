@@ -8,6 +8,8 @@ const TEMPLATE_MAP: Record<string, Component> = {
 /**
  * Resolves a Vue template component from a Supabase template key.
  */
-export function resolveTemplateComponent(templateKey: string): Component | null {
+export function resolveTemplateComponent(
+  templateKey: string,
+): Component | null {
   return TEMPLATE_MAP[templateKey] ?? null
 }

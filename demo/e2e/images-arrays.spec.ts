@@ -26,7 +26,9 @@ test('editor can upload image and add/remove team array items', async ({
   const teamSlice = page.locator('.team-section')
   await expect(teamSlice).toBeVisible()
   await expect(teamSlice.locator('.team-section__member')).toHaveCount(1)
-  await expect(teamSlice.locator('.team-section__name')).toHaveText('Alex Example')
+  await expect(teamSlice.locator('.team-section__name')).toHaveText(
+    'Alex Example',
+  )
 
   await waitForPageFieldSync(page, 'members')
 
@@ -78,7 +80,10 @@ test('editor can upload image and add/remove team array items', async ({
   await page.reload()
   await expect(teamSlice.locator('.team-section__member')).toHaveCount(2)
   await expect(
-    teamSlice.locator('.team-section__member').nth(1).locator('.team-section__name'),
+    teamSlice
+      .locator('.team-section__member')
+      .nth(1)
+      .locator('.team-section__name'),
   ).toHaveText(newMemberName)
   await expect(
     teamSlice.locator('.team-section__member').nth(1).locator('.cms-image'),
@@ -92,7 +97,9 @@ test('editor can upload image and add/remove team array items', async ({
     .getByRole('button', { title: 'Remove item' })
     .click()
   await expect(teamSlice.locator('.team-section__member')).toHaveCount(1)
-  await expect(teamSlice.locator('.team-section__name')).toHaveText('Alex Example')
+  await expect(teamSlice.locator('.team-section__name')).toHaveText(
+    'Alex Example',
+  )
 })
 
 test('generate localizes cms-media images for static guests', async ({

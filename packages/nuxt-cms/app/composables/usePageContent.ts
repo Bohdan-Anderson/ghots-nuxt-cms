@@ -33,11 +33,7 @@ export async function usePageContent(
 
   if (fieldsError) throw fieldsError
 
-  return buildPageContentPayload(
-    page,
-    template,
-    (fields ?? []) as FieldRow[],
-  )
+  return buildPageContentPayload(page, template, (fields ?? []) as FieldRow[])
 }
 
 /**

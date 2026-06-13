@@ -1,9 +1,6 @@
 import type { FieldRow, PageContent } from '~/types/cms'
 import { buildFieldMaps } from '~/fields/maps'
-import {
-  ensureField,
-  type EnsureFieldInput,
-} from '~/fields/ensureField'
+import { ensureField, type EnsureFieldInput } from '~/fields/ensureField'
 import {
   computeDomDepth,
   resolveFieldBinding,

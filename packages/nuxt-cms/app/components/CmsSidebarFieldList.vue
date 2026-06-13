@@ -2,10 +2,7 @@
 import type { ContentTreeNode, EditableFieldType, FieldRow } from '~/types/cms'
 import { previewFieldValue } from '~/fields/registry'
 import { getFieldColumnValue } from '~/fields/fieldValues'
-import {
-  arrayItemLabel,
-  isArrayItemSection,
-} from '~/fields/schemaLookup'
+import { arrayItemLabel, isArrayItemSection } from '~/fields/schemaLookup'
 
 const props = defineProps<{
   nodes: ContentTreeNode[]
@@ -81,7 +78,9 @@ function onNodeClick(node: ContentTreeNode) {
       :style="{ paddingLeft: `${node.depth * 0.75}rem` }"
     >
       <div
-        v-if="node.domType === 'array' || resolveFieldFor(node)?.kind === 'array'"
+        v-if="
+          node.domType === 'array' || resolveFieldFor(node)?.kind === 'array'
+        "
         class="cms-sidebar-array"
       >
         <span class="cms-sidebar-section-label">{{ node.name }}</span>
@@ -96,7 +95,10 @@ function onNodeClick(node: ContentTreeNode) {
         </button>
       </div>
       <div
-        v-else-if="resolveFieldFor(node) && isArrayItemSection(resolveFieldFor(node)!, fieldsById)"
+        v-else-if="
+          resolveFieldFor(node) &&
+          isArrayItemSection(resolveFieldFor(node)!, fieldsById)
+        "
         class="cms-sidebar-array-item"
       >
         <span class="cms-sidebar-section-label">

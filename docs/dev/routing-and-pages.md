@@ -2,10 +2,10 @@
 
 ## Route table
 
-| File | URL | Purpose |
-| ---- | --- | ------- |
-| `packages/nuxt-cms/app/pages/login.vue` | `/login` | Sign in / sign out |
-| `demo/app/pages/[...slug].vue` | `/*` | All CMS pages (e.g. `/`, `/about`) |
+| File                                    | URL      | Purpose                            |
+| --------------------------------------- | -------- | ---------------------------------- |
+| `packages/nuxt-cms/app/pages/login.vue` | `/login` | Sign in / sign out                 |
+| `demo/app/pages/[...slug].vue`          | `/*`     | All CMS pages (e.g. `/`, `/about`) |
 
 Nuxt resolves **`login.vue` before the catch-all**, so `/login` is not handled by `[...slug].vue`.
 
@@ -32,11 +32,11 @@ Database `pages.slug` must match (migration seeds `'/'` for home).
 
 ## `useAsyncData` keys
 
-| Key | Fetcher | Guest cache |
-| --- | ------- | ----------- |
-| `page:${slug}` | `usePageContent(slug)` | Yes — `getCachedData` when logged out |
-| `page-list` | `usePageList()` via `usePageListData()` | Yes — `getCachedData` when logged out |
-| `global:${key}` | `fetchGlobalContent(key)` via `useGlobalData()` | Yes — same pattern |
+| Key             | Fetcher                                         | Guest cache                           |
+| --------------- | ----------------------------------------------- | ------------------------------------- |
+| `page:${slug}`  | `usePageContent(slug)`                          | Yes — `getCachedData` when logged out |
+| `page-list`     | `usePageList()` via `usePageListData()`         | Yes — `getCachedData` when logged out |
+| `global:${key}` | `fetchGlobalContent(key)` via `useGlobalData()` | Yes — same pattern                    |
 
 See [Static generation](./static-generation.md).
 
@@ -58,9 +58,9 @@ There is no `demo/app/pages/about.vue` — the catch-all handles all CMS URLs.
 
 ## UI states
 
-| Condition | UI |
-| --------- | -- |
-| `status === 'pending'` | Loading… |
-| `!content` | 404 block |
-| Unknown template key | “Unknown template.” |
-| Otherwise | `PageEditorProvider` + dynamic template |
+| Condition              | UI                                      |
+| ---------------------- | --------------------------------------- |
+| `status === 'pending'` | Loading…                                |
+| `!content`             | 404 block                               |
+| Unknown template key   | “Unknown template.”                     |
+| Otherwise              | `PageEditorProvider` + dynamic template |

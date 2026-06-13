@@ -9,11 +9,9 @@ test('editor can edit global nav_label via on-page click', async ({ page }) => {
 
   const navLabel = page.locator('[data-global="site"] [data-name="nav_label"]')
   await expect(navLabel).toHaveText(DEMO_BASELINE.navLabel)
-  await expect(navLabel).toHaveAttribute(
-    'data-id',
-    /^[0-9a-f-]{36}$/i,
-    { timeout: 15_000 },
-  )
+  await expect(navLabel).toHaveAttribute('data-id', /^[0-9a-f-]{36}$/i, {
+    timeout: 15_000,
+  })
 
   await navLabel.dispatchEvent('click')
   const dialog = page.locator('dialog.field-edit-modal')

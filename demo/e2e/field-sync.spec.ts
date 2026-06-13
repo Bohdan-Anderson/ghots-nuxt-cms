@@ -20,11 +20,9 @@ test('editor on-demand sync creates missing field from markup and it is editable
   const subtitle = page.locator('[data-name="subtitle"]')
   await expect(subtitle).toBeAttached()
 
-  await expect(subtitle).toHaveAttribute(
-    'data-id',
-    /^[0-9a-f-]{36}$/i,
-    { timeout: 15_000 },
-  )
+  await expect(subtitle).toHaveAttribute('data-id', /^[0-9a-f-]{36}$/i, {
+    timeout: 15_000,
+  })
 
   const fieldId = await subtitle.getAttribute('data-id')
   expect(fieldId).toBeTruthy()

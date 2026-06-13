@@ -85,7 +85,9 @@ async function runFieldSync() {
   }
 }
 
-async function ensureFieldForElement(el: HTMLElement): Promise<FieldRow | null> {
+async function ensureFieldForElement(
+  el: HTMLElement,
+): Promise<FieldRow | null> {
   const current = pageContent.value
   if (!current) return null
 

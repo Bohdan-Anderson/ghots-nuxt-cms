@@ -27,18 +27,18 @@ npm install
 
 ## Scripts
 
-| Command | Use |
-| ------- | --- |
-| `npm run dev` | Dev server (http://localhost:3000); **always** talks to Supabase |
-| `npm run generate` | Static site → `dist/` |
-| `npm run publish:static` | Alias for generate — command shown in CMS Publish panel |
-| `npm run static` | Generate + serve `dist/` on port 8000 |
-| `npm run build` | Production Nuxt build |
-| `npm run preview` | Preview production build |
-| `npm run format` | Prettier write |
-| `npm run format:check` | Prettier check |
-| `npm run test:e2e` | Playwright E2E (local Supabase; see [E2E testing](./e2e.md)) |
-| `npm run test:e2e:ui` | Playwright interactive UI |
+| Command                  | Use                                                              |
+| ------------------------ | ---------------------------------------------------------------- |
+| `npm run dev`            | Dev server (http://localhost:3000); **always** talks to Supabase |
+| `npm run generate`       | Static site → `dist/`                                            |
+| `npm run publish:static` | Alias for generate — command shown in CMS Publish panel          |
+| `npm run static`         | Generate + serve `dist/` on port 8000                            |
+| `npm run build`          | Production Nuxt build                                            |
+| `npm run preview`        | Preview production build                                         |
+| `npm run format`         | Prettier write                                                   |
+| `npm run format:check`   | Prettier check                                                   |
+| `npm run test:e2e`       | Playwright E2E (local Supabase; see [E2E testing](./e2e.md))     |
+| `npm run test:e2e:ui`    | Playwright interactive UI                                        |
 
 ## Supabase setup
 
@@ -80,16 +80,16 @@ Deploy the updated `dist/` folder to your static host when ready.
 
 ## Troubleshooting
 
-| Issue | Check |
-| ----- | ----- |
-| `Cannot stringify a function` on generate | No functions in `useState`; see [Modal editing](./inline-editing.md) |
-| Generate fails on `/` | Env vars; migration; Supabase reachable |
-| Empty page for guests | `pages` row for slug; fields exist or were seeded at build time |
-| Editor can’t save | Logged in; RLS; Network tab |
-| New page not in `dist/` | `npm run generate`; link in nav for crawler |
+| Issue                                       | Check                                                                                        |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `Cannot stringify a function` on generate   | No functions in `useState`; see [Modal editing](./inline-editing.md)                         |
+| Generate fails on `/`                       | Env vars; migration; Supabase reachable                                                      |
+| Empty page for guests                       | `pages` row for slug; fields exist or were seeded at build time                              |
+| Editor can’t save                           | Logged in; RLS; Network tab                                                                  |
+| New page not in `dist/`                     | `npm run generate`; link in nav for crawler                                                  |
 | Guest still hits Supabase for **page body** | Use `npm run static`, not `dev`; confirm logged out; check `getCachedData` in `useCmsPage()` |
-| Guest hits Supabase at all on static deploy | Re-run `npm run generate`; confirm `demo/dist/_payload.json` exists; check Network tab |
-| Stale content when logged in | `watch(loggedIn, refresh)`; hard refresh after logout |
+| Guest hits Supabase at all on static deploy | Re-run `npm run generate`; confirm `demo/dist/_payload.json` exists; check Network tab       |
+| Stale content when logged in                | `watch(loggedIn, refresh)`; hard refresh after logout                                        |
 
 ## Documentation index
 

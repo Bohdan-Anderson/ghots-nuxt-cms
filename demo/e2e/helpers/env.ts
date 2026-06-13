@@ -34,7 +34,8 @@ export function getE2eEnv(): E2eEnv {
   return {
     supabaseUrl: process.env.VITE_SUPABASE_URL!.trim(),
     supabaseAnonKey: process.env.VITE_SUPABASE_ANON_KEY!.trim(),
-    supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() || null,
+    supabaseServiceRoleKey:
+      process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() || null,
     editorEmail: process.env.E2E_EDITOR_EMAIL!.trim(),
     editorPassword: process.env.E2E_EDITOR_PASSWORD!.trim(),
     noSiteEmail: process.env.E2E_NO_SITE_EMAIL?.trim() || null,
@@ -58,11 +59,15 @@ export function isTransientNetworkError(message: string): boolean {
 /**
  * Verifies Supabase is reachable before E2E DB reset (fail fast with a clear message).
  */
-export async function assertSupabaseReachable(supabaseUrl: string): Promise<void> {
+export async function assertSupabaseReachable(
+  supabaseUrl: string,
+): Promise<void> {
   const healthUrl = `${supabaseUrl.replace(/\/$/, '')}/auth/v1/health`
 
   try {
-    const response = await fetch(healthUrl, { signal: AbortSignal.timeout(10_000) })
+    const response = await fetch(healthUrl, {
+      signal: AbortSignal.timeout(10_000),
+    })
     if (!response.ok && response.status >= 500) {
       throw new Error(`Supabase returned HTTP ${response.status}`)
     }
