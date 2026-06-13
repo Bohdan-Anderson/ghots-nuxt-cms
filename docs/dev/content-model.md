@@ -31,6 +31,8 @@ Hierarchy: `parent_id` links children to section/array containers.
 
 ## DOM contract
 
+Templates tag every CMS node with `data-name`, `data-type`, and `:data-id`. Full reference: **[DOM markup](../dom-markup.md)**.
+
 | Attribute             | Purpose                           |
 | --------------------- | --------------------------------- |
 | `data-type="page"`    | Page root; `data-id` = page UUID  |

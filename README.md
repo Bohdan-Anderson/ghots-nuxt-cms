@@ -4,6 +4,33 @@ Static-first Nuxt CMS backed by Supabase: prerendered pages for visitors, modal 
 
 **Repository:** [github.com/Bohdan-Anderson/ghots-nuxt-cms](https://github.com/Bohdan-Anderson/ghots-nuxt-cms)
 
+## Marking up editable content
+
+Templates declare CMS fields with HTML attributes — no separate schema file required:
+
+| Attribute | Purpose |
+| --------- | ------- |
+| `data-name` | Field key within its parent (`title`, `hero1`, `item_0`) |
+| `data-type` | Node kind: `page`, `section`, `array`, or a leaf type (`plain_text`, `richtext`, `link`, `image`) |
+| `data-id` | Stable UUID from the `fields` table (empty until an editor first loads the page) |
+| `data-global` | On a wrapper only — scopes children to a shared global region |
+
+```vue
+<article data-type="page" :data-id="pageId">
+  <h1
+    data-name="title"
+    data-type="plain_text"
+    :data-id="titleField.id"
+  >
+    {{ cmsColumnValue(titleField, 'plain_text') }}
+  </h1>
+</article>
+```
+
+Resolve rows with `useCmsField(fieldsByParentAndName, parentId, name)`. Helper components (`CmsRichText`, `CmsLink`, `CmsImage`) set the same attributes automatically.
+
+Full reference: **[docs/dom-markup.md](./docs/dom-markup.md)**
+
 ## Documentation
 
 **[docs/README.md](./docs/README.md)** — consumer guides: install, templates, slices, field types, publish, examples.

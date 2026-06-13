@@ -4,12 +4,12 @@
 
 A **template** is two things:
 
-1. **Database** — `templates.key` + `field_schema` (what fields exist).
-2. **Vue SFC** — consumer `app/templates/*.vue` (how they render).
+1. **Database** — `templates.key` (links a page to a layout).
+2. **Vue SFC** — consumer `app/templates/*.vue` (structure + field markup).
 
 In this repo, see **`demo/app/templates/`**.
 
-They are linked by the **`key`** string (e.g. `default`).
+They are linked by the **`key`** string (e.g. `default`). Field structure is declared in Vue via `data-name` / `data-type` / `data-id` — not in `field_schema` (deprecated, empty).
 
 ## Registration
 
@@ -18,6 +18,7 @@ Consumer `app/composables/useTemplate.ts` (in this repo: `demo/app/composables/u
 ```ts
 const TEMPLATE_MAP: Record<string, Component> = {
   default: DefaultPage,
+  'sections-demo': SectionsDemoPage,
 }
 ```
 
@@ -25,83 +26,75 @@ Re-exported via `app/cms/registries.ts` for the `#cms/registries` alias. `resolv
 
 ### Adding a template
 
-1. Insert row in **`templates`** with unique `key` and `field_schema`.
-2. Create **`app/templates/YourPage.vue`** (or `demo/app/templates/YourPage.vue` in this repo).
+1. Insert row in **`templates`** with unique `key` and empty `field_schema`.
+2. Create **`app/templates/YourPage.vue`** with DOM markup (see [DOM markup](../dom-markup.md)).
 3. Register in **`TEMPLATE_MAP`** and ensure `app/cms/registries.ts` re-exports `resolveTemplateComponent`.
 
 ## Default template (`DefaultPage.vue`)
 
-Renders:
+Renders page-level fields and a nested section:
 
-- **`title`** — root `plain_text` in `<h1 data-name="title" :data-id="...">`
-- **`main`** — section wrapper
-- **`body`** — `plain_text` under `main` in `<p data-name="body" ...>`
-
-### `data-name`, `data-type`, and `data-id`
-
-Attributes support [modal editing](./inline-editing.md) and on-demand field sync:
-
-- `data-name` — field name for lookup.
-- `data-type` — field type (`plain_text`, `section`, `link`, `richtext`, `image`). Required for **new** fields not yet in `field_schema` or slice registry.
-- `data-id` — stable field UUID (preferred when resolving clicks). Empty until the field row exists.
-
-Editable field types (plain_text, link, richtext, image) open the modal from page clicks when `loggedIn`.
+- **`title`** — `data-type="plain_text"` in `<h1>`
+- **`main`** — `data-type="section"` wrapper
+- **`body`** — `plain_text` under `main`
 
 Example:
 
 ```vue
-<h1
-  data-name="title"
-  data-type="plain_text"
-  :data-id="field('title')?.id ?? ''"
->
-  {{ field('title')?.value }}
-</h1>
+<article data-type="page" :data-id="pageId">
+  <h1
+    data-name="title"
+    data-type="plain_text"
+    :data-id="field('title').id"
+  >
+    {{ cmsColumnValue(field('title'), 'plain_text') }}
+  </h1>
 
-<section
-  data-name="main"
-  data-type="section"
-  :data-id="field('main')?.id ?? ''"
->
-  <p data-name="body" data-type="plain_text" :data-id="field('body', 'main')?.id ?? ''">
-    {{ field('body', 'main')?.value }}
-  </p>
-</section>
+  <section
+    data-name="main"
+    data-type="section"
+    :data-id="field('main').id"
+  >
+    <p
+      data-name="body"
+      data-type="plain_text"
+      :data-id="field('body', field('main').id || null).id"
+    >
+      {{ cmsColumnValue(field('body', field('main').id || null), 'plain_text') }}
+    </p>
+  </section>
+</article>
 ```
 
-## On-demand field sync (editors only)
+Use `useCmsField(fieldsByParentAndName, parentId, name)` for lookups.
 
-When a logged-in editor loads a page, `PageEditorProvider` scans rendered markup for `[data-name]` elements and ensures matching rows exist in the `fields` table:
+## On-demand field ensure (editors only)
 
-1. **Missing field** — inserts a row (creates parent `section` rows first when nested).
-2. **Type mismatch** — updates `type` and coerces `value` without wiping content (e.g. `plain_text` → `richtext` wraps existing text as markdown source).
-3. **Malformed JSON** — repairs structured values (`link`, `richtext`, `image`) in place.
+When a logged-in editor loads a page, `PageEditorProvider` runs `syncFieldsFromDom`:
 
-Guests never trigger writes. Orphan DB fields not referenced in markup are left unchanged.
+1. Collects `[data-name]` elements without valid `data-id`.
+2. Sorts shallowest-first by DOM depth.
+3. Calls `ensureField(parentId, name)` for each — creates empty rows in typed columns implied by `data-type`.
 
-**Type resolution** when `data-type` is omitted:
+Guests never trigger writes. Orphan DB rows not referenced in markup are left unchanged.
 
-1. `data-type` attribute on the element
-2. Slice registry (`getSliceDefinition`) for fields inside `[data-slice-type]`
-3. Template `field_schema` for page-level fields
-4. Default `plain_text`
+**Type resolution:** `data-type` on the element is authoritative. No schema fallback.
 
-**Limits:**
-
-- Array item fields (e.g. team member `name` inside `members`) are not auto-created from markup — use the sidebar add-item flow.
-- Structural type changes (`section` ↔ leaf) are skipped when child rows exist.
-
-Implementation: [`collectFieldManifest.ts`](../../packages/nuxt-cms/app/fields/collectFieldManifest.ts), [`ensureField.ts`](../../packages/nuxt-cms/app/fields/ensureField.ts), [`PageEditorProvider.vue`](../../packages/nuxt-cms/app/components/PageEditorProvider.vue).
+Implementation: [`syncFieldsFromDom.ts`](../../packages/nuxt-cms/app/fields/syncFieldsFromDom.ts), [`ensureField.ts`](../../packages/nuxt-cms/app/fields/ensureField.ts), [`PageEditorProvider.vue`](../../packages/nuxt-cms/app/components/PageEditorProvider.vue).
 
 ## Props contract
 
-Slice-demo and multi-slice templates receive additional props (`pageFields`, `slices`, `fieldsBySliceId`). Simple templates receive:
+Templates receive from `[...slug].vue`:
 
 ```ts
-defineProps<{ fields: FieldRow[] }>()
+defineProps<{
+  pageId: string
+  fields: FieldRow[]
+  fieldsByParentAndName: Record<string, FieldRow>
+}>()
 ```
 
-They are responsible for resolving values via `resolveField` / local helpers — the parent does not pass individual field props.
+Section components typically also take `sectionName` and use the same `fieldsByParentAndName` map.
 
 ## Dynamic rendering
 
@@ -110,17 +103,18 @@ They are responsible for resolving values via `resolveField` / local helpers —
 ```vue
 <component
   :is="templateComponent"
+  :page-id="content.page.id"
   :fields="content.fields"
-  :page-fields="content.pageFields"
-  :slices="content.slices"
-  :fields-by-slice-id="content.fieldsBySliceId"
+  :fields-by-parent-and-name="content.fieldsByParentAndName"
 />
 ```
 
 inside `PageEditorProvider` when a template resolves.
 
-## Schema ↔ markup alignment
+## Markup ↔ database
 
-The Vue template must match `field_schema` names and nesting for **new page seeding** and array schema lookup. For **existing pages**, logged-in editors can add new fields in markup with `data-name` + `data-type` — rows are created on load without a migration.
+The Vue template is the source of truth. Adding a new `data-name` + `data-type` in markup creates the row on the next editor visit — no migration required. Removing markup does not delete orphan DB rows.
 
-If the schema adds a field the SFC does not render, it won’t appear on the site until the template is updated.
+## Section stacks
+
+Multi-section pages compose fixed section components (see `SectionsDemoPage.vue` + `demo/app/sections/`). This replaced editor-managed slice instances (ADR 003).

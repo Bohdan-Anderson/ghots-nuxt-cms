@@ -24,10 +24,10 @@ Three tabs:
 ### Content tree
 
 - Click a **field** → opens the edit modal
-- **Slices** — add type, reorder, remove (sidebar only)
-- **Arrays** — add/remove items; edit each item’s fields via modal
+- **Sections** — fixed in code; fields listed under each section in the tree
+- **Arrays** — add/remove items in the sidebar; edit each item's fields via modal or page click
 
-The tree mirrors your schema — page fields first, then each slice with its fields.
+The tree is built from rendered DOM (`scanContentTree`) — it mirrors your template markup.
 
 ## Modal
 
@@ -36,7 +36,7 @@ One modal for all field types. Save writes to Supabase and updates the page imme
 Open the modal by:
 
 - Clicking a field in the sidebar
-- Clicking an element on the page with **`data-name="field_name"`** (for supported types)
+- Clicking an element on the page with **`data-name`** and an editable **`data-type`** (for supported leaf types)
 
 Array items are edited from the sidebar, not by clicking the page.
 
@@ -52,16 +52,15 @@ Meta tab fields map to the `pages` table (`meta_title`, `meta_description`, `og_
 
 ## What editors cannot do
 
-- Add new field types or slice types (developer-only, in code)
+- Add new field types or section components (developer-only, in code)
 - Change templates or routing structure
 - Publish the static site from the UI in v1 (they run generate or ask you to deploy)
 
 ## Developer checklist for a good editor experience
 
-- [ ] Put `data-name` on editable elements
-- [ ] Use `CmsRichText`, `CmsLink`, `CmsImage` where appropriate
-- [ ] Sensible defaults in field schemas
-- [ ] Clear slice labels in registry (`label: 'Hero'`, not `hero_block_v2`)
+- [ ] Tag every CMS node: `data-name`, `data-type`, `:data-id` — see [DOM markup](./dom-markup.md)
+- [ ] Use `CmsRichText`, `CmsLink`, `CmsImage` where appropriate (they set attributes for you)
+- [ ] Distinct `section-name` when reusing section components on one page
 - [ ] Document publish cadence for your team
 
 ## Next

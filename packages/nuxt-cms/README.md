@@ -2,7 +2,7 @@
 
 Static-first Supabase page builder for [Nuxt 4](https://nuxt.com).
 
-Developers define **templates**, **slices**, and **globals** in Vue. Editors change content on the live site (sidebar + modal). Guests get fast prerendered HTML from your last `nuxt generate` — no runtime database calls.
+Developers define **templates**, **section components**, and **globals** in Vue, tagging editable nodes with `data-name`, `data-type`, and `data-id`. Editors change content on the live site (sidebar + modal). Guests get fast prerendered HTML from your last `nuxt generate` — no runtime database calls.
 
 ## How it works
 
@@ -10,7 +10,7 @@ Developers define **templates**, **slices**, and **globals** in Vue. Editors cha
 | -------------------- | ------------------------------------------ |
 | **Guest**            | Last published static build (`dist/`)      |
 | **Logged-in editor** | Live Supabase data; edits save immediately |
-| **You (developer)**  | Templates, slices, field schemas in code   |
+| **You (developer)**  | Templates, sections, DOM markup in Vue     |
 
 **Publish** = run `nuxt generate` and deploy `dist/` so guests catch up with editor changes.
 
@@ -81,7 +81,7 @@ The layer ships editor UI, composables, auth, and DB schema. Your app provides c
 | -------------------------------- | ---------------------------------------------------- |
 | `app/cms/registries.ts`          | **Required** — exports template and global resolvers |
 | `app/composables/useTemplate.ts` | Maps DB template keys → Vue SFCs                     |
-| `app/templates/*.vue`            | Page layouts with CMS fields                         |
+| `app/templates/*.vue`            | Page layouts — tag fields with `data-*` attrs        |
 | `app/sections/*.vue`             | Reusable section components (optional)               |
 | `app/globals/registry.ts`        | Shared nav/footer/settings (optional)                |
 | `app/pages/[...slug].vue`        | Catch-all page using `useCmsPage()`                  |
@@ -99,11 +99,7 @@ export { getGlobalDefinition, listGlobalDefinitions } from '~/globals/registry'
 
 ```sql
 insert into templates (key, label, field_schema)
-values (
-  'default',
-  'Default page',
-  '[{"name": "title", "type": "plain_text", "default": "Hello"}]'::jsonb
-);
+values ('default', 'Default page', '[]'::jsonb);
 
 insert into pages (slug, title, template_id)
 select '/', 'Home', id from templates where key = 'default';
@@ -114,21 +110,30 @@ select '/', 'Home', id from templates where key = 'default';
 <script setup lang="ts">
 import type { FieldRow } from '~/types/cms'
 
-const props = defineProps<{ fields: FieldRow[] }>()
+const props = defineProps<{
+  pageId: string
+  fieldsByParentAndName: Record<string, FieldRow>
+}>()
 
-function field(name: string) {
-  return resolveField(props.fields, name)
-}
+const titleField = computed(() =>
+  useCmsField(props.fieldsByParentAndName, null, 'title'),
+)
 </script>
 
 <template>
-  <main>
-    <h1 :data-name="field('title')?.name">{{ field('title')?.value }}</h1>
+  <main data-type="page" :data-id="pageId">
+    <h1
+      data-name="title"
+      data-type="plain_text"
+      :data-id="titleField.id"
+    >
+      {{ cmsColumnValue(titleField, 'plain_text') }}
+    </h1>
   </main>
 </template>
 ```
 
-`resolveField` is auto-imported from the layer. `data-name` lets editors click the heading to open the edit modal.
+Every CMS node needs **`data-name`**, **`data-type`**, and **`:data-id`**. `useCmsField` and `cmsColumnValue` are auto-imported. Full reference: [DOM markup](https://github.com/Bohdan-Anderson/ghots-nuxt-cms/blob/main/docs/dom-markup.md).
 
 ### Catch-all page
 
@@ -146,17 +151,15 @@ const { content, status, templateComponent, patchField, loggedIn } =
   <PageEditorProvider
     v-else-if="templateComponent"
     :enabled="loggedIn"
-    :fields="content.fields"
     :fields-by-id="content.fieldsById"
-    :fields-by-name="content.fieldsByName"
+    :fields-by-parent-and-name="content.fieldsByParentAndName"
     @field-updated="patchField"
   >
     <component
       :is="templateComponent"
+      :page-id="content.page.id"
       :fields="content.fields"
-      :page-fields="content.pageFields"
-      :slices="content.slices"
-      :fields-by-slice-id="content.fieldsBySliceId"
+      :fields-by-parent-and-name="content.fieldsByParentAndName"
     />
   </PageEditorProvider>
 </template>
@@ -175,7 +178,7 @@ Deploy `dist/` to any static host. Do **not** use `npm run dev` to test guest be
 
 Built-in types: `plain_text`, `link`, `richtext`, `image`, `array`.
 
-Use `<CmsLink>`, `<CmsRichText>`, `<CmsImage>` in templates. See the repo docs for slice arrays, globals, and publishing workflows.
+Use `<CmsLink>`, `<CmsRichText>`, `<CmsImage>` in templates — they set `data-name`, `data-type`, and `:data-id` automatically. Mark plain elements by hand; see [DOM markup](https://github.com/Bohdan-Anderson/ghots-nuxt-cms/blob/main/docs/dom-markup.md).
 
 ## Environment variables
 

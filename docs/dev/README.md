@@ -1,6 +1,6 @@
 # Contributor & internal documentation
 
-Architecture, implementation details, and repo maintenance. **Consumers** should start at the [main docs index](../README.md).
+Consumers should start at the [main docs index](../README.md). For template markup, see **[DOM markup](../dom-markup.md)**.
 
 ## Product & architecture
 
@@ -8,8 +8,8 @@ Architecture, implementation details, and repo maintenance. **Consumers** should
 | ----------------------------------------------------------- | -------------------------------------------- |
 | [Vision](./vision.md)                                       | Product goals, v1 scope, validation criteria |
 | [Architecture](./architecture.md)                           | System overview, request flows               |
-| [Content model](./content-model.md)                         | Pages, templates, slices, globals            |
-| [ADR 002 — Content model v2](./adr-002-content-model-v2.md) | Schema design decisions                      |
+| [Content model](./content-model.md)                         | Pages, templates, sections, DOM markup       |
+| [ADR 003 — DOM-first model](./adr-003-dom-first-content-model.md) | Wide columns, lazy ensure, no slices   |
 | [Package extraction](./package-extraction.md)               | Layer boundary audit                         |
 
 ## Implementation

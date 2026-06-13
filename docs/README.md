@@ -1,6 +1,6 @@
 # ghots-nuxt-cms
 
-Add live-editable content to a static Nuxt site. You define templates and slices in Vue; editors change copy on the deployed site; guests get fast prerendered HTML.
+Add live-editable content to a static Nuxt site. You define page templates and section components in Vue, tag editable elements with `data-name` / `data-type` / `data-id`, and editors change copy on the deployed site; guests get fast prerendered HTML.
 
 ```bash
 npm install ghots-nuxt-cms @supabase/supabase-js
@@ -16,7 +16,7 @@ Full docs online: [github.com/Bohdan-Anderson/ghots-nuxt-cms/tree/main/docs](htt
 | -------------------- | ---------------------------------------------------- |
 | **Guest**            | Last published static build — no live database calls |
 | **Logged-in editor** | Live content from Supabase; sidebar + modal to edit  |
-| **You (developer)**  | Templates, slices, and field schemas in code         |
+| **You (developer)**  | Templates, sections, and DOM markup in Vue           |
 
 **Publish** rebuilds the static site so guests catch up with editor changes.
 
@@ -30,9 +30,10 @@ Already have a static Nuxt site → **[Adopting an existing site](./adopting-an-
 
 | Guide                           | When to read                             |
 | ------------------------------- | ---------------------------------------- |
+| [DOM markup](./dom-markup.md)   | **`data-name` / `data-type` / `data-id`** — start here for templates |
 | [Supabase setup](./supabase.md) | Connect your project (high level)        |
-| [Templates](./templates.md)     | Page layouts and page-level fields       |
-| [Slices](./slices.md)           | Reusable page sections                   |
+| [Templates](./templates.md)     | Page layouts and section components      |
+| [Slices](./slices.md)           | Legacy — use section components instead  |
 | [Field types](./field-types.md) | Text, links, rich text, images, arrays   |
 | [Globals](./globals.md)         | Shared nav, footer, site settings        |
 | [Publishing](./publishing.md)   | Draft vs guest, generate, deploy         |

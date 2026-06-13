@@ -73,15 +73,10 @@ export default defineNuxtConfig({
 
 ## 3. Wire registries
 
-Create **`app/cms/registries.ts`** — the CMS reads template, slice, and global definitions from here:
+Create **`app/cms/registries.ts`** — the CMS reads template and global definitions from here:
 
 ```ts
 export { resolveTemplateComponent } from '~/composables/useTemplate'
-export {
-  getSliceDefinition,
-  listSliceDefinitions,
-  resolveSliceComponent,
-} from '~/slices/registry'
 export { getGlobalDefinition, listGlobalDefinitions } from '~/globals/registry'
 ```
 
@@ -89,15 +84,11 @@ You will add those files in the next steps (start with templates only if you wan
 
 ## 4. Add one template
 
-**Database** — insert a template row (Supabase SQL editor or Table Editor):
+**Database** — insert a template row (Supabase SQL editor or Table Editor). The `field_schema` column is legacy; leave it empty — structure comes from your Vue markup.
 
 ```sql
 insert into templates (key, label, field_schema)
-values (
-  'default',
-  'Default page',
-  '[{"name": "title", "type": "plain_text", "default": "Hello"}]'::jsonb
-);
+values ('default', 'Default page', '[]'::jsonb);
 ```
 
 **Code** — map the key to a Vue component:
@@ -118,21 +109,30 @@ export function resolveTemplateComponent(key: string) {
 <script setup lang="ts">
 import type { FieldRow } from '~/types/cms'
 
-const props = defineProps<{ fields: FieldRow[] }>()
+const props = defineProps<{
+  pageId: string
+  fieldsByParentAndName: Record<string, FieldRow>
+}>()
 
-function field(name: string) {
-  return resolveField(props.fields, name)
-}
+const titleField = computed(() =>
+  useCmsField(props.fieldsByParentAndName, null, 'title'),
+)
 </script>
 
 <template>
-  <main>
-    <h1 :data-name="field('title')?.name">{{ field('title')?.value }}</h1>
+  <main data-type="page" :data-id="pageId">
+    <h1
+      data-name="title"
+      data-type="plain_text"
+      :data-id="titleField.id"
+    >
+      {{ cmsColumnValue(titleField, 'plain_text') }}
+    </h1>
   </main>
 </template>
 ```
 
-`resolveField` is auto-imported from the CMS layer. `data-name` lets logged-in editors click the heading to open the edit modal.
+`useCmsField` and `cmsColumnValue` are auto-imported from the CMS layer. The three attributes (`data-name`, `data-type`, `data-id`) let the CMS sync rows and open the edit modal — see **[DOM markup](./dom-markup.md)**.
 
 **Database** — create a page that uses the template:
 
@@ -141,7 +141,7 @@ insert into pages (slug, title, template_id)
 select '/', 'Home', id from templates where key = 'default';
 ```
 
-Field rows are seeded automatically when an editor first loads the page (or on first logged-in visit).
+Field rows are created lazily when a logged-in editor first loads the page.
 
 ## 5. Add the catch-all page
 
@@ -159,17 +159,15 @@ const { content, status, templateComponent, patchField, loggedIn } =
   <PageEditorProvider
     v-else-if="templateComponent"
     :enabled="loggedIn"
-    :fields="content.fields"
     :fields-by-id="content.fieldsById"
-    :fields-by-name="content.fieldsByName"
+    :fields-by-parent-and-name="content.fieldsByParentAndName"
     @field-updated="patchField"
   >
     <component
       :is="templateComponent"
+      :page-id="content.page.id"
       :fields="content.fields"
-      :page-fields="content.pageFields"
-      :slices="content.slices"
-      :fields-by-slice-id="content.fieldsBySliceId"
+      :fields-by-parent-and-name="content.fieldsByParentAndName"
     />
   </PageEditorProvider>
 </template>
@@ -209,7 +207,8 @@ Deploy the `dist/` folder to any static host. Guests see this build until you ge
 
 | Goal                  | Read                                                        |
 | --------------------- | ----------------------------------------------------------- |
-| Add reusable sections | [Slices](./slices.md)                                       |
+| Attribute reference   | [DOM markup](./dom-markup.md)                               |
+| Reusable sections     | [Templates](./templates.md) + `demo/app/sections/`          |
 | Shared nav / footer   | [Globals](./globals.md)                                     |
 | More field types      | [Field types](./field-types.md)                             |
 | Blog-style content    | [Blog example](./examples/blog.md)                          |

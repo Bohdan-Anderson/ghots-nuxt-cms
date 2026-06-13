@@ -1,55 +1,39 @@
 # Templates
 
-A **template** is a Vue page layout plus a **page-level field schema**. Every CMS page points at one template.
+A **template** is a Vue page layout. Every CMS page points at one template by key. Structure and fields are declared in markup — see **[DOM markup](./dom-markup.md)** for the full attribute reference.
 
 > **This monorepo:** working examples live under [`demo/app/templates/`](../demo/app/templates/). Paths below use `app/` relative to your Nuxt project root.
 
 ## Concepts
 
 ```text
-Template (code + DB row)     Page (DB)
-────────────────────────     ─────────
-key: "default"          →    slug: "/about"
-Vue: DefaultPage.vue         uses template "default"
-field_schema: [title, …]     field values in `fields` table
+Template (Vue SFC)          Page (DB)
+──────────────────          ─────────
+key: "default"         →    slug: "/about"
+DefaultPage.vue             field rows created from DOM on first edit
 ```
 
-Page-level fields belong to the page root — not inside a slice. Use them for titles, hero text above a slice stack, or SEO-related content you render in the template.
+Page-level fields sit directly under the `data-type="page"` root. Reusable blocks are developer-placed **section components** (`app/sections/*.vue`), not editor-added slice instances.
 
-## 1. Define the schema
+## 1. Register in the database
 
-In Supabase, each template has a `field_schema` JSON array:
-
-```json
-[
-  { "name": "title", "type": "plain_text", "default": "Welcome" },
-  { "name": "intro", "type": "richtext", "default": "Short **intro**." }
-]
-```
-
-Insert via SQL or seed script:
+Insert a template row with a unique key. `field_schema` is deprecated — use an empty array:
 
 ```sql
 insert into templates (key, label, field_schema)
-values (
-  'default',
-  'Default page',
-  '[{"name":"title","type":"plain_text","default":""}]'::jsonb
-);
+values ('default', 'Default page', '[]'::jsonb);
 ```
-
-Field types must match what the CMS supports — see [Field types](./field-types.md).
 
 ## 2. Map key → Vue component
 
 ```ts
 // app/composables/useTemplate.ts
 import DefaultPage from '~/templates/DefaultPage.vue'
-import LandingPage from '~/templates/LandingPage.vue'
+import SectionsDemoPage from '~/templates/SectionsDemoPage.vue'
 
 const TEMPLATE_MAP = {
   default: DefaultPage,
-  landing: LandingPage,
+  'sections-demo': SectionsDemoPage,
 }
 
 export function resolveTemplateComponent(key: string) {
@@ -63,12 +47,11 @@ Register the resolver in `app/cms/registries.ts` (see [Getting started](./gettin
 
 Templates receive props from `[...slug].vue`:
 
-| Prop              | Contents                             |
-| ----------------- | ------------------------------------ |
-| `pageFields`      | Fields scoped to the page (no slice) |
-| `fields`          | All fields on the page               |
-| `slices`          | Ordered slice instances              |
-| `fieldsBySliceId` | Fields grouped by slice instance     |
+| Prop                    | Contents                                      |
+| ----------------------- | --------------------------------------------- |
+| `pageId`                | Page UUID for `data-type="page"`              |
+| `fields`                | All field rows on the page                    |
+| `fieldsByParentAndName`   | Lookup map for `useCmsField(parentId, name)`    |
 
 Minimal page-only template:
 
@@ -77,56 +60,80 @@ Minimal page-only template:
 import type { FieldRow } from '~/types/cms'
 
 const props = defineProps<{
-  pageFields: FieldRow[]
+  pageId: string
+  fieldsByParentAndName: Record<string, FieldRow>
 }>()
 
-function field(name: string) {
-  return resolveField(props.pageFields, name)
-}
+const titleField = computed(() =>
+  useCmsField(props.fieldsByParentAndName, null, 'title'),
+)
 </script>
 
 <template>
-  <article>
-    <h1 :data-name="field('title')?.name">{{ field('title')?.value }}</h1>
-    <CmsRichText
-      v-if="field('intro')"
-      :field="field('intro')!"
-      data-name="intro"
+  <article data-type="page" :data-id="pageId">
+    <h1
+      data-name="title"
+      data-type="plain_text"
+      :data-id="titleField.id"
+    >
+      {{ cmsColumnValue(titleField, 'plain_text') }}
+    </h1>
+  </article>
+</template>
+```
+
+Template with nested section and a section stack:
+
+```vue
+<template>
+  <article data-type="page" :data-id="pageId">
+    <h1 data-name="title" data-type="plain_text" :data-id="titleField.id">
+      {{ cmsColumnValue(titleField, 'plain_text') }}
+    </h1>
+
+    <section
+      data-name="main"
+      data-type="section"
+      :data-id="mainSection.id"
+    >
+      <p
+        data-name="body"
+        data-type="plain_text"
+        :data-id="bodyField.id"
+      >
+        {{ cmsColumnValue(bodyField, 'plain_text') }}
+      </p>
+    </section>
+
+    <HeroSection
+      section-name="hero1"
+      :fields-by-parent-and-name="fieldsByParentAndName"
     />
   </article>
 </template>
 ```
 
-Template with a slice stack:
+See [`demo/app/templates/DefaultPage.vue`](../demo/app/templates/DefaultPage.vue) and [`SectionsDemoPage.vue`](../demo/app/templates/SectionsDemoPage.vue).
+
+## 4. Wire the catch-all page
 
 ```vue
-<script setup lang="ts">
-import type { FieldRow, PageSliceRow } from '~/types/cms'
-import { resolveSliceComponent } from '~/slices/registry'
-
-const props = defineProps<{
-  pageFields: FieldRow[]
-  slices: PageSliceRow[]
-  fieldsBySliceId: Record<string, FieldRow[]>
-}>()
-</script>
-
-<template>
-  <div>
-    <h1 :data-name="'title'">{{ resolveField(pageFields, 'title')?.value }}</h1>
-
-    <component
-      v-for="slice in slices"
-      :key="slice.id"
-      :is="resolveSliceComponent(slice.slice_type_key)"
-      :slice-id="slice.id"
-      :fields="fieldsBySliceId[slice.id] ?? []"
-    />
-  </div>
-</template>
+<PageEditorProvider
+  :enabled="loggedIn"
+  :fields-by-id="content.fieldsById"
+  :fields-by-parent-and-name="content.fieldsByParentAndName"
+  @field-updated="patchField"
+>
+  <component
+    :is="templateComponent"
+    :page-id="content.page.id"
+    :fields="content.fields"
+    :fields-by-parent-and-name="content.fieldsByParentAndName"
+  />
+</PageEditorProvider>
 ```
 
-## 4. Create pages
+## 5. Create pages
 
 ```sql
 insert into pages (slug, title, template_id, meta_title)
@@ -136,7 +143,7 @@ from templates where key = 'default';
 
 Or use the sidebar **Pages** tab after your app is running.
 
-## 5. Prerender
+## 6. Prerender
 
 Add each public slug to `nuxt.config.ts`:
 
@@ -153,10 +160,12 @@ Or enable `crawlLinks: true` if your nav links to all public pages.
 ## Tips
 
 - **One template, many pages** — same layout, different field values per slug.
-- **Keep templates thin** — repeated sections belong in [slices](./slices.md), not duplicated templates.
-- **`data-name`** — must match the field `name` for click-to-edit. Use helper components (`CmsRichText`, `CmsLink`, `CmsImage`) where they fit.
+- **Keep templates thin** — repeated UI belongs in `app/sections/`, not copy-pasted markup.
+- **Tag every CMS node** — `data-name`, `data-type`, `:data-id` on page root, sections, and leaves. Use `<CmsRichText>`, `<CmsLink>`, `<CmsImage>` where they fit.
+- **Unique section names** — when placing the same section component twice, pass distinct `section-name` props (`hero1`, `hero2`).
 
 ## Next
 
-- [Slices](./slices.md) — sections inside a template
-- [Field types](./field-types.md) — schema reference
+- [DOM markup](./dom-markup.md) — attribute reference and patterns
+- [Field types](./field-types.md) — leaf types and columns
+- [Globals](./globals.md) — shared nav and footer

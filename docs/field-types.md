@@ -1,57 +1,55 @@
 # Field types
 
-Field types define what editors can fill in and how values are stored. Schemas live in template or slice definitions; the CMS provides modals and save logic.
+Field types define what editors can fill in, which database column holds the value, and which modal opens on click. In the DOM-first model, you declare the type on each element with **`data-type`** — there is no required JSON schema in the database.
 
-## Schema shape
+See **[DOM markup](./dom-markup.md)** for how attributes fit together.
 
-Each field in a schema:
+## Leaf types
 
-```ts
-{ name: 'title', type: 'plain_text', default: 'Hello' }
+Each leaf node needs `data-name`, `data-type`, and `:data-id`:
+
+```vue
+<h1 data-name="title" data-type="plain_text" :data-id="titleField.id">
+  {{ cmsColumnValue(titleField, 'plain_text') }}
+</h1>
 ```
 
-| Property   | Required    | Purpose                                           |
-| ---------- | ----------- | ------------------------------------------------- |
-| `name`     | Yes         | Stable id; used in `data-name` and `resolveField` |
-| `type`     | Yes         | One of the types below                            |
-| `default`  | No          | Seed value when the field row is created          |
-| `children` | For `array` | Schema for each repeated item                     |
+| `data-type`   | DB column    | Edit on page click |
+| ------------- | ------------ | ------------------ |
+| `plain_text`  | `plain_text` | Yes                |
+| `link`        | `link`       | Yes                |
+| `richtext`    | `richtext`   | Yes                |
+| `image`       | `image`      | Yes                |
 
-## Supported types
+Structural types (`page`, `section`, `array`) hold no leaf value — they group children. See [DOM markup](./dom-markup.md).
+
+---
 
 ### plain_text
 
-Single-line or short text. Stored as a string.
-
-```json
-{ "name": "title", "type": "plain_text", "default": "" }
-```
+Single-line or short text.
 
 ```vue
-<h1 :data-name="'title'">{{ field('title')?.value }}</h1>
+<h1
+  data-name="title"
+  data-type="plain_text"
+  :data-id="field('title').id"
+>
+  {{ cmsColumnValue(field('title'), 'plain_text') }}
+</h1>
 ```
-
-Click-to-edit on page: **yes**.
 
 ---
 
 ### link
 
-URL + label + optional target. Stored as JSON.
-
-```json
-{ "name": "cta", "type": "link", "default": "https://example.com" }
-```
-
-Render with the CMS helper:
+URL + label + optional target. Stored as JSON `{ url, label, target }`.
 
 ```vue
-<CmsLink v-if="field('cta')" :field="field('cta')!" data-name="cta" />
+<CmsLink :field="field('cta_link')" name="cta_link" />
 ```
 
-Or parse manually with `parseLinkValue(field('cta')?.value)`.
-
-Click-to-edit: **yes**.
+`<CmsLink>` sets `data-name`, `data-type="link"`, and `:data-id` on the anchor. Or parse manually with `parseLinkValue(field('cta')?.link)`.
 
 ---
 
@@ -59,15 +57,11 @@ Click-to-edit: **yes**.
 
 Markdown source + sanitized HTML. Stored as JSON `{ source, html }`.
 
-```json
-{ "name": "body", "type": "richtext", "default": "Hello **world**." }
-```
-
 ```vue
-<CmsRichText v-if="field('body')" :field="field('body')!" data-name="body" />
+<CmsRichText :field="field('copy')" name="copy" />
 ```
 
-Editors write markdown in the modal; templates render `html`. Click-to-edit: **yes**.
+Editors write markdown in the modal; templates render sanitized `html`.
 
 ---
 
@@ -75,17 +69,11 @@ Editors write markdown in the modal; templates render `html`. Click-to-edit: **y
 
 Upload to Supabase Storage. Stored as JSON `{ url, alt }`.
 
-```json
-{ "name": "photo", "type": "image" }
-```
-
 ```vue
-<CmsImage v-if="field('photo')" :field="field('photo')!" data-name="photo" />
+<CmsImage :field="field('photo')" name="photo" />
 ```
 
 At **`nuxt generate`**, remote image URLs can be copied into `dist/` for fully offline static hosting.
-
-Click-to-edit: **yes**.
 
 ---
 
@@ -93,58 +81,35 @@ Click-to-edit: **yes**.
 
 Repeatable group of child fields. Managed in the **sidebar** (add/remove items), not on the page.
 
-```json
-{
-  "name": "members",
-  "type": "array",
-  "children": [
-    { "name": "name", "type": "plain_text", "default": "" },
-    { "name": "role", "type": "plain_text", "default": "" }
-  ]
-}
-```
-
-In Vue, resolve items and loop:
+Mark the array in markup with a hidden hook:
 
 ```vue
-<script setup lang="ts">
-const items = computed(() =>
-  resolveArrayItems(props.fields, 'members', props.sliceId),
-)
-</script>
-
-<template>
-  <ul>
-    <li
-      v-for="itemFields in items"
-      :key="itemFields[0]?.parent_id"
-    >
-      {{ itemFields.find((f) => f.name === 'name')?.value }}
-    </li>
-  </ul>
-</template>
+<div
+  data-name="members"
+  data-type="array"
+  :data-id="membersArray.id"
+  hidden
+/>
 ```
 
-Click-to-edit on canvas: **no** (open fields from sidebar).
+Render each item as a `data-type="section"` with `data-name="item_0"`, `item_1`, etc. Child fields inside carry their own `data-name` / `data-type` / `:data-id`.
+
+Demo: [`demo/app/sections/TeamSection.vue`](../demo/app/sections/TeamSection.vue) on `/demo`.
 
 ---
 
-### section
+## Resolving fields in templates
 
-Internal row grouping parent for array items. **Do not** put `section` in your schema — the CMS creates these automatically.
+Use **`useCmsField(fieldsByParentAndName, parentId, name)`** — parent id is `null` for page-level fields, or a section/array row id for nested fields:
 
-## resolveField cheat sheet
+| Use case                | Call                                                         |
+| ----------------------- | ------------------------------------------------------------ |
+| Page-level field        | `useCmsField(map, null, 'title')`                            |
+| Field inside section    | `useCmsField(map, sectionField.id \|\| null, 'body')`        |
+| Section container       | `useCmsField(map, pageParentId, 'hero1')`                    |
+| Array item child        | Look up by `itemSection.id` as parent id                     |
 
-```ts
-resolveField(fields, fieldName, parentSectionName?, sliceId?)
-```
-
-| Use case                | Call                                                                      |
-| ----------------------- | ------------------------------------------------------------------------- |
-| Page-level field        | `resolveField(pageFields, 'title')`                                       |
-| Slice field             | `resolveField(fields, 'headline', undefined, sliceId)`                    |
-| Field inside section    | `resolveField(fields, 'body', 'main')`                                    |
-| Field inside array item | `resolveArrayItems(...)` then `itemFields.find((f) => f.name === 'name')` |
+Read values with **`cmsColumnValue(field, 'plain_text' | 'richtext' | 'link' | 'image')`**.
 
 ## Sidebar preview
 
@@ -152,5 +117,6 @@ Each type shows a short preview in the content tree (truncated text, link label,
 
 ## Next
 
+- [DOM markup](./dom-markup.md) — sections, arrays, globals
 - [Examples: blog](./examples/blog.md) — arrays in practice
-- [Templates](./templates.md) — page-level schemas
+- [Templates](./templates.md) — page layouts

@@ -2,7 +2,7 @@
 
 Runnable smoke-test app: extends `ghots-nuxt-cms` and renders one editable home page.
 
-For slices, globals, and E2E see [`demo/`](../../demo/).
+For sections, globals, and E2E see [`demo/`](../../demo/). Template markup: [DOM markup](../../docs/dom-markup.md).
 
 ## Quick start
 
@@ -22,7 +22,7 @@ Open http://localhost:3000 — log in at `/login` to edit the home page title.
 | -------------------------------- | -------------------------- |
 | `app/cms/registries.ts`          | Required registry barrel   |
 | `app/composables/useTemplate.ts` | Template key → Vue SFC     |
-| `app/templates/DefaultPage.vue`  | Single-field home layout   |
+| `app/templates/DefaultPage.vue`  | Home layout with `data-name` / `data-type` / `data-id` |
 | `app/pages/[...slug].vue`        | Catch-all + `useCmsPage()` |
 | `app/app.vue`                    | Sidebar + `<NuxtPage />`   |
 | `app/globals/registry.ts`        | Empty stub (no globals)    |
