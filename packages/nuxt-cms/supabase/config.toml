@@ -1,0 +1,11 @@
+# Supabase project config for nuxt-cms.
+# Link your project: supabase link --project-ref YOUR_PROJECT_REF --workdir ..
+
+[functions.cms-page]
+verify_jwt = false
+
+[functions.cms-pages]
+verify_jwt = false
+
+[functions.cms-templates]
+verify_jwt = false

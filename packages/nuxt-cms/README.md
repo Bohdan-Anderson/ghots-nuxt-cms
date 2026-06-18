@@ -58,7 +58,7 @@ CMS_SITE_KEY=demo
 
 ## Supabase setup
 
-1. Apply SQL migrations from **`node_modules/ghots-nuxt-cms/supabase/migrations/`** in order (`001` → `007`).
+1. Apply SQL migrations from **`node_modules/ghots-nuxt-cms/supabase/migrations/`** in order (`001` → `011`).
 2. Create an email/password user in Supabase Auth for editors.
 3. Grant site access:
 
@@ -70,6 +70,24 @@ where s.key = 'demo';
 ```
 
 **Note:** Migration `007` enables multi-site support and re-seeds demo sites. Read the migration before applying on an existing database.
+
+### Edge function (optional)
+
+For scripted editing (curl/wget: list/create/delete pages and templates, GET page JSON, edit, PUT/POST back), deploy edge functions from the package. Requires the [Supabase CLI](https://supabase.com/docs/guides/cli) installed on your machine (`brew install supabase/tap/supabase` on macOS) — it is not bundled with the npm package.
+
+```bash
+# once — link your Supabase project
+supabase login
+supabase link --project-ref YOUR_PROJECT_REF \
+  --workdir node_modules/ghots-nuxt-cms
+
+# deploy (repeat after package upgrades that change the functions)
+npm run deploy:edge-functions --prefix node_modules/ghots-nuxt-cms
+```
+
+Or add to your app `package.json`: `"deploy:edge-functions": "supabase functions deploy cms-page cms-pages cms-templates --workdir node_modules/ghots-nuxt-cms --use-api"`.
+
+API and curl/wget examples: [edge function guide](https://github.com/Bohdan-Anderson/ghots-nuxt-cms/blob/main/docs/dev/edge-function-cms-page.md).
 
 Tables, RLS, and storage are documented in the [ghots-nuxt-cms repo](https://github.com/Bohdan-Anderson/ghots-nuxt-cms/tree/main/docs).
 

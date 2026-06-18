@@ -8,12 +8,13 @@ Use the [Supabase dashboard](https://supabase.com/dashboard). Note the **Project
 
 ## 2. Run migrations
 
-Apply the SQL files from the CMS package **`supabase/migrations/`** in numeric order (`001` → `007`). They create:
+Apply the SQL files from the CMS package **`supabase/migrations/`** in numeric order (`001` → `011`). They create:
 
-- Pages, templates, fields, slices, globals
+- Pages, templates, fields, globals
 - Multi-site tables (`sites`, `site_members`) and `site_id` scoping (migration `007`)
 - Row Level Security (public read; writes require site membership)
 - Storage bucket for images (migration `005`)
+- Wide field columns and DOM-first content model (migrations `008`–`011`)
 
 Use the SQL editor or Supabase CLI — whichever you already use.
 
@@ -54,8 +55,22 @@ If you use **image** fields, migrations configure a public `cms-media` bucket. U
 ## What you do not need
 
 - Custom API server — browser and build talk to Supabase directly
-- Edge functions for basic editing
 - Separate CMS database
+
+## Optional: edge function for scripted editing
+
+For curl/wget workflows (list/create/delete pages and templates, fetch page JSON, edit, push back), deploy the edge functions from the installed package:
+
+```bash
+supabase link --project-ref YOUR_PROJECT_REF \
+  --workdir node_modules/ghots-nuxt-cms
+
+npm run deploy:edge-functions --prefix node_modules/ghots-nuxt-cms
+```
+
+Full API reference, curl/wget examples, and monorepo deploy paths: [CMS edge functions](./dev/edge-function-cms-page.md).
+
+The in-browser CMS editor does not require edge functions.
 
 ## Security model (summary)
 

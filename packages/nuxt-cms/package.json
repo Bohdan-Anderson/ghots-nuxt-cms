@@ -1,6 +1,6 @@
 {
   "name": "ghots-nuxt-cms",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Static-first Supabase page builder for Nuxt 4",
   "type": "module",
   "license": "MIT",
@@ -28,7 +28,11 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
-    "prepublishOnly": "npm run test"
+    "prepublishOnly": "npm run test",
+    "deploy:cms-page": "supabase functions deploy cms-page --workdir . --use-api",
+    "deploy:cms-pages": "supabase functions deploy cms-pages --workdir . --use-api",
+    "deploy:cms-templates": "supabase functions deploy cms-templates --workdir . --use-api",
+    "deploy:edge-functions": "supabase functions deploy cms-page cms-pages cms-templates --workdir . --use-api"
   },
   "exports": {
     ".": "./nuxt.config.ts",
@@ -55,6 +59,7 @@
   },
   "devDependencies": {
     "happy-dom": "^20.10.2",
+    "supabase": "^2.106.0",
     "vitest": "^3.2.4"
   }
 }
